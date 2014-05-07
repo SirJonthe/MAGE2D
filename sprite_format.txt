@@ -1,0 +1,31 @@
+new_animation = "name of animation" {
+
+	// loading an image file (both equivalent)
+	file_relative = "~/user/Game/Content/image.bmp"
+	file_absolute = "../image.bmp"
+	
+	// frame width and frame count (frame height is always equal to the height of the image)
+	frame_width = 32
+	frame_count = 15
+
+	// (all below are equivalent)
+	frames_per_second = 2
+	frame_delay_ms = 500
+	frame_delay_seconds = 0.5
+	
+	// this offset is applied to the image when drawing it
+	offset_x = 10
+	offset_y = 15
+	
+	// equivalents of setting loop (default 1)
+	is_looping = true
+	is_looping = 1 // if looping is set to 0, loopback frame is forced to frame_count - 1
+	
+	// sets the frame on which the animation loops back onto (0 default)
+	loopback_frame = 5	
+}
+
+new_animation = "some other animation" extend "name of animation" = {
+	// defaults to the settings of "name of animation"
+	// override stuff manually
+}

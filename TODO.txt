@@ -1,0 +1,54 @@
+TODO
+Fix Sprite class
+Define and load a sprite format
+Collisions
+	Per pixel
+	Box
+	Polygon
+	Circle
+Physics?
+	Make room for box2d?
+	Roll my own?
+		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032		
+Debugger:
+	Game object that stops time
+	Lets user click on an object and view its properties
+	Requires objects to implement an output function (that prints values)
+
+IN PROGRESS
+Font
+	Create a small surface that fits one character
+	Render character to image
+	Render image as textured quad (OpenGL)
+Kill line
+	Game object
+	Everything moving past this line is destroyed (in its OnCollision function)
+Camera class
+Engine filtering of object list
+	by ray - has to operate on collider, not transform position
+	by cone - has to operate on collider, not transform position
+	by box - has to operate on collider, not transform position
+	by sphere - has to operate on collider, not transform position
+	by separating plane - has to operate on collider, not transform position
+Scaling and rotation, alpha/color key
+	OpenGL rendering
+
+DEBUG
+Transforms
+
+WHEN DONE
+MiniLib
+	Update MiniLib components?
+	Link to MiniLib on GitHub somehow?
+		git submodules
+Valgrind
+
+BUGS
+[FIXED?] Frame timer in Engine is wrong when delta time is less than 1, i.e. delay kicks in
+Bind texture does not work in Image?
+
+ADDITIONAL
+Avoid having the user needing to allocate memory manually.
+	Data should not be able to be accideltally deleted by user that the engine is the sole master over.
+Data structure that can reference an Object securely.
+	Automatically references a NULL object if the Object it was originally referencing was deleted by the engine.
