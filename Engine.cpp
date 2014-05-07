@@ -114,7 +114,7 @@ void Engine::DestroyObjects( void )
 void Engine::UpdateTimer( void )
 {
 	if (m_timer.GetTimeDeltaTick() < 1.0f) {
-		SDL_Delay(Uint32((1000.0f / 60.0f) * (1.0f	- m_timer.GetTimeDeltaTick())));
+		SDL_Delay(Uint32((1000.0f / 60.0f) * (1.0f - m_timer.GetTimeDeltaTick())));
 	}
 	m_timer.Tick();
 }
@@ -236,7 +236,7 @@ bool Engine::Init(int argc, char **argv)
 	glViewport(0, 0, SDL_GetVideoSurface()->w, SDL_GetVideoSurface()->h);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
@@ -350,7 +350,7 @@ void Engine::KillProgram( void )
 
 void Engine::SetUpdateFrequency(float updatesPerSecond)
 {
-	m_timer.SetInterval(updatesPerSecond);
+	m_timer.SetIntervalsPerSecond(updatesPerSecond);
 }
 
 float Engine::GetDeltaTime( void ) const
@@ -480,6 +480,7 @@ void Engine::StopMusic( void )
 void Engine::UpdateVideo( void ) const
 {
 	SDL_GL_SwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Engine::SetRenderer(Renderer *renderer)

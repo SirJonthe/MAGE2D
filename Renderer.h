@@ -1,6 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include <GL/gl.h>
 #include "Graphics.h"
 #include "Camera.h"
 
@@ -15,6 +16,10 @@ private:
 	};
 	mtlArray<GraphicsInstance>	m_graphics;
 	mmlMatrix<3,3>				m_view;
+	GLfloat						m_vert[8];
+	GLfloat						m_tex[8];
+	GLuint						m_vertId;
+	GLuint						m_texId;
 protected:
 	int				GetGraphicsQueueSize( void ) const;
 	const Graphics	*GetGraphics(int i) const;
@@ -25,10 +30,10 @@ protected:
 	void			SetViewTransform(mmlMatrix<3,3> cameraTransform);
 public:
 					Renderer( void );
-	virtual			~Renderer( void ) {}
-	virtual void	SetView(const Camera &camera) = 0;
-	virtual void	AddGraphics(const Graphics&, const mmlMatrix<3,3>&) = 0;
-	virtual void	RenderView( void ) = 0;
+	virtual			~Renderer( void );
+	virtual void	SetView(const Camera &camera);
+	virtual void	AddGraphics(const Graphics &graphics, const mmlMatrix<3,3> &worldTransform);
+	virtual void	RenderView( void );
 };
 
 #endif // RENDERER_H

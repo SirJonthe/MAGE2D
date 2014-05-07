@@ -42,10 +42,10 @@ MiniLib
 	Link to MiniLib on GitHub somehow?
 		git submodules
 Valgrind
+Warnings
 
 BUGS
 [FIXED?] Frame timer in Engine is wrong when delta time is less than 1, i.e. delay kicks in
-Bind texture does not work in Image?
 
 ADDITIONAL
 Avoid having the user needing to allocate memory manually.

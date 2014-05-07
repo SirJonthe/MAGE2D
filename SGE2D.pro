@@ -15,7 +15,6 @@ SOURCES += main.cpp \
     MTL/mtlDirectory.cpp \
     Transform.cpp \
     Tools.cpp \
-    ImageRenderer.cpp \
     Renderer.cpp \
     Collider.cpp \
     Camera.cpp
@@ -47,9 +46,9 @@ HEADERS += \
     Tools.h \
     Graphics.h \
     Renderer.h \
-    ImageRenderer.h \
     Collider.h \
-    Camera.h
+    Camera.h \
+    Polygon.h
 
 OTHER_FILES += \
     TODO.txt \

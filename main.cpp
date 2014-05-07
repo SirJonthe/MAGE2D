@@ -5,7 +5,7 @@
 #include "Font.h"
 #include "Object.h"
 #include "Image.h"
-#include "ImageRenderer.h"
+#include "Renderer.h"
 #include <iostream>
 
 class Controllable : public Inherit<Object>
@@ -405,7 +405,7 @@ void Unit_Controllable(Engine &engine)
 	}
 	engine.AddObject(c);
 
-	engine.SetRenderer(new ImageRenderer);
+	engine.SetRenderer(new Renderer);
 
 	engine.RunGame();
 }
