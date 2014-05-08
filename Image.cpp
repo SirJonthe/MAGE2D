@@ -42,8 +42,10 @@ void Image::Destroy( void )
 	if (m_bound == m_id) {
 		UnbindTexture();
 	}
-	glDeleteTextures(1, &m_id);
-	m_id = 0;
+	if (m_id != 0) {
+		glDeleteTextures(1, &m_id);
+		m_id = 0;
+	}
 }
 
 bool Image::Load(const mtlDirectory &file)

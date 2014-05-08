@@ -14,12 +14,12 @@ private:
 	mmlVector<2> m_movement;
 protected:
 	void OnUpdate( void );
+	void OnGUI( void );
 public:
 	Controllable( void );
 };
 
 void Unit_OpenGLTest( void );
-void Unit_Font(Engine &engine);
 void Unit_Controllable(Engine &engine);
 
 int main(int argc, char **argv)
@@ -28,7 +28,6 @@ int main(int argc, char **argv)
 	Engine engine;
 	engine.Init(argc, argv);
 	engine.SetWindowCaption("Lots-o-tests");
-	Unit_Font(engine);
 	Unit_Controllable(engine);
 	return 0;
 }
@@ -82,6 +81,12 @@ void Controllable::OnUpdate( void )
 		event = event->GetNext();
 	}
 	GetTransform().ApplyLocalTranslation(m_movement);
+}
+
+void Controllable::OnGUI( void )
+{
+	//Font f;
+	//f.DrawText("Hello, world!", 0.0f, 0.0f);
 }
 
 Controllable::Controllable( void ) : m_movement(0.0f, 0.0f)
@@ -389,11 +394,6 @@ void Unit_OpenGLTest( void )
 
 	SDL_Event event;
 	while (SDL_WaitEvent(&event) && event.type != SDL_KEYDOWN) {}
-}
-
-void Unit_Font(Engine &engine)
-{
-
 }
 
 void Unit_Controllable(Engine &engine)

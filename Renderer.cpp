@@ -109,6 +109,8 @@ void Renderer::RenderView( void )
 
 	const void *currentGraphics = NULL;
 
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
 	for (int i = 0; i < GetGraphicsQueueSize(); ++i) {
 		mmlMatrix<3,3> t = GetGraphicsTransform(i);
 		GLfloat m[16] = {

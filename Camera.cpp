@@ -14,7 +14,7 @@ Camera::Camera(float pixelsInViewWidth, float pixelsInViewHeight) : Inherit<Obje
 	DisableCollisions();
 	ClearAllTypeFlags();
 	ClearAllCollisionFlags();
-	SetName("tool_camera");
+	SetName("object_camera");
 }
 
 void Camera::ZoomIn(float scale)

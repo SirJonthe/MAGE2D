@@ -45,6 +45,7 @@ public:
 	mtlAsset<type_t>	&operator=(const mtlAsset<type_t> &p_asset) { CopyReference(p_asset); return *this; }
 	template < typename derived_t >
 	bool				Load(const mtlChars &p_filename);
+	bool				Load(const mtlChars &p_filename);
 	void				Invalidate( void ) { DeleteReference(); }
 	const type_t		*GetAsset( void ) const { return IsValid() ? m_ref->asset : NULL; }
 	const mtlDirectory	&GetFilename( void ) const { return IsValid() ? m_ref->filename : mtlDirectory(""); }
@@ -112,6 +113,12 @@ bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
 		}
 	}
 	return true;
+}
+
+template < typename type_t >
+bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
+{
+	return Load<type_t>(p_filename);
 }
 
 template < typename type_t >
