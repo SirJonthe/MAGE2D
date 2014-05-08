@@ -35,8 +35,10 @@ Image::~Image( void )
 
 void Image::Destroy( void )
 {
-	SDL_FreeSurface(m_image);
-	m_image = NULL;
+	if (m_image != NULL) {
+		SDL_FreeSurface(m_image);
+		m_image = NULL;
+	}
 	m_width = 0;
 	m_height = 0;
 	if (m_bound == m_id) {

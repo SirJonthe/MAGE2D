@@ -85,8 +85,8 @@ void Controllable::OnUpdate( void )
 
 void Controllable::OnGUI( void )
 {
-	//Font f;
-	//f.DrawText("Hello, world!", 0.0f, 0.0f);
+	Font f;
+	f.DrawText("Hello, world!", 0.0f, 0.0f);
 }
 
 Controllable::Controllable( void ) : m_movement(0.0f, 0.0f)

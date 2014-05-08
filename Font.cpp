@@ -208,8 +208,8 @@ GLfloat Font::m_uv[8];
 Font::Font( void )
 {
 	if (m_tId == 0) {
-		glGenBuffers(GL_VERTEX_ARRAY, &m_vId);
-		glGenBuffers(GL_TEXTURE_COORD_ARRAY, &m_uvId);
+		glGenBuffers(1, &m_vId);
+		glGenBuffers(1, &m_uvId);
 
 		unsigned int *pixels = new unsigned int[font_width*font_height];
 
@@ -219,9 +219,9 @@ Font::Font( void )
 				unsigned char byte = font_bits[y * font_table_width + x / 8];
 				unsigned char bit = byte & (1 << (x % 8));
 				if (bit != 0) { // inverted
-					pixels[i] = 0xffffffff;
-				} else {
 					pixels[i] = 0x00000000;
+				} else {
+					pixels[i] = 0xffffffff;
 				}
 				++i;
 			}
@@ -294,19 +294,19 @@ void Font::DrawText(const mtlChars &text, float x, float y, float r, float g, fl
 		}
 		int index = ch - first_char;
 		float ux = char_uv_width * (index % char_count_width);
-		float uy = 1.0f - (char_uv_height * (index / char_count_width));
+		float uy = (char_uv_height * (index / char_count_width));
 
 		m_uv[0] = ux;
-		m_uv[1] = uy;
+		m_uv[1] = uy + char_uv_height;
 
 		m_uv[2] = ux + char_uv_width;
-		m_uv[3] = uy;
+		m_uv[3] = uy + char_uv_height;
 
 		m_uv[4] = ux + char_uv_width;
-		m_uv[5] = uy - char_uv_height;
+		m_uv[5] = uy;
 
 		m_uv[6] = ux;
-		m_uv[7] = uy - char_uv_height;
+		m_uv[7] = uy;
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_uvId);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(m_uv), m_uv, GL_STATIC_DRAW);
