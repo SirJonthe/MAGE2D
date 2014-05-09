@@ -260,6 +260,21 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 	}
 }
 
+mtlString &mtlString::Append(const mtlChars &p_str)
+{
+	int oldSize = m_size;
+	if (m_size + p_str.GetSize() > m_pool) {
+		NewPoolPreserve(m_size + p_str.GetSize());
+	} else {
+		m_size += p_str.GetSize();
+		m_str[m_size] = '\0';
+	}
+	for (int i = 0; i < p_str.GetSize(); ++i) {
+		m_str[i + oldSize] = p_str.GetChars()[i];
+	}
+	return *this;
+}
+
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 {
 	const int p_num = p_str.GetSize();
@@ -360,33 +375,20 @@ bool mtlString::FromInt(int i)
 {
 	char ch_out[32];
 	int size = sprintf(ch_out, "%d", i);
-	Copy(mtlChars::Dynamic(ch_out, size));
+	if (size >= 0) {
+		Copy(mtlChars::Dynamic(ch_out, size));
+	}
+	return size >= 0;
 }
 
-bool mtlString::FromFloat(float num)
+bool mtlString::FromFloat(float f)
 {
-	char fstr[80];
-	int i = 0;
-	int m = floor(log10(num));
-	int digit;
-	if (num < 0) {
-		fstr[i++] = '-';
-		num = -num;
+	char ch_out[32];
+	int size = sprintf(ch_out, "%f", f);
+	if (size >= 0) {
+		Copy(mtlChars::Dynamic(ch_out, size));
 	}
-	float tolerance = 0.0001f;
-
-	while ((num > 0 + tolerance) || (m >= 0)) {
-		float weight = pow(10.0f, m);
-		digit = floor(num / weight);
-		num -= (digit * weight);
-		fstr[i++] = '0' + digit;
-		if (m == 0) {
-			fstr[i++] = '.';
-		}
-		--m;
-	}
-	*(fstr) = '\0';
-	Copy(mtlChars::Dynamic(fstr, i));
+	return size >= 0;
 }
 
 mtlHash::mtlHash(const mtlChars &p_str)

@@ -9,7 +9,7 @@ void KillPlane::OnCollision(Object &collider)
 
 KillPlane::KillPlane( void ) : Inherit<Object>()
 {
-	ClearAllTypeFlags();
+	ClearAllObjectFlags();
 	SetName("tool_killplane");
 	// LoadCollider<PlaneCollider>();
 	// Plane *p = GetCollider<PlaneCollider>();

@@ -42,7 +42,7 @@ void Image::Destroy( void )
 	m_width = 0;
 	m_height = 0;
 	if (m_bound == m_id) {
-		UnbindTexture();
+		Unbind();
 	}
 	if (m_id != 0) {
 		glDeleteTextures(1, &m_id);
@@ -142,7 +142,7 @@ bool Image::SetSurface(SDL_Surface *image)
 	if (m_bound != 0) {
 		glBindTexture(GL_TEXTURE_2D, m_bound);
 	} else {
-		UnbindTexture();
+		Unbind();
 	}
 
 	return true;
@@ -172,7 +172,7 @@ const Uint32 *Image::GetPixels(int x, int y) const
 	return IsGood() ? ((Uint32*)(m_image->pixels) + y * m_image->w + x) : NULL;
 }
 
-void Image::BindTexture( void ) const
+void Image::Bind( void ) const
 {
 	if (m_id != 0 && m_bound != m_id) {
 		glBindTexture(GL_TEXTURE_2D, m_id);
@@ -180,7 +180,7 @@ void Image::BindTexture( void ) const
 	}
 }
 
-void Image::UnbindTexture( void )
+void Image::Unbind( void )
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	m_bound = 0;

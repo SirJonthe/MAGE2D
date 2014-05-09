@@ -4,12 +4,11 @@
 #include <GL/gl.h>
 #include <SDL/SDL.h>
 #include "MTL/mtlString.h"
-#include "MTL/mtlAsset.h"
 #include "Common.h"
 #include "Timer.h"
 #include "Graphics.h"
 
-class Image : public mtlAssetInterface, public Inherit<Graphics>
+class Image : public Inherit<Graphics>
 {
 private:
 	SDL_Surface		*m_image;
@@ -36,8 +35,8 @@ public:
 	const Uint32		*GetPixels( void ) const;
 	const Uint32		*GetPixels(int y) const;
 	const Uint32		*GetPixels(int x, int y) const;
-	void				BindTexture( void ) const;
-	static void			UnbindTexture( void );
+	void				Bind( void ) const;
+	static void			Unbind( void );
 };
 
 #endif // IMAGE_H

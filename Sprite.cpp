@@ -3,26 +3,9 @@
 #include "MML/mmlMath.h"
 #include "MTL/mtlParser.h"
 
-/*Sprite::Sprite( void ) : m_animations(), m_currentAnimation(0), m_frameTimer()
+Sprite::Sprite( void ) : m_animations(), m_currentAnimation(0), m_currentFrame(0), m_frameTimer(), m_paused(false)
 {
-}
-
-bool Sprite::Draw(int x, int y, int xOrientation, SDL_Surface *dst)
-{
-	if (m_currentAnimation < 0 || m_currentAnimation >= m_animations.GetSize()) { return false; }
-	bool result = m_animations[m_currentAnimation].image.Draw(x, y, xOrientation, dst);
-	m_animations[m_currentAnimation].image.TickAnimation();
-	return result;
-}
-
-bool Sprite::Draw(Point p, int xOrientation, SDL_Surface *dst)
-{
-	return Draw(p.x, p.y, xOrientation, dst);
-}
-
-void Sprite::SetAnimation(int index)
-{
-	m_currentAnimation = mmlClamp(0, index, m_animations.GetSize()-1);
+	m_frameTimer.Stop();
 }
 
 int Sprite::GetAnimationCount( void ) const
@@ -30,26 +13,99 @@ int Sprite::GetAnimationCount( void ) const
 	return m_animations.GetSize();
 }
 
-void Sprite::SetFrame(int frame)
+const Animation *Sprite::GetAnimation( void ) const
 {
-	if (m_currentAnimation < 0 || m_currentAnimation >= m_animations.GetSize()) { return; }
-	m_animations[m_currentAnimation].image.SetCurrentFrame(frame);
+	if (m_currentAnimation >= GetAnimationCount()) {
+		return NULL;
+	}
+	return &m_animations[m_currentAnimation];
+}
+
+const Animation *Sprite::GetAnimation(const mtlChars &name) const
+{
+	int i = GetIndexOf(name);
+	if (i < 0) { return NULL; }
+	return &m_animations[m_currentAnimation];
+}
+
+const Animation *Sprite::GetAnimation(int index) const
+{
+	if (index < 0 || index >= GetAnimationCount()) {
+		return NULL;
+	}
+	return &m_animations[m_currentAnimation];
+}
+
+void Sprite::SetAnimation(const mtlChars &name)
+{
+	int i =	GetIndexOf(name);
+	if (i >= 0) {
+		m_currentAnimation = i;
+	}
+}
+
+void Sprite::SetAnimation(int index)
+{
+	if (index >= 0 && index < GetAnimationCount()) {
+		m_currentAnimation = index;
+	}
+}
+
+int Sprite::GetIndexOf(const mtlChars &name) const
+{
+	const mtlHash hash = mtlHash(name);
+	for (int i = 0; i < GetAnimationCount(); ++i) {
+		if (m_animations[i].hash = hash && m_animations[i].name.Compare(name)) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 int Sprite::GetFrame( void ) const
 {
-	if (m_currentAnimation < 0 || m_currentAnimation >= m_animations.GetSize()) { return 0; }
-	m_animations[m_currentAnimation].image.GetCurrentFrame();
+	return m_currentFrame;
+}
+
+int Sprite::SetFrame(int frame)
+{
+	m_currentFrame = frame;
+}
+
+bool Sprite::Load(const mtlDirectory &file)
+{
 }
 
 void Sprite::Destroy( void )
 {
 	m_animations.Free();
-	m_currentAnimation = 0;
 }
 
-const Animation *Sprite::GetAnimation( void ) const
+void Sprite::Start( void )
 {
-	if (m_currentAnimation < 0 || m_currentAnimation >= m_animations.GetSize()) { return NULL; }
-	return &m_animations[m_currentAnimation];
-}*/
+	m_paused = false;
+	m_frameTimer.Start();
+}
+
+void Sprite::Pause( void )
+{
+	m_paused = true;
+}
+
+void Sprite::Stop( void )
+{
+	m_frameTimer.Stop();
+	m_currentFrame = 0;
+}
+
+void Sprite::Restart( void )
+{
+	m_paused = false;
+	m_currentFrame = 0;
+	m_frameTimer.Restart();
+}
+
+void Sprite::TickFrame( void )
+{
+
+}

@@ -215,6 +215,15 @@ mmlVector<2> Transform::GetWorldAxisX( void ) const
 void Transform::SetLocalAxisX(mmlVector<2> x)
 {
 	if (!x.IsNormalized()) { x.Normalize(); }
+	if (x[0]*x[1] < 0.0f) {
+		if (m_transform[0][0]*m_transform[0][1] > 0.0f) {
+			m_transform[0][2] = -m_transform[0][2];
+		}
+	} else {
+		if (m_transform[0][0]*m_transform[0][1] < 0.0f) {
+			m_transform[0][2] = -m_transform[0][2];
+		}
+	}
 	m_transform[0][0] = x[0];
 	m_transform[0][1] = x[1];
 	mmlVector<3> y = mmlCross(mmlVector<3>(x[0], x[1], 0.0f), mmlVector<3>(0.0f, 0.0f, -1.0f));
@@ -273,6 +282,15 @@ mmlVector<2> Transform::GetWorldAxisY( void ) const
 void Transform::SetLocalAxisY(mmlVector<2> y)
 {
 	if (!y.IsNormalized()) { y.Normalize(); }
+	if (y[0]*y[1] < 0.0f) {
+		if (m_transform[1][0]*m_transform[1][1] > 0.0f) {
+			m_transform[1][2] = -m_transform[1][2];
+		}
+	} else {
+		if (m_transform[1][0]*m_transform[1][1] < 0.0f) {
+			m_transform[1][2] = -m_transform[1][2];
+		}
+	}
 	m_transform[1][0] = y[0];
 	m_transform[1][1] = y[1];
 	mmlVector<3> x = mmlCross(mmlVector<3>(y[0], y[1], 0.0f), mmlVector<3>(0.0f, 0.0f, -1.0f));
@@ -316,6 +334,40 @@ void Transform::WorldAxisYLookAt(mmlVector<2> point)
 void Transform::WorldAxisYLookAt(float x, float y)
 {
 	WorldAxisYLookAt(mmlVector<2>(x, y));
+}
+
+int Transform::GetAxisXDirection( void ) const
+{
+	int x = 0;
+	if (m_transform[0][0] < 0.0f) {
+		x = -1;
+	} else if (m_transform[0][0] > 0.0f) {
+		x = 1;
+	}
+	return x;
+}
+
+void Transform::SetAxisXDirection(int x)
+{
+	x = mmlClamp(-1, x, 1);
+	m_transform[0][0] = fabs(m_transform[0][0]) * x;
+}
+
+int Transform::GetAxisYDirection( void ) const
+{
+	int y = 0;
+	if (m_transform[1][1] < 0.0f) {
+		y = -1;
+	} else if (m_transform[1][1] > 0.0f) {
+		y = 1;
+	}
+	return y;
+}
+
+void Transform::SetAxisYDirection(int y)
+{
+	y = mmlClamp(-1, y, 1);
+	m_transform[1][1] = fabs(m_transform[1][1]) * y;
 }
 
 void Transform::ApplyLocalTranslation(mmlVector<2> vector)

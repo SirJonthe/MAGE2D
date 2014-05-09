@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Engine.h"
 #include "Object.h"
+#include "GUI.h"
 #include "MML/mmlMath.h"
 
 void Engine::GenerateEventList( void )
@@ -41,8 +42,8 @@ void Engine::CollideObjects( void )
 			mtlNode<Object*> *nextObject = object->GetNext();
 			while (nextObject != NULL) {
 				if (nextObject->GetItem()->IsTicking() && nextObject->GetItem()->IsCollidable()) {
-					unsigned int abCollision = object->GetItem()->GetCollisionFlags() & nextObject->GetItem()->GetTypeFlags();
-					unsigned int baCollision = nextObject->GetItem()->GetTypeFlags() & object->GetItem()->GetCollisionFlags();
+					unsigned int abCollision = object->GetItem()->GetCollisionMasks() & nextObject->GetItem()->GetObjectFlags();
+					unsigned int baCollision = nextObject->GetItem()->GetObjectFlags() & object->GetItem()->GetCollisionMasks();
 					if ((abCollision > 0 || baCollision > 0) && Collide(object->GetItem(), nextObject->GetItem())) {
 						if (abCollision > 0) {
 							object->GetItem()->OnCollision(*nextObject->GetItem());
@@ -77,6 +78,8 @@ void Engine::DrawGUI( void )
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->IsTicking()) {
+			GUI::SetIdentityView();
+			GUI::SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 			object->GetItem()->OnGUI();
 		}
 		object = object->GetNext();
@@ -182,6 +185,7 @@ Engine::~Engine( void )
 	StopMusic();
 	Mix_CloseAudio();
 	SDL_Quit();
+	GUI::Destroy();
 }
 
 bool Engine::Init(int argc, char **argv)
@@ -256,6 +260,8 @@ bool Engine::Init(int argc, char **argv)
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	GUI::Init();
 
 	return true;
 }
@@ -342,6 +348,7 @@ void Engine::KillProgram( void )
 	StopMusic();
 	Mix_CloseAudio();
 	SDL_Quit();
+	GUI::Destroy();
 	m_inLoop = false;
 	m_quit = true;
 	DestroyAllObjects();
@@ -407,24 +414,24 @@ void Engine::FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, Typ
 	}
 }
 
-void Engine::FilterByTypeFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
+void Engine::FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
 {
 	out.RemoveAll();
 	const mtlNode<Object*> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetTypeFlags(mask) == mask) {
+		if (n->GetItem()->GetObjectFlags(mask) == mask) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByCollisionFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
+void Engine::FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
 {
 	out.RemoveAll();
 	const mtlNode<Object*> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetCollisionFlags(mask) == mask) {
+		if (n->GetItem()->GetCollisionMasks(mask) == mask) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
@@ -436,7 +443,7 @@ void Engine::FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, mmlV
 	out.RemoveAll();
 }
 
-void Engine::FilterByCone(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float range)
+void Engine::FilterByCone(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float apex)
 {
 	out.RemoveAll();
 }

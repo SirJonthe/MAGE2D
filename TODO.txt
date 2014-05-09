@@ -1,5 +1,8 @@
 TODO
 Fix Sprite class
+	Gah! Can't animate sprite inside sprite class because
+	mtlAsset makes Sprite const. Have to make a GraphicsInstance
+	class and inherit that in a SpriteInstance class
 Define and load a sprite format
 Collisions
 	Per pixel
@@ -9,6 +12,11 @@ Collisions
 Physics?
 	Roll my own?
 		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032		
+
+LONG TERM PLANS
+Sprite editor:
+	Game object that allows for editing sprites
+	Load and save sprite files
 Debugger:
 	Game object that stops time
 	Lets user click on an object and view its properties
@@ -27,7 +35,6 @@ Engine filtering of object list
 
 DEBUG
 Transforms
-Font
 
 WHEN DONE
 MiniLib
@@ -41,6 +48,6 @@ while (vargrind warnings || compiler warnings) {
 
 BUGS
 [FIXED?] Frame timer in Engine is wrong when delta time is less than 1, i.e. delay kicks in
-Font crash
+mtlString::Append still not working
 
 ADDITIONAL

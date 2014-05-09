@@ -65,7 +65,7 @@ void EngineInterface::StopMusic( void )
 	return m_engine->StopMusic();
 }
 
-Object::Object( void ) : EngineInterface(), m_transform(), m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false), m_collider(NULL), m_typeFlags(0x00000001), m_collisionFlags(0xffffffff), m_objectNumber(g_objectCounter++)
+Object::Object( void ) : EngineInterface(), m_transform(), m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false), m_collider(NULL), m_objectFlags(0x00000001), m_collisionMask(0xffffffff), m_objectNumber(g_objectCounter++)
 {
 	m_name.Copy("object_generic");
 }
@@ -110,31 +110,31 @@ void Object::EnableCollisions( void )
 	m_collisions = true;
 }
 
-bool Object::GetCollisionFlag(unsigned int bit) const
+bool Object::GetCollisionMask(unsigned int bit) const
 {
-	return (bool)((m_collisionFlags>>bit) & 1);
+	return (bool)((m_collisionMask>>bit) & 1);
 }
 
-unsigned int Object::GetCollisionFlags(unsigned int mask) const
+unsigned int Object::GetCollisionMasks(unsigned int mask) const
 {
-	return m_collisionFlags & mask;
+	return m_collisionMask & mask;
 }
 
-void Object::SetCollisionFlag(unsigned int bit, bool state)
+void Object::SetCollisionMask(unsigned int bit, bool state)
 {
 	unsigned int bitState = state ? 1 : 0;
 	unsigned int mask = bitState << bit;
-	m_collisionFlags |= mask;
+	m_collisionMask |= mask;
 }
 
-void Object::SetCollisionFlags(unsigned int mask)
+void Object::SetCollisionMasks(unsigned int mask)
 {
-	m_collisionFlags |= mask;
+	m_collisionMask |= mask;
 }
 
-void Object::ClearAllCollisionFlags( void )
+void Object::ClearAllCollisionMasks( void )
 {
-	m_collisionFlags = 0x00000000;
+	m_collisionMask = 0x00000000;
 }
 
 Transform &Object::GetTransform( void )
@@ -147,31 +147,31 @@ const Transform &Object::GetTransform( void ) const
 	return m_transform;
 }
 
-bool Object::GetTypeFlag(unsigned int bit) const
+bool Object::GetObjectFlag(unsigned int bit) const
 {
-	return (bool)((m_typeFlags>>bit) & 1);
+	return (bool)((m_objectFlags>>bit) & 1);
 }
 
-unsigned int Object::GetTypeFlags(unsigned int mask) const
+unsigned int Object::GetObjectFlags(unsigned int mask) const
 {
-	return m_typeFlags & mask;
+	return m_objectFlags & mask;
 }
 
-void Object::SetTypeFlag(unsigned int bit, bool state)
+void Object::SetObjectFlag(unsigned int bit, bool state)
 {
 	unsigned int bitState = state ? 1 : 0;
 	unsigned int mask = bitState << bit;
-	m_typeFlags |= mask;
+	m_objectFlags |= mask;
 }
 
-void Object::SetTypeFlags(unsigned int mask)
+void Object::SetObjectFlags(unsigned int mask)
 {
-	m_typeFlags |= mask;
+	m_objectFlags |= mask;
 }
 
-void Object::ClearAllTypeFlags( void )
+void Object::ClearAllObjectFlags( void )
 {
-	m_typeFlags = 0x00000000;
+	m_objectFlags = 0x00000000;
 }
 
 bool Object::IsVisible( void ) const

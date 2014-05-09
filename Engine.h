@@ -70,8 +70,8 @@ public:
 	template < typename type_t >
 	static void					FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out);
 	static void					FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id);
-	static void					FilterByTypeFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
-	static void					FilterByCollisionFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
+	static void					FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
+	static void					FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
 	static void					FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, mmlVector<2> direction);
 	static void					FilterByCone(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float range);
 	static void					FilterByBox(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> min, mmlVector<2> max);

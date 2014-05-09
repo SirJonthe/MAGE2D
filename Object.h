@@ -43,8 +43,8 @@ private:
 	bool						m_visible;
 	bool						m_frozen;			// used by the debugger object to freeze game state
 	Collider					*m_collider;
-	unsigned int				m_typeFlags;		// what is the object?
-	unsigned int				m_collisionFlags;	// what can the object collide with?
+	unsigned int				m_objectFlags;		// what is the object?
+	unsigned int				m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
 protected:
 	virtual void	OnInit( void ) {}
@@ -70,11 +70,11 @@ public:
 	bool				IsCollidable( void ) const;
 	void				DisableCollisions( void );
 	void				EnableCollisions( void );
-	bool				GetCollisionFlag(unsigned int bit) const;
-	unsigned int		GetCollisionFlags(unsigned int mask = 0xffffffff) const;
-	void				SetCollisionFlag(unsigned int bit, bool state);
-	void				SetCollisionFlags(unsigned int mask);
-	void				ClearAllCollisionFlags( void );
+	bool				GetCollisionMask(unsigned int bit) const;
+	unsigned int		GetCollisionMasks(unsigned int mask = 0xffffffff) const;
+	void				SetCollisionMask(unsigned int bit, bool state);
+	void				SetCollisionMasks(unsigned int mask);
+	void				ClearAllCollisionMasks( void );
 
 	Transform			&GetTransform( void );
 	const Transform		&GetTransform( void ) const;
@@ -83,11 +83,11 @@ public:
 	const object_t		*GetAsType( void ) const;
 	template < typename object_t >
 	object_t			*GetAsType( void );
-	bool				GetTypeFlag(unsigned int bit) const;
-	unsigned int		GetTypeFlags(unsigned int mask = 0xffffffff) const;
-	void				SetTypeFlag(unsigned int bit, bool state);
-	void				SetTypeFlags(unsigned int mask);
-	void				ClearAllTypeFlags( void );
+	bool				GetObjectFlag(unsigned int bit) const;
+	unsigned int		GetObjectFlags(unsigned int mask = 0xffffffff) const;
+	void				SetObjectFlag(unsigned int bit, bool state);
+	void				SetObjectFlags(unsigned int mask);
+	void				ClearAllObjectFlags( void );
 
 	bool				IsVisible( void ) const;
 	void				EnableGraphics( void );

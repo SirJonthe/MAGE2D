@@ -24,7 +24,8 @@ public:
 	float			GetTimeDeltaSecondsTick( void ) const;
 	float			GetTimeDeltaSecondsNow( void ) const;
 	void			Tick( void );
-	static float	GetProgramTime( void );
+	static float	GetProgramTimeSeconds( void );
+	float			GetProgramTimeInterval( void );
 };
 
 #endif // TIMER_H

@@ -13,7 +13,11 @@ void Timer::SetInterval(float fractionOfSecond)
 	} else {
 		m_interval = fractionOfSecond;
 	}
-	Stop();
+	if (!IsStopped()) {
+		Restart();
+	} else {
+		Stop();
+	}
 }
 
 void Timer::SetIntervalsPerSecond(float intervalsPerSecond)
@@ -23,7 +27,11 @@ void Timer::SetIntervalsPerSecond(float intervalsPerSecond)
 	} else {
 		m_interval = 1.0f / intervalsPerSecond;
 	}
-	Stop();
+	if (!IsStopped()) {
+		Restart();
+	} else {
+		Stop();
+	}
 }
 
 float Timer::GetInterval( void ) const
@@ -42,7 +50,7 @@ float Timer::GetIntervalsPerSecond( void ) const
 void Timer::Start( void )
 {
 	if (IsStopped() && m_interval > 0.0f) {
-		m_timeNow = GetProgramTime();
+		m_timeNow = GetProgramTimeSeconds();
 		m_timeLast = m_timeNow;
 	}
 }
@@ -57,7 +65,7 @@ void Timer::Stop( void )
 void Timer::Restart( void )
 {
 	if (m_interval > 0.0f) {
-		m_timeNow = GetProgramTime();
+		m_timeNow = GetProgramTimeSeconds();
 		m_timeLast = m_timeNow;
 		m_delta = 0.0f;
 	}
@@ -81,7 +89,7 @@ float Timer::GetTimeDeltaTick( void ) const
 float Timer::GetTimeDeltaNow( void ) const
 {
 	if (m_interval > 0.0f) {
-		float now = GetProgramTime();
+		float now = GetProgramTimeSeconds();
 		return (now - m_timeLast) / m_interval;
 	}
 	return 0.0f;
@@ -106,7 +114,12 @@ void Timer::Tick( void )
 	}
 }
 
-float Timer::GetProgramTime( void )
+float Timer::GetProgramTimeSeconds( void )
 {
 	return float(SDL_GetTicks()) / 1000.0f;
+}
+
+float Timer::GetProgramTimeInterval( void )
+{
+	return float(SDL_GetTicks()) / m_interval;
 }

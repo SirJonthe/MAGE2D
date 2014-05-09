@@ -8,7 +8,6 @@ SOURCES += main.cpp \
     Sound.cpp \
     Object.cpp \
     Image.cpp \
-    Font.cpp \
     Engine.cpp \
     MTL/mtlString.cpp \
     MTL/mtlParser.cpp \
@@ -17,7 +16,9 @@ SOURCES += main.cpp \
     Tools.cpp \
     Renderer.cpp \
     Collider.cpp \
-    Camera.cpp
+    Camera.cpp \
+    Polygon.cpp \
+    GUI.cpp
 
 HEADERS += \
     Timer.h \
@@ -25,7 +26,6 @@ HEADERS += \
     Sound.h \
     Object.h \
     Image.h \
-    Font.h \
     Engine.h \
     Common.h \
     Transform.h \
@@ -48,7 +48,8 @@ HEADERS += \
     Renderer.h \
     Collider.h \
     Camera.h \
-    Polygon.h
+    Polygon.h \
+    GUI.h
 
 OTHER_FILES += \
     TODO.txt \

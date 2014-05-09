@@ -12,8 +12,8 @@ void Camera::OnFinal( void )
 Camera::Camera(float pixelsInViewWidth, float pixelsInViewHeight) : Inherit<Object>(), m_pixelsInViewWidth(pixelsInViewWidth), m_pixelsInViewHeight(pixelsInViewHeight), m_renderer()
 {
 	DisableCollisions();
-	ClearAllTypeFlags();
-	ClearAllCollisionFlags();
+	ClearAllObjectFlags();
+	ClearAllCollisionMasks();
 	SetName("object_camera");
 }
 

@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Polygon.h"
 #include <GL/glext.h>
 
 bool Renderer::GraphicsInstance::operator <(const Renderer::GraphicsInstance &inst) const
@@ -93,7 +94,7 @@ void Renderer::AddGraphics(const Graphics &graphics, const mmlMatrix<3,3> &world
 	if (graphics.GetInstanceType() == Image::GetClassType()) {
 		AddToGraphicsQueue(graphics, worldTransform);
 	}/* else if (graphics.GetInstanceType() == Polygon::GetClassType()) {
-
+		AddToGraphicsQueue(graphics, worldTransform);
 	}*/
 	// accept more types
 }
@@ -139,12 +140,12 @@ void Renderer::RenderView( void )
 			m_vert[7] = 0.0f;
 
 			glBufferData(GL_ARRAY_BUFFER, sizeof(m_vert), m_vert, GL_STATIC_DRAW);
-			graphics->BindTexture();
+			graphics->Bind();
 		}
 
 		glDrawArrays(GL_QUADS, 0, 4);
 
 	}
-	Image::UnbindTexture();
+	Image::Unbind();
 	ClearGraphicsQueue();
 }
