@@ -81,6 +81,16 @@ bool LineLine(mmlVector<2> a1, mmlVector<2> a2, mmlVector<2> b1, mmlVector<2> b2
 		(dr1 >= 1.0f - RoundErr && dr1 <= 1.0f + RoundErr && dr2 >= 1.0f - RoundErr && dr2 <= 1.0f - RoundErr);
 }
 
+Transform &Collider::GetTransform( void )
+{
+	return m_transform;
+}
+
+const Transform &Collider::GetTransform( void ) const
+{
+	return m_transform;
+}
+
 PointCollider::PointCollider( void ) : m_point(0.0f, 0.0f) {}
 
 PointCollider::PointCollider(float x, float y) : m_point(x, y) {}

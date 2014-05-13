@@ -172,6 +172,31 @@ bool Engine::GetPixelOverlap(const Object *a, const Object *b, Box o) const
 	return false;
 }
 
+mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )
+{
+	static mtlBinaryTree<TypeNode> typeTree;
+	return typeTree;
+}
+
+void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types)
+{
+	if (branch == NULL) { return; }
+	if (branch->GetNegative() != NULL) {
+		GetRegisteredTypes(branch->GetNegative(), types);
+	}
+	mtlNode<Type> *node = branch->GetItem().types.GetShared()->GetFirst();
+	while (node != NULL) {
+		mtlShared<mtlString> name;
+		name.New();
+		name.GetShared()->Copy(node->GetItem().name);
+		types.AddLast(name);
+		node = node->GetNext();
+	}
+	if (branch->GetPositive() != NULL) {
+		GetRegisteredTypes(branch->GetPositive(), types);
+	}
+}
+
 Engine::Engine( void ) : m_objects(), m_timer(60.0f), m_quit(false), m_inLoop(false), m_music(NULL), m_renderer(NULL)
 {
 }
@@ -184,8 +209,8 @@ Engine::~Engine( void )
 	delete m_renderer;
 	StopMusic();
 	Mix_CloseAudio();
-	SDL_Quit();
 	GUI::Destroy();
+	SDL_Quit();
 }
 
 bool Engine::Init(int argc, char **argv)
@@ -496,4 +521,68 @@ void Engine::SetRenderer(Renderer *renderer)
 		delete m_renderer;
 	}
 	m_renderer = renderer;
+}
+
+Object *Engine::AddObject( void )
+{
+	return AddObject<Object>();
+}
+
+Object *Engine::AddObject(const mtlChars &typeName)
+{
+	mtlHash h(typeName);
+	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	if (b != NULL) {
+		b = b->Find(h);
+	}
+	if (b != NULL) {
+		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
+		while (n != NULL) {
+			if (n->GetItem().name.Compare(typeName)) {
+				Object *o = n->GetItem().creator_func();
+				AddObject(o);
+				return o;
+			}
+			n = n->GetNext();
+		}
+	}
+	return NULL;
+}
+
+bool Engine::RegisterType(const mtlChars &typeName, Object *(*creator_func)())
+{
+	mtlHash h(typeName);
+	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	if (b != NULL) {
+		b = b->Find(h);
+	}
+	mtlNode<Type> *n = NULL;
+	if (b != NULL) {
+		n = b->GetItem().types.GetShared()->GetFirst();
+		while (n != NULL) {
+			if (n->GetItem().name.Compare(typeName)) { // this type is already registered
+				return false;
+			}
+			n = n->GetNext();
+		}
+	}
+	if (n == NULL) {
+		if (b == NULL) {
+			TypeNode tn;
+			tn.hash = h;
+			tn.types.New();
+			b = GetTypeTree().Insert(tn);
+		}
+		Type t;
+		t.name.Copy(typeName);
+		t.creator_func = creator_func;
+		b->GetItem().types.GetShared()->AddLast(t);
+	}
+	return true;
+}
+
+void Engine::GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types)
+{
+	types.RemoveAll();
+	GetRegisteredTypes(GetTypeTree().GetRoot(), types);
 }

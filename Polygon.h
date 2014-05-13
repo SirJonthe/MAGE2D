@@ -5,7 +5,7 @@
 #include "Graphics.h"
 #include "MTL/mtlArray.h"
 
-class Polygon : public Inherit<Graphics>
+class Polygon : public mtlInherit<Graphics>
 {
 private:
 	mtlArray< mmlVector<2> >	m_vert;

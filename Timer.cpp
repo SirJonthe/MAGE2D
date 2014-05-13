@@ -109,7 +109,7 @@ void Timer::Tick( void )
 {
 	if (!IsStopped()) {
 		m_timeLast = m_timeNow;
-		m_timeNow = GetProgramTime();
+		m_timeNow = GetProgramTimeSeconds();
 		m_delta = (m_timeNow - m_timeLast) / m_interval;
 	}
 }

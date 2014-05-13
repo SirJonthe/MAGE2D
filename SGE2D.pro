@@ -49,7 +49,9 @@ HEADERS += \
     Collider.h \
     Camera.h \
     Polygon.h \
-    GUI.h
+    GUI.h \
+    MTL/mtlPointer.h \
+    MTL/mtlType.h
 
 OTHER_FILES += \
     TODO.txt \

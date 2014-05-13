@@ -116,9 +116,17 @@ class mtlHash
 public:
 	unsigned int value;
 public:
+	mtlHash( void ) : value(0) {}
+	mtlHash(const mtlHash &hash) : value(hash.value) {}
 	mtlHash(const mtlChars &p_str);
 	template < int N >
 	mtlHash(const char (&p_str)[N]) : value(mtlFNVConstHasher<N,N>::Hash(p_str)) {}
+	bool operator==(mtlHash h) const { return value == h.value; }
+	bool operator!=(mtlHash h) const { return value != h.value; }
+	bool operator<(mtlHash h) const { return value < h.value; }
+	bool operator<=(mtlHash h) const { return value <= h.value; }
+	bool operator>(mtlHash h) const { return value > h.value; }
+	bool operator>=(mtlHash h) const { return value >= h.value; }
 };
 
 mtlChars::mtlChars( void ) :

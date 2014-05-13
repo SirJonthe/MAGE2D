@@ -6,6 +6,8 @@
 static GLuint tId = 0, vId = 0, uvId = 0;
 static GLfloat vert[8];
 static GLfloat uv[8];
+static int caret_x = 0;
+static int caret_y = 0;
 
 #define first_char '!'
 #define last_char '~'
@@ -271,7 +273,70 @@ void GUI::SetColor(mmlVector<4> color)
 	glColor4f(color[0], color[1], color[2], color[3]);
 }
 
-void GUI::Text(const mtlChars &text, int x, int y, int scale)
+void GUI::SetCaretXY(int x, int y)
+{
+	caret_x = x;
+	caret_y = y;
+}
+
+void GUI::SetCaretX(int x)
+{
+	caret_x = x;
+}
+
+void GUI::SetCaretY(int y)
+{
+	caret_y = y;
+}
+
+void GUI::SetCaretUV(float u, float v)
+{
+	caret_x = u * (SDL_GetVideoSurface()->w - 1);
+	caret_y = v * (SDL_GetVideoSurface()->h - 1);
+}
+
+void GUI::SetCaretU(float u)
+{
+	caret_x = u * (SDL_GetVideoSurface()->w - 1);
+}
+
+void GUI::SetCaretV(float v)
+{
+	caret_y = v * (SDL_GetVideoSurface()->h - 1);
+}
+
+Point GUI::GetCaretXY( void )
+{
+	Point c = { caret_x, caret_y };
+	return c;
+}
+
+int GUI::GetCaretX( void )
+{
+	return caret_x;
+}
+
+int GUI::GetCaretY( void )
+{
+	return caret_y;
+}
+
+mmlVector<2> GUI::GetCaretUV( void )
+{
+	return mmlVector<2>(GetCaretU(), GetCaretV());
+}
+
+float GUI::GetCaretU( void )
+{
+	return float(caret_x) / float(SDL_GetVideoSurface()->w - 1);
+}
+
+float GUI::GetCaretV( void )
+{
+	return float(caret_y) / float(SDL_GetVideoSurface()->h - 1);
+}
+
+void GUI::Text(const mtlChars &text, int scale)
 {
 	if (text.GetSize() == 0) { return; }
 	scale = mmlMax2(1, scale);
@@ -301,17 +366,17 @@ void GUI::Text(const mtlChars &text, int x, int y, int scale)
 			continue;
 		}
 
-		vert[0] = x + ox;
-		vert[1] = y + oy + char_px_height * scale;
+		vert[0] = caret_x + ox;
+		vert[1] = caret_y + oy + char_px_height * scale;
 
-		vert[2] = x + ox + char_px_width * scale;
-		vert[3] = y + oy + char_px_height * scale;
+		vert[2] = caret_x + ox + char_px_width * scale;
+		vert[3] = caret_y + oy + char_px_height * scale;
 
-		vert[4] = x + ox + char_px_width * scale;
-		vert[5] = y + oy;
+		vert[4] = caret_x + ox + char_px_width * scale;
+		vert[5] = caret_y + oy;
 
-		vert[6] = x + ox;
-		vert[7] = y + oy;
+		vert[6] = caret_x + ox;
+		vert[7] = caret_y + oy;
 
 		glBindBuffer(GL_ARRAY_BUFFER, vId);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
@@ -342,11 +407,20 @@ void GUI::Text(const mtlChars &text, int x, int y, int scale)
 
 		ox += char_px_width * scale;
 	}
+	caret_x += int(ox);
+	caret_y += int(oy);
+}
+
+void GUI::Text(const mtlChars &text, int x, int y, int scale)
+{
+	SetCaretXY(x, y);
+	Text(text, scale);
 }
 
 void GUI::Text(const mtlChars &text, float u, float v, int scale)
 {
-	GUI::Text(text, int((SDL_GetVideoSurface()->w - 1) * u), int((SDL_GetVideoSurface()->h - 1) * v), scale);
+	SetCaretUV(u, v);
+	Text(text, scale);
 }
 
 void GUI::Box(Rect rect)
@@ -406,154 +480,3 @@ Point GUI::GetTextSize(const mtlChars &text, int scale)
 	p.y *= scale;
 	return p;
 }
-
-/*GLuint Font::m_tId = 0;
-GLuint Font::m_vId = 0;
-GLuint Font::m_uvId = 0;
-
-GLfloat Font::m_vert[8];
-GLfloat Font::m_uv[8];
-
-Font::Font( void )
-{
-	if (m_tId == 0) {
-		glGenBuffers(1, &m_vId);
-		glGenBuffers(1, &m_uvId);
-
-		unsigned int *pixels = new unsigned int[font_width*font_height];
-
-		// every row is aligned (16 bytes * 8 bits) * 128 bytes
-		for (int y = 0, i = 0; y < font_height; ++y) {
-			for (int x = 0; x < font_width; ++x) {
-				unsigned char byte = font_bits[y * font_table_width + x / 8];
-				unsigned char bit = byte & (1 << (x % 8));
-				if (bit != 0) { // inverted
-					pixels[i] = 0x00000000;
-				} else {
-					pixels[i] = 0xffffffff;
-				}
-				++i;
-			}
-		}
-
-		glGenTextures(1, &m_tId);
-		glBindTexture(GL_TEXTURE_2D, m_tId);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)font_width, (GLsizei)font_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-		delete [] pixels;
-	}
-}
-
-void Font::DrawText(const mtlChars &text, float x, float y, int textScale, float r, float g, float b, float a)
-{
-	if (text.GetSize() == 0) { return; }
-	textScale = mmlMax2(1, textScale);
-
-	glBindBuffer(GL_ARRAY_BUFFER, m_uvId);
-	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vId);
-	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
-
-	glBindTexture(GL_TEXTURE_2D, m_tId);
-
-	glColor4f(r, g, b, a);
-
-	float ox = 0.0f;
-	float oy = 0.0f;
-	for (int i = 0; i < text.GetSize(); ++i) {
-		char ch = text.GetChars()[i];
-		switch (ch) {
-		case '\n':
-		case '\r':
-			ox = 0.0f;
-			oy += char_px_height;
-			continue;
-		case ' ':
-			ox += char_px_width;
-			continue;
-		case '\t':
-			ox += char_tab_px_width;
-			continue;
-		}
-
-		m_vert[0] = x + ox * textScale;
-		m_vert[1] = (y + oy + char_px_height) * textScale;
-
-		m_vert[2] = (x + ox + char_px_width) * textScale;
-		m_vert[3] = (y + oy + char_px_height) * textScale;
-
-		m_vert[4] = (x + ox + char_px_width) * textScale;
-		m_vert[5] = y + oy * textScale;
-
-		m_vert[6] = x + ox * textScale;
-		m_vert[7] = y + oy * textScale;
-
-		glBindBuffer(GL_ARRAY_BUFFER, m_vId);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vert), m_vert, GL_STATIC_DRAW);
-
-		if (ch < first_char || ch > last_char) {
-			ch = last_char + 1;
-		}
-		int index = ch - first_char;
-		float ux = char_uv_width * (index % char_count_width);
-		float uy = (char_uv_height * (index / char_count_width));
-
-		m_uv[0] = ux;
-		m_uv[1] = uy + char_uv_height;
-
-		m_uv[2] = ux + char_uv_width;
-		m_uv[3] = uy + char_uv_height;
-
-		m_uv[4] = ux + char_uv_width;
-		m_uv[5] = uy;
-
-		m_uv[6] = ux;
-		m_uv[7] = uy;
-
-		glBindBuffer(GL_ARRAY_BUFFER, m_uvId);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(m_uv), m_uv, GL_STATIC_DRAW);
-
-		glDrawArrays(GL_QUADS, 0, 4);
-
-		ox += char_px_width;
-	}
-}
-
-int Font::GetWidth( void ) const
-{
-	return char_px_width;
-}
-
-int Font::GetHeight( void ) const
-{
-	return char_px_height;
-}
-
-Point Font::GetSize(const mtlChars &text, int textScale) const
-{
-	Point p = { 0, 0 };
-	if (text.GetSize() > 0) {
-		int x = 0;
-		p.y += char_px_height;
-		for (int i = 0; i < text.GetSize(); ++i) {
-			char ch = text.GetChars()[0];
-			if (ch == '\n' || ch == '\r') {
-				x = 0;
-				p.y += char_px_height;
-			} else if (ch == '\t') {
-				x += char_tab_px_width;
-			} else {
-				x += char_px_width;
-			}
-			p.x = mmlMax2(x, p.x);
-		}
-	}
-	p.x *= textScale;
-	p.y *= textScale;
-	return p;
-}*/

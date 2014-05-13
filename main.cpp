@@ -9,7 +9,7 @@
 #include "MTL/mtlString.h"
 #include <iostream>
 
-class Controllable : public Inherit<Object>
+class Controllable : public mtlInherit<Object>
 {
 private:
 	mmlVector<2> m_movement;
@@ -20,7 +20,11 @@ public:
 	Controllable( void );
 };
 
+ENGINE_REGISTER_OBJECT_TYPE(Controllable);
+
 void Unit_OpenGLTest( void );
+void Unit_BinaryTree( void );
+void Unit_RegisteredObjects( void );
 void Unit_Controllable(Engine &engine);
 
 int main(int argc, char **argv)
@@ -29,6 +33,8 @@ int main(int argc, char **argv)
 	Engine engine;
 	engine.Init(argc, argv);
 	engine.SetWindowCaption("Lots-o-tests");
+	Unit_BinaryTree();
+	Unit_RegisteredObjects();
 	Unit_Controllable(engine);
 	return 0;
 }
@@ -86,22 +92,14 @@ void Controllable::OnUpdate( void )
 
 void Controllable::OnGUI( void )
 {
-	/*mmlMatrix<3,3> m = GetTransform().GetWorldTransform();
-	mtlString s;
-	mtlString n;
-	s.Copy("world_transform={\n");
-	for (int j = 0; j < 3; ++j) {
-		s.Append("\t");
-		for (int i = 0; i < 3; ++i) {
-			n.FromFloat(m[j][i]);
-			s.Append(n);
-			s.Append(" ");
-		}
-		s.Append("\n");
-	}
-	s.Append("}");
-
-	GUI::Text(s, 0, 0);*/
+	GUI::SetColor(1.0f, 0.0f, 0.0f);
+	GUI::Text("Hello", 0, 0);
+	GUI::SetColor(0.0f, 1.0f, 0.0f);
+	GUI::Text(", ");
+	GUI::SetColor(0.0f, 0.0f, 1.0f);
+	GUI::Text("world");
+	GUI::SetColor(1.0f, 1.0f, 1.0f);
+	GUI::Text("!");
 }
 
 Controllable::Controllable( void ) : m_movement(0.0f, 0.0f)
@@ -126,8 +124,8 @@ void Unit_OpenGLTest( void )
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	static GLfloat v0[] = { 0.0f, 0.0f,  1.0f };
-	static GLfloat v1[] = {  SDL_GetVideoSurface()->w*0.5, 0.0f,  1.0f };
-	static GLfloat v2[] = {  SDL_GetVideoSurface()->w*0.5,  SDL_GetVideoSurface()->h*0.5,  1.0f };
+	static GLfloat v1[] = {  SDL_GetVideoSurface()->w*0.5f, 0.0f,  1.0f };
+	static GLfloat v2[] = {  SDL_GetVideoSurface()->w*0.5f,  SDL_GetVideoSurface()->h*0.5f,  1.0f };
 	static GLubyte red[]    = { 255,   0,   0, 255 };
 	static GLubyte green[]  = {   0, 255,   0, 255 };
 	static GLubyte blue[]   = {   0,   0, 255, 255 };
@@ -157,14 +155,36 @@ void Unit_OpenGLTest( void )
 	while (SDL_WaitEvent(&event) && event.type != SDL_KEYDOWN) {}
 }
 
+void Unit_BinaryTree( void )
+{
+	std::cout << "Unit_BinaryTree:" << std::endl;
+	mtlBinaryTree<int> b;
+	for (int i = 0; i < 10; ++i) {
+		std::cout << "\t" << b.GetRoot() << " - ";
+		b.Insert(rand());
+		std::cout << b.GetRoot() << std::endl;
+	}
+}
+
+void Unit_RegisteredObjects( void )
+{
+	std::cout << "Unit_RegisteredObjects: " << std::endl;
+	mtlList< mtlShared<mtlString> > list;
+	Engine::GetRegisteredTypes(list);
+	mtlNode< mtlShared<mtlString> > *node = list.GetFirst();
+	while (node != NULL) {
+		std::cout << "\t" << node->GetItem().GetShared()->GetChars() << std::endl;
+		node = node->GetNext();
+	}
+}
+
 void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
-	Controllable *c = new Controllable();
-	if (!c->LoadGraphics<Image>("test.bmp")) {
+	Object *c = engine.AddObject("Controllable");
+	if (c != NULL && !c->LoadGraphics<Image>("test.bmp")) {
 		return;
 	}
-	engine.AddObject(c);
 
 	engine.SetRenderer(new Renderer);
 

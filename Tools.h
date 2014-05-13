@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "MTL/mtlDuplex.h"
 
-class KillPlane : public Inherit<Object>
+class KillPlane : public mtlInherit<Object>
 {
 protected:
 	void OnCollision(Object &collider);

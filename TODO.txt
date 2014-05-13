@@ -14,13 +14,22 @@ Physics?
 		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032		
 
 LONG TERM PLANS
-Sprite editor:
-	Game object that allows for editing sprites
-	Load and save sprite files
 Debugger:
 	Game object that stops time
 	Lets user click on an object and view its properties
 	Requires objects to implement an output function (that prints values)
+	Lers user view what assets are currently loaded into memory (as well as memory footprint)
+Tile set editor
+	Game object
+	Place tiles + collision boxes in a grid
+	Place objects on the grid
+		This requires the editor to know what objects are available in the game
+		http://stackoverflow.com/questions/582331/is-there-a-way-to-instantiate-objects-from-a-string-holding-their-class-name
+		http://stackoverflow.com/questions/410823/factory-method-implementation-c/534396#534396
+		User must register them
+Sprite editor:
+	Game object that allows for editing sprites
+	Load and save sprite files
 
 IN PROGRESS
 Kill line
@@ -47,7 +56,7 @@ while (vargrind warnings || compiler warnings) {
 }
 
 BUGS
-[FIXED?] Frame timer in Engine is wrong when delta time is less than 1, i.e. delay kicks in
 mtlString::Append still not working
+Pretty sure mtlArray::Resize not working as expected (will always allocate data as if pooling is disabled?)
 
 ADDITIONAL

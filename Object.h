@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "Transform.h"
 #include "MTL/mtlString.h"
+#include "MTL/mtlType.h"
 #include "Collider.h"
 
 class Engine;
@@ -31,7 +32,7 @@ public:
 	void						StopMusic( void );
 };
 
-class Object : protected EngineInterface, public Base
+class Object : protected EngineInterface, public mtlBase
 {
 	friend class Engine;
 private:
@@ -119,7 +120,8 @@ object_t *Object::GetAsType( void )
 template < typename graphics_t >
 bool Object::LoadGraphics(const mtlChars &file)
 {
-	return m_graphics.Load<graphics_t>(file);
+	m_graphics = mtlAsset<Graphics>::Load<graphics_t>(file);
+	return m_graphics.GetAsset() != NULL && m_graphics.GetAsset()->GetError().GetSize() == 0;
 }
 
 #endif // OBJECT_H

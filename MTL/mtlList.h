@@ -73,12 +73,12 @@ public:
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode( void ) :
-m_parent(NULL), m_next(NULL), m_prev(NULL)
+m_item(), m_parent(NULL), m_next(NULL), m_prev(NULL)
 {}
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode(const type_t &p_item, mtlList<type_t> *p_parent, mtlNode<type_t> *p_next, mtlNode<type_t> *p_prev) :
-m_parent(p_parent), m_next(p_next), m_prev(p_prev), m_item(p_item)
+m_item(p_item), m_parent(p_parent), m_next(p_next), m_prev(p_prev)
 {
 	if (m_prev != NULL) { m_prev->m_next = this; }
 	if (m_next != NULL) { m_next->m_prev = this; }
@@ -91,7 +91,7 @@ mtlNode<type_t>::~mtlNode( void )
 
 template < typename type_t >
 mtlNode<type_t>::mtlNode(const type_t &p_item) :
-m_parent(NULL), m_next(NULL), m_prev(NULL), m_item(p_item)
+m_item(p_item), m_parent(NULL), m_next(NULL), m_prev(NULL)
 {}
 
 template < typename type_t >

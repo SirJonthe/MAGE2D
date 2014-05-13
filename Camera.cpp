@@ -1,15 +1,26 @@
 #include "Camera.h"
 #include "Renderer.h"
+#include "Engine.h"
+
+ENGINE_REGISTER_OBJECT_TYPE(Camera);
 
 void Camera::OnFinal( void )
 {
 	if (m_renderer.IsNull()) {
-		m_renderer->SetView(*this);
-		m_renderer->RenderView();
+		m_renderer.GetShared()->SetView(*this);
+		m_renderer.GetShared()->RenderView();
 	}
 }
 
-Camera::Camera(float pixelsInViewWidth, float pixelsInViewHeight) : Inherit<Object>(), m_pixelsInViewWidth(pixelsInViewWidth), m_pixelsInViewHeight(pixelsInViewHeight), m_renderer()
+Camera::Camera( void ) : mtlInherit<Object>(), m_pixelsInViewWidth(SDL_GetVideoSurface()->w), m_pixelsInViewHeight(SDL_GetVideoSurface()->h), m_renderer()
+{
+	DisableCollisions();
+	ClearAllObjectFlags();
+	ClearAllCollisionMasks();
+	SetName("object_camera");
+}
+
+Camera::Camera(float pixelsInViewWidth, float pixelsInViewHeight) : mtlInherit<Object>(), m_pixelsInViewWidth(pixelsInViewWidth), m_pixelsInViewHeight(pixelsInViewHeight), m_renderer()
 {
 	DisableCollisions();
 	ClearAllObjectFlags();
@@ -49,7 +60,7 @@ void Camera::SetPixelsInViewHeight(float height)
 	m_pixelsInViewHeight = height;
 }
 
-void Camera::SetRenderer(const Shared<Renderer> &renderer)
+void Camera::SetRenderer(const mtlShared<Renderer> &renderer)
 {
 	m_renderer = renderer;
 }

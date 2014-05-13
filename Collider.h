@@ -3,9 +3,12 @@
 
 #include "Common.h"
 #include "Sprite.h"
+#include "MTL/mtlType.h"
 
-class Collider : public Base
+class Collider : public mtlBase
 {
+protected:
+	Transform m_transform;
 public:
 	virtual ~Collider( void ) {}
 	virtual bool Collides(const Collider &collider) = 0;
@@ -14,9 +17,11 @@ public:
 	virtual bool CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex) = 0;
 	//virtual bool CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex, float range) = 0;
 	virtual bool CollidesPlane(mmlVector<2> point, mmlVector<2> normal) = 0;
+	Transform &GetTransform( void );
+	const Transform &GetTransform( void ) const;
 };
 
-class PointCollider : public Inherit<Collider>
+class PointCollider : public mtlInherit<Collider>
 {
 private:
 	mmlVector<2> m_point;
@@ -42,7 +47,7 @@ public:
 	bool CollidesPlane(mmlVector<2> point, mmlVector<2> normal);
 };
 
-class AABBCollider : public Inherit<Collider>
+class AABBCollider : public mtlInherit<Collider>
 {
 private:
 	struct Box {
@@ -84,33 +89,34 @@ public:
 	bool CollidesPlane(mmlVector<2> point, mmlVector<2> normal);
 };
 
-/*class CircleCollider : public Inherit<Collider>
+/*class CircleCollider : public mtlInherit<Collider>
 {
 private:
 	mmlVector<2> m_center;
 	float m_radius;
 };
 
-class PolygonCollider : public Inherit<Collider>
+class PolygonCollider : public mtlInherit<Collider>
 {
 private:
 	mtlArray< mmlVector<2> > m_polygon; // circles around [n-1, 0]
 };
 
-class PlaneCollider : public Inherit<Collider>
+class PlaneCollider : public mtlInherit<Collider>
 {
 private:
 	mmlVector<2> m_point;
 	mmlVector<2> m_normal;
 };
 
-class SpriteCollider : public Inherit<Collider>
+class SpriteCollider : public mtlInherit<Collider>
 {
 private:
 	mtlAsset<Sprite>	m_pixels;
 	Collider			*m_culler; // used to quickly cull collisions before checking pixel overlap
 public:
 	~SpriteCollider( void ) { delete m_culler; }
-};*/
+};
+*/
 
 #endif // COLLIDER_H

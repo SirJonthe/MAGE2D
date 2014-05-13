@@ -5,7 +5,7 @@
 #include "Graphics.h"
 #include "Camera.h"
 
-class Renderer : public Base
+class Renderer : public mtlBase
 {
 private:
 	struct GraphicsInstance

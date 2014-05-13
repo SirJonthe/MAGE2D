@@ -7,6 +7,7 @@
 #include "MTL/mtlArray.h"
 #include "MTL/mtlDirectory.h"
 #include "MTL/mtlAsset.h"
+#include "MTL/mtlType.h"
 
 struct Animation
 {
@@ -20,7 +21,7 @@ struct Animation
 	int				offsetY;
 };
 
-class Sprite : public Inherit<Graphics>
+class Sprite : public mtlInherit<Graphics>
 {
 private:
 	mtlArray<Animation> m_animations;

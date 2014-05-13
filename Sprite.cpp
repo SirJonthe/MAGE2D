@@ -55,7 +55,7 @@ int Sprite::GetIndexOf(const mtlChars &name) const
 {
 	const mtlHash hash = mtlHash(name);
 	for (int i = 0; i < GetAnimationCount(); ++i) {
-		if (m_animations[i].hash = hash && m_animations[i].name.Compare(name)) {
+		if (m_animations[i].hash.value == hash.value && m_animations[i].name.Compare(name)) {
 			return i;
 		}
 	}
@@ -67,7 +67,7 @@ int Sprite::GetFrame( void ) const
 	return m_currentFrame;
 }
 
-int Sprite::SetFrame(int frame)
+void Sprite::SetFrame(int frame)
 {
 	m_currentFrame = frame;
 }

@@ -5,15 +5,16 @@
 
 class Renderer;
 
-class Camera : public Inherit<Object>
+class Camera : public mtlInherit<Object>
 {
 private:
 	float				m_pixelsInViewWidth;
 	float				m_pixelsInViewHeight;
-	Shared<Renderer>	m_renderer;
+	mtlShared<Renderer>	m_renderer;
 protected:
 	void OnFinal( void ); // SetView(); Render();
 public:
+	Camera( void );
 	Camera(float pixelsInViewWidth, float pixelsInViewHeight); // collisions disabled, collision flags cleared, type flags cleared
 	void ZoomIn(float scale);
 	void ZoomOut(float scale);
@@ -21,7 +22,7 @@ public:
 	float GetPixelsInViewHeight( void ) const;
 	void SetPixelsInViewWidth(float width);
 	void SetPixelsInViewHeight(float height);
-	void SetRenderer(const Shared<Renderer> &renderer);
+	void SetRenderer(const mtlShared<Renderer> &renderer);
 };
 
 #endif // CAMERA_H

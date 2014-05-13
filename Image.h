@@ -4,11 +4,12 @@
 #include <GL/gl.h>
 #include <SDL/SDL.h>
 #include "MTL/mtlString.h"
+#include "MTL/mtlType.h"
 #include "Common.h"
 #include "Timer.h"
 #include "Graphics.h"
 
-class Image : public Inherit<Graphics>
+class Image : public mtlInherit<Graphics>
 {
 private:
 	SDL_Surface		*m_image;

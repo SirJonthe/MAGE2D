@@ -1,6 +1,8 @@
 #include "Object.h"
 #include "Engine.h"
 
+ENGINE_REGISTER_OBJECT_TYPE(Object);
+
 EngineInterface::EngineInterface( void ) : m_engine(NULL) {}
 
 static unsigned long long int g_objectCounter = 0;
@@ -64,6 +66,8 @@ void EngineInterface::StopMusic( void )
 {
 	return m_engine->StopMusic();
 }
+
+//ENGINE_REGISTER_OBJECT_TYPE(Object);
 
 Object::Object( void ) : EngineInterface(), m_transform(), m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false), m_collider(NULL), m_objectFlags(0x00000001), m_collisionMask(0xffffffff), m_objectNumber(g_objectCounter++)
 {

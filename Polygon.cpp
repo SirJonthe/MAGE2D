@@ -2,7 +2,7 @@
 
 GLuint Polygon::m_bound = 0;
 
-Polygon::Polygon( void ) : m_vert(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_id(0)
+Polygon::Polygon( void ) : mtlInherit<Graphics>(), m_vert(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_id(0)
 {}
 
 Polygon::~Polygon( void )
