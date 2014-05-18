@@ -23,7 +23,6 @@ public:
 ENGINE_REGISTER_OBJECT_TYPE(Controllable);
 
 void Unit_OpenGLTest( void );
-void Unit_BinaryTree( void );
 void Unit_RegisteredObjects( void );
 void Unit_Controllable(Engine &engine);
 
@@ -33,7 +32,6 @@ int main(int argc, char **argv)
 	Engine engine;
 	engine.Init(argc, argv);
 	engine.SetWindowCaption("Lots-o-tests");
-	Unit_BinaryTree();
 	Unit_RegisteredObjects();
 	Unit_Controllable(engine);
 	return 0;
@@ -41,7 +39,7 @@ int main(int argc, char **argv)
 
 void Controllable::OnUpdate( void )
 {
-	const mtlNode<SDL_Event> *event = GetEventList().GetFirst();
+	const mtlNode<SDL_Event> *event = GetEngine()->GetEventList().GetFirst();
 	while (event != NULL) {
 		switch (event->GetItem().type) {
 		case SDL_KEYDOWN:
@@ -61,7 +59,7 @@ void Controllable::OnUpdate( void )
 				GetTransform().SetAxisXDirection(-1);
 				break;
 			case SDLK_ESCAPE:
-				EndGame();
+				GetEngine()->EndGame();
 				break;
 			default: break;
 			}
@@ -153,17 +151,6 @@ void Unit_OpenGLTest( void )
 
 	SDL_Event event;
 	while (SDL_WaitEvent(&event) && event.type != SDL_KEYDOWN) {}
-}
-
-void Unit_BinaryTree( void )
-{
-	std::cout << "Unit_BinaryTree:" << std::endl;
-	mtlBinaryTree<int> b;
-	for (int i = 0; i < 10; ++i) {
-		std::cout << "\t" << b.GetRoot() << " - ";
-		b.Insert(rand());
-		std::cout << b.GetRoot() << std::endl;
-	}
 }
 
 void Unit_RegisteredObjects( void )

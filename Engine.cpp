@@ -120,6 +120,7 @@ void Engine::UpdateTimer( void )
 		SDL_Delay(Uint32((1000.0f / 60.0f) * (1.0f - m_timer.GetTimeDeltaTick())));
 	}
 	m_timer.Tick();
+	m_deltaSeconds = m_timer.GetTimeDeltaSecondsTick()
 }
 
 bool Engine::Collide(const Object *a, const Object *b) const
@@ -197,7 +198,7 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 	}
 }
 
-Engine::Engine( void ) : m_objects(), m_timer(60.0f), m_quit(false), m_inLoop(false), m_music(NULL), m_renderer(NULL)
+Engine::Engine( void ) : m_objects(), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL), m_renderer(NULL)
 {
 }
 
@@ -387,7 +388,7 @@ void Engine::SetUpdateFrequency(float updatesPerSecond)
 
 float Engine::GetDeltaTime( void ) const
 {
-	return m_timer.GetTimeDeltaSecondsTick();
+	return m_deltaSeconds;
 }
 
 const mtlList<SDL_Event> &Engine::GetEventList( void ) const

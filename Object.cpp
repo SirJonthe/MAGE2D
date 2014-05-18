@@ -3,73 +3,13 @@
 
 ENGINE_REGISTER_OBJECT_TYPE(Object);
 
-EngineInterface::EngineInterface( void ) : m_engine(NULL) {}
-
-static unsigned long long int g_objectCounter = 0;
-
-void EngineInterface::AddObject(Object *object)
+unsigned long long int GetObjectNumber( void )
 {
-	m_engine->AddObject(object);
+	static unsigned long long int objectCounter = 0;
+	return objectCounter++;
 }
 
-void EngineInterface::DestroyAllObjects( void )
-{
-	m_engine->DestroyAllObjects();
-}
-
-void EngineInterface::EndGame( void )
-{
-	m_engine->EndGame();
-}
-
-void EngineInterface::KillProgram( void )
-{
-	m_engine->KillProgram();
-}
-
-float EngineInterface::GetDeltaTime( void ) const
-{
-	return m_engine->GetDeltaTime();
-}
-
-const mtlList<SDL_Event> &EngineInterface::GetEventList( void ) const
-{
-	return m_engine->GetEventList();
-}
-
-int EngineInterface::GetRandom( void ) const
-{
-	return m_engine->GetRandom();
-}
-
-int EngineInterface::GetRandom(int max) const
-{
-	return m_engine->GetRandom(max);
-}
-
-int EngineInterface::GetRandom(int min, int max) const
-{
-	return m_engine->GetRandom(min, max);
-}
-
-const mtlList<Object*> &EngineInterface::GetObjects( void ) const
-{
-	return m_engine->GetObjects();
-}
-
-bool EngineInterface::PlayMusic(const mtlChars &file)
-{
-	return m_engine->PlayMusic(file);
-}
-
-void EngineInterface::StopMusic( void )
-{
-	return m_engine->StopMusic();
-}
-
-//ENGINE_REGISTER_OBJECT_TYPE(Object);
-
-Object::Object( void ) : EngineInterface(), m_transform(), m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false), m_collider(NULL), m_objectFlags(0x00000001), m_collisionMask(0xffffffff), m_objectNumber(g_objectCounter++)
+Object::Object( void ) : m_transform(), m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false), m_collider(), m_objectFlags(0x0000000000000001), m_collisionMask(0xffffffffffffffff), m_objectNumber(GetObjectNumber())
 {
 	m_name.Copy("object_generic");
 }
@@ -114,12 +54,17 @@ void Object::EnableCollisions( void )
 	m_collisions = true;
 }
 
+void Object::ToggleCollisions( void )
+{
+	m_collisions = !m_collisions;
+}
+
 bool Object::GetCollisionMask(unsigned int bit) const
 {
 	return (bool)((m_collisionMask>>bit) & 1);
 }
 
-unsigned int Object::GetCollisionMasks(unsigned int mask) const
+unsigned long long Object::GetCollisionMasks(unsigned int mask) const
 {
 	return m_collisionMask & mask;
 }
@@ -138,7 +83,27 @@ void Object::SetCollisionMasks(unsigned int mask)
 
 void Object::ClearAllCollisionMasks( void )
 {
-	m_collisionMask = 0x00000000;
+	m_collisionMask = 0x0000000000000000;
+}
+
+void Object::DestroyCollider( void )
+{
+	m_collider.Delete();
+}
+
+const Collider *Object::GetCollider( void ) const
+{
+	return m_collider.GetShared();
+}
+
+Collider *Object::GetCollider( void )
+{
+	return m_collider.GetShared();
+}
+
+void Object::SetCollider(mtlShared<Collider> &collider)
+{
+	m_collider = collider;
 }
 
 Transform &Object::GetTransform( void )
@@ -156,7 +121,7 @@ bool Object::GetObjectFlag(unsigned int bit) const
 	return (bool)((m_objectFlags>>bit) & 1);
 }
 
-unsigned int Object::GetObjectFlags(unsigned int mask) const
+unsigned long long Object::GetObjectFlags(unsigned int mask) const
 {
 	return m_objectFlags & mask;
 }
@@ -175,7 +140,7 @@ void Object::SetObjectFlags(unsigned int mask)
 
 void Object::ClearAllObjectFlags( void )
 {
-	m_objectFlags = 0x00000000;
+	m_objectFlags = 0x0000000000000000;
 }
 
 bool Object::IsVisible( void ) const
@@ -198,7 +163,27 @@ void Object::ToggleGraphics( void )
 	m_visible = !m_visible;
 }
 
+void Object::DestroyGraphics( void )
+{
+	m_graphics = mtlAsset<Graphics>();
+}
+
 const Graphics *Object::GetGraphics( void ) const
 {
 	return m_graphics.GetAsset();
+}
+
+void Object::SetGraphics(mtlAsset<Graphics> &graphics)
+{
+	m_graphics = graphics;
+}
+
+const Engine *Object::GetEngine( void ) const
+{
+	return m_engine;
+}
+
+Engine *Object::GetEngine( void )
+{
+	return m_engine;
 }

@@ -36,7 +36,6 @@ private:
 		bool operator>(const AssetNode &n) const { return hash.value > n.hash.value; }
 		bool operator==(const AssetNode &n) const { return hash.value == n.hash.value; }
 	};
-	//static mtlBinaryTree<AssetNode> m_assetBank;
 	static mtlBinaryTree<AssetNode> &GetAssetBank( void );
 private:
 	mtlShared<Instance>	m_ref;
@@ -50,7 +49,7 @@ public:
 	template < typename derived_t >
 	static mtlAsset<type_t> Load(const mtlChars &file);
 	static mtlAsset<type_t> Load(const mtlChars &file);
-	static void Purge( void ); // binary tree traversal start-finish
+	static void Purge( void );
 };
 
 template < typename type_t >
@@ -134,6 +133,11 @@ mtlAsset<type_t> mtlAsset<type_t>::Load(const mtlChars &file)
 template < typename type_t >
 void mtlAsset<type_t>::Purge( void )
 {
+	// in order traversal of tree
+	// at every node, remove all assets that only have 1 reference
+	// if list at node is empty, remove node
+		// requires Remove to be implemented in mtlBranch
+
 	/*mtlNode< mtlShared<Instance> > *node = GetAssetBank().GetFirst();
 	while (node != NULL) {
 		if (node->GetItem().GetCount() == 1) { // only this list references it

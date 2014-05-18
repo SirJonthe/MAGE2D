@@ -308,7 +308,7 @@ bool AABBCollider::CollidesCone(mmlVector<2> origin, mmlVector<2> direction, flo
 	// if one or more points are inside
 		// return true
 	// if no point is inside cone
-		// check all box lines if they are intersecting with the cone lines
+		// check all box lines if they are intersecting with the cone lines (only need to check one of the lines, since if only one line is intersected then a point is inside the code, however, when we get here we have already determined that there are no points inside cone)
 		// if intersection
 			// return true
 	// return false

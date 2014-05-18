@@ -46,6 +46,7 @@ private:
 	mtlList<Object*>				m_objects;
 	mtlList<SDL_Event>				m_events;
 	Timer							m_timer;
+	float							m_deltaSeconds;
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;

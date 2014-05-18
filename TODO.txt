@@ -1,4 +1,5 @@
 TODO
+mtlAsset::Purge
 Fix Sprite class
 	Gah! Can't animate sprite inside sprite class because
 	mtlAsset makes Sprite const. Have to make a GraphicsInstance

@@ -9,30 +9,8 @@
 #include "Collider.h"
 
 class Engine;
-class Object;
 
-class EngineInterface
-{
-	friend class Engine;
-private:
-	Engine *m_engine;
-public:
-	EngineInterface( void );
-	void						AddObject(Object *object);
-	void						DestroyAllObjects( void );
-	void						EndGame( void );
-	void						KillProgram( void );
-	float						GetDeltaTime( void ) const;
-	const mtlList<SDL_Event>	&GetEventList( void ) const;
-	int							GetRandom( void ) const;
-	int							GetRandom(int max) const;
-	int							GetRandom(int min, int max) const;
-	const mtlList<Object*>		&GetObjects( void ) const;
-	bool						PlayMusic(const mtlChars &file);
-	void						StopMusic( void );
-};
-
-class Object : protected EngineInterface, public mtlBase
+class Object : public mtlBase
 {
 	friend class Engine;
 private:
@@ -43,10 +21,11 @@ private:
 	bool						m_collisions;
 	bool						m_visible;
 	bool						m_frozen;			// used by the debugger object to freeze game state
-	Collider					*m_collider;
-	unsigned int				m_objectFlags;		// what is the object?
-	unsigned int				m_collisionMask;	// what can the object collide with?
+	mtlShared<Collider>			m_collider;
+	unsigned long long			m_objectFlags;		// what is the object?
+	unsigned long long			m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
+	Engine						*m_engine;
 protected:
 	virtual void	OnInit( void ) {}
 	virtual void	OnUpdate( void ) {}
@@ -71,11 +50,18 @@ public:
 	bool				IsCollidable( void ) const;
 	void				DisableCollisions( void );
 	void				EnableCollisions( void );
+	void				ToggleCollisions( void );
 	bool				GetCollisionMask(unsigned int bit) const;
 	unsigned int		GetCollisionMasks(unsigned int mask = 0xffffffff) const;
 	void				SetCollisionMask(unsigned int bit, bool state);
 	void				SetCollisionMasks(unsigned int mask);
 	void				ClearAllCollisionMasks( void );
+	void				DestroyCollider( void );
+	const Collider		*GetCollider( void ) const;
+	Collider			*GetCollider( void );
+	void				SetCollider(mtlShared<Collider> &collider);
+	template < typename collider_t >
+	void				LoadCollider( void );
 
 	Transform			&GetTransform( void );
 	const Transform		&GetTransform( void ) const;
@@ -94,15 +80,14 @@ public:
 	void				EnableGraphics( void );
 	void				DisableGraphics( void );
 	void				ToggleGraphics( void );
-
-	// const Collider *GetCollider( void ) const;
-	// Collider *GetCollider( void );
-	// template < typename collision_t >
-	// void LoadCollider( void );
-
-	const Graphics *GetGraphics( void ) const;
+	void				DestroyGraphics( void );
+	const Graphics		*GetGraphics( void ) const;
+	void				SetGraphics(mtlAsset<Graphics> &graphics);
 	template < typename graphics_t >
-	bool LoadGraphics(const mtlChars &file);
+	bool				LoadGraphics(const mtlChars &file);
+
+	const Engine	*GetEngine( void ) const;
+	Engine			*GetEngine( void );
 };
 
 template < typename object_t >
@@ -115,6 +100,12 @@ template < typename object_t >
 object_t *Object::GetAsType( void )
 {
 	return dynamic_cast<object_t*>(this);
+}
+
+template < typename collider_t >
+void Object::LoadCollider( void )
+{
+	m_collider.New<collider_t>();
 }
 
 template < typename graphics_t >

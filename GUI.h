@@ -1,5 +1,5 @@
-#ifndef FONT_H
-#define FONT_H
+#ifndef GUI_H
+#define GUI_H
 
 #include <GL/gl.h>
 #include <SDL/SDL.h>

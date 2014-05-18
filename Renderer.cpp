@@ -14,23 +14,20 @@ int Renderer::GetGraphicsQueueSize( void ) const
 
 const Graphics *Renderer::GetGraphics(int i) const
 {
-	return m_graphics[i].graphics;
+	return m_graphics[i].GetGraphics();
 }
 
 mmlMatrix<3,3> Renderer::GetGraphicsTransform(int i) const
 {
-	return m_graphics[i].transform * m_view;
+	return m_graphics[i].GetTransform().GetWorldTransform() * m_view;
 }
 
-void Renderer::AddToGraphicsQueue(const Graphics &graphics, const mmlMatrix<3,3> &worldTransform)
+void Renderer::AddToGraphicsQueue(const Graphics::Instance &graphics)
 {
 	if (m_graphics.GetSize() + 1 > m_graphics.GetCapacity()) {
 		m_graphics.SetCapacity(m_graphics.GetCapacity() * 2);
 	}
-	m_graphics.Resize(m_graphics.GetSize() + 1);
-	int index = m_graphics.GetSize() - 1;
-	m_graphics[index].graphics = &graphics;
-	m_graphics[index].transform = worldTransform;
+	m_graphics.Add(graphics);
 }
 
 void Renderer::ClearGraphicsQueue( void )
@@ -40,7 +37,7 @@ void Renderer::ClearGraphicsQueue( void )
 
 void Renderer::SortGraphicsQueue( void )
 {
-	mtlArray<GraphicsInstance> sorted;
+	mtlArray<Graphics::Instance> sorted;
 	m_graphics.MergeSort(sorted);
 	m_graphics.Copy(sorted);
 }
@@ -89,10 +86,10 @@ void Renderer::SetView(const Camera &camera)
 	glOrtho(-0.5, (camera.GetPixelsInViewWidth() - 1) + 0.5, (camera.GetPixelsInViewHeight() - 1) + 0.5, -0.5, 0.0, 1.0);
 }
 
-void Renderer::AddGraphics(const Graphics &graphics, const mmlMatrix<3,3> &worldTransform)
+void Renderer::AddGraphics(const Graphics::Instance &graphics)
 {
 	if (graphics.GetInstanceType() == Image::GetClassType()) {
-		AddToGraphicsQueue(graphics, worldTransform);
+		AddToGraphicsQueue(graphics);
 	}/* else if (graphics.GetInstanceType() == Polygon::GetClassType()) {
 		AddToGraphicsQueue(graphics, worldTransform);
 	}*/
@@ -108,7 +105,7 @@ void Renderer::RenderView( void )
 
 	SortGraphicsQueue();
 
-	const void *currentGraphics = NULL;
+	const Graphics *currentGraphics = NULL;
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -123,24 +120,26 @@ void Renderer::RenderView( void )
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(m);
 
-		const Image *graphics = dynamic_cast<const Image*>(GetGraphics(i));
-		if (currentGraphics != (const void*)graphics) {
+		const Graphics *graphics = GetGraphics(i);
+		if (currentGraphics != graphics) {
 			currentGraphics = graphics;
 
+			const Image *image = dynamic_cast<const Image*>(graphics);
+
 			m_vert[0] = 0.0f;
-			m_vert[1] = (float)graphics->GetHeight();
+			m_vert[1] = (float)image->GetHeight();
 
-			m_vert[2] = (float)graphics->GetWidth();
-			m_vert[3] = (float)graphics->GetHeight();
+			m_vert[2] = (float)image->GetWidth();
+			m_vert[3] = (float)image->GetHeight();
 
-			m_vert[4] = (float)graphics->GetWidth();
+			m_vert[4] = (float)image->GetWidth();
 			m_vert[5] = 0.0f;
 
 			m_vert[6] = 0.0f;
 			m_vert[7] = 0.0f;
 
 			glBufferData(GL_ARRAY_BUFFER, sizeof(m_vert), m_vert, GL_STATIC_DRAW);
-			graphics->Bind();
+			image->Bind();
 		}
 
 		glDrawArrays(GL_QUADS, 0, 4);

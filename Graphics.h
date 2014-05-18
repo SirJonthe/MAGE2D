@@ -12,12 +12,15 @@ public:
 	class Instance
 	{
 	private:
-		const Graphics	*m_graphics;
-		Transform		m_transform;
+		mtlAsset<Graphics>	m_graphics;
+		Transform			m_transform;
 	public:
-		const Graphics	*GetGraphics( void ) const { return m_graphics; }
+		const Graphics	*GetGraphics( void ) const { return m_graphics.GetAsset(); }
+		void			SetGraphics(mtlAsset<Graphics> &graphics) { m_graphics = graphics; }
 		const Transform	&GetTransform( void ) const { return m_transform; }
 		Transform		&GetTransform( void ) { return m_transform; }
+		bool			operator<(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
+		bool			operator==(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
 	};
 public:
 	virtual ~Graphics( void ) {}

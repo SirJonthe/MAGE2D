@@ -1,8 +1,8 @@
 new_animation = "name of animation" {
 
 	// loading an image file (both equivalent)
-	file_relative = "~/user/Game/Content/image.bmp"
-	file_absolute = "../image.bmp"
+	file_absolute = "~/user/Game/Content/image.bmp"
+	file_relative = "../image.bmp"
 	
 	// frame width and frame count (frame height is always equal to the height of the image)
 	frame_width = 32
