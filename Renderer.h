@@ -7,6 +7,8 @@
 
 class Renderer : public mtlBase
 {
+	//bool operator<(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
+	//bool operator==(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
 private:
 	mtlArray<Graphics::Instance>	m_graphics;
 	mmlMatrix<3,3>					m_view;

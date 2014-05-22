@@ -45,6 +45,7 @@ public:
 	mtlAsset<type_t> &operator=(const mtlAsset<type_t> &asset);
 
 	const type_t *GetAsset( void ) const;
+	void Delete( void );
 
 	template < typename derived_t >
 	static mtlAsset<type_t> Load(const mtlChars &file);
@@ -80,6 +81,12 @@ template < typename type_t >
 const type_t *mtlAsset<type_t>::GetAsset( void ) const
 {
 	return m_ref.GetShared()->asset;
+}
+
+template < typename type_t >
+void mtlAsset<type_t>::Delete( void )
+{
+	m_ref.Delete();
 }
 
 template < typename type_t >

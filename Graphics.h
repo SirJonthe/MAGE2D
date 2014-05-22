@@ -19,8 +19,8 @@ public:
 		void			SetGraphics(mtlAsset<Graphics> &graphics) { m_graphics = graphics; }
 		const Transform	&GetTransform( void ) const { return m_transform; }
 		Transform		&GetTransform( void ) { return m_transform; }
-		bool			operator<(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
-		bool			operator==(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
+
+		virtual void	SetTime(float time) = 0;
 	};
 public:
 	virtual ~Graphics( void ) {}

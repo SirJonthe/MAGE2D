@@ -107,6 +107,8 @@ public:
 	Object						*AddObject(const mtlChars &typeName); // can fail if that type name is not registered
 	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)());
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types); // requires recursive in-order tree traversal to build tree
+	template < typename graphics_t >
+	static mtlAsset<Graphics>	LoadGraphics(const mtlChars &file);
 };
 
 #define ENGINE_REGISTER_OBJECT_TYPE(ObjectTypeName) \
@@ -132,6 +134,12 @@ Object *Engine::AddObject( void )
 	type_t *o = new type_t;
 	AddObject(o);
 	return o;
+}
+
+template < typename graphics_t >
+mtlAsset<Graphics> Engine::LoadGraphics(const mtlChars &file)
+{
+	return mtlAsset<Graphics>::Load<graphics_t>(file);
 }
 
 #endif // ENGINE_H
