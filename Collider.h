@@ -109,6 +109,7 @@ private:
 	mmlVector<2> m_normal;
 };
 
+http://xbox.create.msdn.com/en-US/education/catalog/tutorial/collision_2d_perpixel_transformed
 class SpriteCollider : public mtlInherit<Collider>
 {
 private:

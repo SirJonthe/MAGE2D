@@ -17,7 +17,6 @@ SOURCES += main.cpp \
     Renderer.cpp \
     Collider.cpp \
     Camera.cpp \
-    Polygon.cpp \
     GUI.cpp
 
 HEADERS += \
@@ -48,7 +47,6 @@ HEADERS += \
     Renderer.h \
     Collider.h \
     Camera.h \
-    Polygon.h \
     GUI.h \
     MTL/mtlPointer.h \
     MTL/mtlType.h

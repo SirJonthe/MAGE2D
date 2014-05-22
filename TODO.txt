@@ -1,4 +1,6 @@
-TODO
+--------
+--TODO--
+--------
 mtlAsset::Purge
 Fix Sprite class
 	Gah! Can't animate sprite inside sprite class because
@@ -12,9 +14,18 @@ Collisions
 	Circle
 Physics?
 	Roll my own?
-		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032		
+		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
 
-LONG TERM PLANS
+----------
+--DESIGN--
+----------
+Graphics instances must render themselves using a given renderer
+Renderer must only provide raw rendering of primitives relative to camera view
+How will I change animation on a generic graphics instance?
+
+-------------------
+--LONG TERM PLANS--
+-------------------
 Debugger:
 	Game object that stops time
 	Lets user click on an object and view its properties
@@ -32,7 +43,9 @@ Sprite editor:
 	Game object that allows for editing sprites
 	Load and save sprite files
 
-IN PROGRESS
+---------------
+--IN PROGRESS--
+---------------
 Kill line
 	Game object
 	Everything moving past this line is destroyed (in its OnCollision function)
@@ -43,21 +56,27 @@ Engine filtering of object list
 	by sphere - has to operate on collider, not transform position
 	by separating plane - has to operate on collider, not transform position
 
-DEBUG
+---------
+--DEBUG--
+---------
 Transforms
 
-WHEN DONE
+-------------
+--WHEN DONE--
+-------------
 MiniLib
 	Update MiniLib components?
 	Link to MiniLib on GitHub somehow?
 		git submodules
-while (vargrind warnings || compiler warnings) {
-	Valgrind warnings
-	Compiler warnings
-}
+Valgrind warnings
+Compiler warnings
 
-BUGS
+--------
+--BUGS--
+--------
 mtlString::Append still not working
 Pretty sure mtlArray::Resize not working as expected (will always allocate data as if pooling is disabled?)
 
-ADDITIONAL
+--------------
+--ADDITIONAL--
+--------------
