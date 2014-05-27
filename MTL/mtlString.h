@@ -118,7 +118,9 @@ public:
 public:
 	mtlHash( void ) : value(0) {}
 	mtlHash(const mtlHash &hash) : value(hash.value) {}
-	mtlHash(const mtlChars &p_str);
+	mtlHash(const mtlString &p_str);
+	mtlHash(const mtlSubstring &p_str);
+	//mtlHash(const mtlChars &p_str); // THIS MIGHT PREVENT TEMPLATE CONSTRUCTOR FROM EVER GETTING CALLED
 	template < int N >
 	mtlHash(const char (&p_str)[N]) : value(mtlFNVConstHasher<N,N>::Hash(p_str)) {}
 	bool operator==(mtlHash h) const { return value == h.value; }

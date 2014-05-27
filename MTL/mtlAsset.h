@@ -60,9 +60,6 @@ mtlBinaryTree<typename mtlAsset<type_t>::AssetNode> &mtlAsset<type_t>::GetAssetB
 	return assetBank;
 }
 
-//template < typename type_t >
-//mtlBinaryTree<typename mtlAsset<type_t>::AssetNode> mtlAsset<type_t>::m_assetBank;
-
 template < typename type_t >
 mtlAsset<type_t>::mtlAsset(const mtlAsset<type_t> &asset) : m_ref(asset.m_ref)
 {

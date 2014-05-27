@@ -81,12 +81,12 @@ public:
 	void				ToggleGraphics( void );
 	void				DestroyGraphics( void );
 	const Graphics		*GetGraphics( void ) const;
-	void				SetGraphics(mtlAsset<Graphics> &graphics);
+	void				SetGraphics(const mtlAsset<Graphics> &graphics);
 	template < typename graphics_t >
 	bool				LoadGraphics(const mtlChars &file);
 
-	const Engine	*GetEngine( void ) const;
-	Engine			*GetEngine( void );
+	const Engine		*GetEngine( void ) const;
+	Engine				*GetEngine( void );
 };
 
 template < typename object_t >
@@ -110,8 +110,12 @@ void Object::LoadCollider( void )
 template < typename graphics_t >
 bool Object::LoadGraphics(const mtlChars &file)
 {
-	m_graphics = mtlAsset<Graphics>::Load<graphics_t>(file);
-	return m_graphics.GetAsset() != NULL && m_graphics.GetAsset()->GetError().GetSize() == 0;
+	m_graphics.Delete();
+	mtlAsset<Graphics> asset = mtlAsset<Graphics>::Load<graphics_t>(file);
+	if (asset.GetAsset() == NULL) { return false; }
+	m_graphics = asset.GetAsset()->CreateInstance();
+	GetGraphics()->GetTransform().SetParent(&m_transform);
+	return m_graphics.GetGraphics() != NULL && m_graphics.GetGraphics()->GetError().GetSize() == 0;
 }
 
 #endif // OBJECT_H

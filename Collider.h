@@ -8,20 +8,26 @@
 class Collider : public mtlBase
 {
 protected:
-	Transform m_transform;
+	Transform m_transform; // position will be center of mass
 public:
 	virtual ~Collider( void ) {}
+
 	virtual bool Collides(const Collider &collider) = 0;
+
 	virtual bool CollidesRay(mmlVector<2> origin, mmlVector<2> direction) = 0;
 	//virtual bool CollidesRay(mmlVector<2> origin, mmlVector<2> direction, float range) = 0;
 	virtual bool CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex) = 0;
 	//virtual bool CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex, float range) = 0;
 	virtual bool CollidesPlane(mmlVector<2> point, mmlVector<2> normal) = 0;
+
 	Transform &GetTransform( void );
 	const Transform &GetTransform( void ) const;
+
+	Box GetBoundingBox( void ) const = 0;
+	Circle GetBoundingCircle( void ) const = 0;
 };
 
-class PointCollider : public mtlInherit<Collider>
+/*class PointCollider : public mtlInherit<Collider>
 {
 private:
 	mmlVector<2> m_point;
@@ -45,25 +51,25 @@ public:
 	bool CollidesRay(mmlVector<2> origin, mmlVector<2> direction);
 	bool CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex);
 	bool CollidesPlane(mmlVector<2> point, mmlVector<2> normal);
-};
+};*/
 
 class AABBCollider : public mtlInherit<Collider>
 {
 private:
-	struct Box {
+	struct BoxPoints {
 		mmlVector<2> p[4];
 	};
 private:
-	mmlVector<2> m_min;
-	mmlVector<2> m_max;
+	Box m_box;
 private:
-	Box GetBoxPoints( void ) const;
+	BoxPoints GetBoxPoints( void ) const;
 public:
 	AABBCollider( void );
 	AABBCollider(float minx, float miny, float maxx, float maxy);
 	AABBCollider(float minx, float miny, mmlVector<2> max);
 	AABBCollider(mmlVector<2> min, mmlVector<2> max);
 	AABBCollider(mmlVector<2> min, float maxx, float maxy);
+	AABBCollider(AABB aabb);
 	AABBCollider(const AABBCollider &collider);
 	AABBCollider &operator=(const AABBCollider &collider);
 
@@ -87,6 +93,9 @@ public:
 	bool CollidesRay(mmlVector<2> origin, mmlVector<2> direction);
 	bool CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex);
 	bool CollidesPlane(mmlVector<2> point, mmlVector<2> normal);
+
+	Box GetBoundingBox( void ) const;
+	Circle GetBoundingCircle( void ) const;
 };
 
 /*class CircleCollider : public mtlInherit<Collider>

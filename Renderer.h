@@ -7,15 +7,22 @@
 
 class Renderer : public mtlBase
 {
-	//bool operator<(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
-	//bool operator==(const Instance &r) const { return GetGraphics() < r.GetGraphics(); }
 private:
-	mtlArray<Graphics::Instance>	m_graphics;
-	mmlMatrix<3,3>					m_view;
-	GLfloat							m_vert[8];
-	GLfloat							m_tex[8];
-	GLuint							m_vertId;
-	GLuint							m_texId;
+	struct Instance
+	{
+		mtlAsset<Image>				texture;
+		mtlArray< mmlVector<2> >	vertex;
+		mtlArray< mmlVector<2> >	uv;
+		mmlVector<3>				tint;
+		mmlMatrix<3,3>				worldTransform;
+	};
+private:
+	mtlArray<Instance>	m_graphics;
+	mmlMatrix<3,3>		m_view;
+	GLfloat				m_vert[8];
+	GLfloat				m_tex[8];
+	GLuint				m_vertId;
+	GLuint				m_texId;
 protected:
 	int				GetGraphicsQueueSize( void ) const;
 	const Graphics	*GetGraphics(int i) const;

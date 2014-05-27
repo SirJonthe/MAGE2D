@@ -50,6 +50,7 @@ public:
 	};
 private:
 	mtlArray<Animation> m_animations;
+	//mtlStringMap<Animation> m_animations;
 private:
 	Sprite(const Sprite&) {}
 	Sprite &operator=(const Sprite&) { return *this; }

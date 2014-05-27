@@ -15,6 +15,10 @@ Collisions
 Physics?
 	Roll my own?
 		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
+More randomizer functions in engine
+	Own random function
+	Floating point [0.0,1.0) (goes from 0 but never reaches 1)
+	Non linear randomizer
 
 ----------
 --DESIGN--

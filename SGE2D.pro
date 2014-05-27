@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     Renderer.cpp \
     Collider.cpp \
     Camera.cpp \
-    GUI.cpp
+    GUI.cpp \
+    Graphics.cpp
 
 HEADERS += \
     Timer.h \
@@ -49,7 +50,8 @@ HEADERS += \
     Camera.h \
     GUI.h \
     MTL/mtlPointer.h \
-    MTL/mtlType.h
+    MTL/mtlType.h \
+    MTL/mtlStringMap.h
 
 OTHER_FILES += \
     TODO.txt \

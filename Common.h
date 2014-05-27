@@ -20,6 +20,17 @@ struct Rect
 	mmlVector<2> GetCenterVector( void ) const { return mmlVector<2>(float(x) + float(w)/2.0f, float(y) + float(h)/2.0f); }
 };
 
+struct Box
+{
+	mmlVector<2> min, max;
+};
+
+struct Circle
+{
+	mmlVector<2>	center;
+	float			radius;
+};
+
 inline float Cross2D(mmlVector<2> a, mmlVector<2> b)
 {
 	 return a[0]*b[1] - a[1]*b[0];

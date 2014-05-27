@@ -170,12 +170,14 @@ void Object::DestroyGraphics( void )
 
 const Graphics *Object::GetGraphics( void ) const
 {
-	return m_graphics.GetAsset();
+	if (m_graphics.GetShared() == NULL) { return NULL; }
+	return m_graphics.GetShared()->GetGraphics();
 }
 
-void Object::SetGraphics(mtlAsset<Graphics> &graphics)
+void Object::SetGraphics(const mtlAsset<Graphics> &graphics)
 {
-	m_graphics = graphics;
+	m_graphics = graphics.GetAsset()->CreateInstance();
+	GetGraphics()->GetTransform().SetParent(&m_transform);
 }
 
 const Engine *Object::GetEngine( void ) const

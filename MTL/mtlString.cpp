@@ -391,7 +391,31 @@ bool mtlString::FromFloat(float f)
 	return size >= 0;
 }
 
-mtlHash::mtlHash(const mtlChars &p_str)
+/*mtlHash::mtlHash(const mtlChars &p_str) // probably prevents template constructor from getting called
+{
+	const int size = p_str.GetSize();
+	value = 2166136261u;
+	for (int i = 0; i < size; ++i) {
+		value ^= p_str.GetChars()[i];
+		value *= 16777619u;
+	}
+	value ^= '\0';
+	value *= 16777619u;
+}*/
+
+mtlHash::mtlHash(const mtlString &p_str)
+{
+	const int size = p_str.GetSize();
+	value = 2166136261u;
+	for (int i = 0; i < size; ++i) {
+		value ^= p_str.GetChars()[i];
+		value *= 16777619u;
+	}
+	value ^= '\0';
+	value *= 16777619u;
+}
+
+mtlHash::mtlHash(const mtlSubstring &p_str)
 {
 	const int size = p_str.GetSize();
 	value = 2166136261u;

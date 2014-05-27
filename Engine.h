@@ -105,7 +105,7 @@ public:
 	Object						*AddObject( void );
 	Object						*AddObject( void );
 	Object						*AddObject(const mtlChars &typeName); // can fail if that type name is not registered
-	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)());
+	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types); // requires recursive in-order tree traversal to build tree
 	template < typename graphics_t >
 	static mtlAsset<Graphics>	LoadGraphics(const mtlChars &file);
