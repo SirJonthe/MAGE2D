@@ -221,7 +221,7 @@ AABBCollider::AABBCollider(mmlVector<2> min, float maxx, float maxy)
 	m_box.max[1] = maxy;
 }
 
-AABBCollider::AABBCollider(AABB aabb) : m_box(aabb) {}
+AABBCollider::AABBCollider(Box aabb) : m_box(aabb) {}
 
 AABBCollider::AABBCollider(const AABBCollider &collider) : m_box(collider.m_box) {}
 

@@ -27,15 +27,16 @@ protected:
 	int				GetGraphicsQueueSize( void ) const;
 	const Graphics	*GetGraphics(int i) const;
 	mmlMatrix<3,3>	GetGraphicsTransform(int i) const;
-	void			AddToGraphicsQueue(const Graphics::Instance &graphics);
-	void			ClearGraphicsQueue( void );
-	void			SortGraphicsQueue( void );
+	void			AddToGraphicsQueue(const Renderer::Instance &graphics);
 	void			SetViewTransform(mmlMatrix<3,3> cameraTransform);
 public:
 					Renderer( void );
 	virtual			~Renderer( void );
 	virtual void	SetView(const Camera &camera);
-	virtual void	AddGraphics(const Graphics::Instance &graphics);
+	virtual void	AddGraphics(transform, texture, tint); // image
+	virtual void	AddGraphics(transform, texture, uv, tint); // sprite
+	virtual void	AddGraphics(transform, vert, tint); // polygon
+	virtual void	AddGraphics(transform, image, vert, uv, tint); // arbitrary
 	virtual void	RenderView( void );
 };
 

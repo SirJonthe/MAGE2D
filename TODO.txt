@@ -34,7 +34,7 @@ Debugger:
 	Game object that stops time
 	Lets user click on an object and view its properties
 	Requires objects to implement an output function (that prints values)
-	Lers user view what assets are currently loaded into memory (as well as memory footprint)
+	Lets user view what assets are currently loaded into memory (as well as memory footprint)
 Tile set editor
 	Game object
 	Place tiles + collision boxes in a grid

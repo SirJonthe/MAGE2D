@@ -19,15 +19,6 @@ const Uint32 amask = 0xff000000;
 
 GLuint Image::m_bound = 0;
 
-void Image::Instance::Draw(Renderer *renderer)
-{
-	if (GetGraphics() == NULL) { return; }
-
-	renderer->Render(image, GetTransform());
-
-	// Renderer::Render(image, GetTransform(), vertex, uv);
-}
-
 Image::Image( void ) : m_image(NULL), m_width(0), m_height(0), m_id(0)
 {
 }
@@ -193,11 +184,4 @@ void Image::Unbind( void )
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	m_bound = 0;
-}
-
-mtlShared<Graphics::Instance> Image::GetInstance( void ) const
-{
-	mtlShared<Graphics::Instance> instance = mtlShared<Graphics::Instance>::Create<Image>();
-	instance.GetShared()->SetGraphics;
-	return instance;
 }

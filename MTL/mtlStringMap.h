@@ -16,8 +16,10 @@ private:
 	};
 	struct HashNode
 	{
-		mtlHash											hash;
-		mutable mtlShared< mtlList<mtlShared<Entry> > >	entries;
+		typedef mtlList< mtlShared<Entry> > List;
+		typedef mtlNode< mtlShared<Entry> > ListNode;
+		mtlHash					hash;
+		mutable mtlShared<List>	entries;
 
 		bool operator<(mtlHash r) const { return hash < r; }
 		bool operator==(mtlHash r) const { return hash == r; }
@@ -27,21 +29,30 @@ private:
 private:
 	mtlBinaryTree<HashNode> m_table;
 public:
-	bool CreateEntry(const mtlChars &name);
-	//void CollapseEntry(const mtlChars &name);
-	const type_t *GetEntry(const mtlChars &name);
-	type_t *GetEntry(const mtlChars &name);
+	mtlBranch<HashNode> *GetNode(const mtlChars &name) const;
+public:
+	bool			CreateEntry(const mtlChars &name);
+	void			RemoveEntry(const mtlChars &name);
+	void			RemoveAll( void );
+	const type_t	*GetEntry(const mtlChars &name) const;
+	type_t			*GetEntry(const mtlChars &name);
 };
 
 template < typename type_t >
-bool mtlStringMap::CreateEntry(const mtlChars &name)
+mtlBranch<mtlStringMap::HashNode> *mtlStringMap::GetNode(const mtlChars &name) const
+{
+	return m_table.GetRoot() != NULL ? m_table.GetRoot()->Find(mtlHash(name)) : NULL;
+}
+
+template < typename type_t >
+bool mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 {
 	mtlHash hash(name);
 	const mtlBranch<HashNode> *b = m_table.GetRoot();
 	if (b != NULL) {
 		b->Find(hash);
 	}
-	mtlNode< mtlShared<Entry> > *n = NULL;
+	HashNode::ListNode *n = NULL;
 	if (b != NULL) {
 		n = b->GetItem().entries.GetShared()->GetFirst();
 		while (n != NULL) {
@@ -64,16 +75,33 @@ bool mtlStringMap::CreateEntry(const mtlChars &name)
 }
 
 template < typename type_t >
-const type_t *mtlStringMap::GetEntry(const mtlChars &name) const
+void mtlStringMap<type_t>::RemoveEntry(const mtlChars &name)
 {
-	mtlHash hash(name);
-	mtlBranch<HashNode> *b = m_table.GetRoot();
-	if (b == NULL) { return NULL; }
+	mtlBranch<HashNode> *hashNode = GetNode(name);
+	const HashNode::ListNode *node = hashNode->GetItem()->entries.GetShared()->GetFirst();
+	while (node != NULL) {
+		if (node->GetItem().GetShared()->name.Compare(name)) {
+			node->Remove();
+			break;
+		}
+		node = node->GetNext();
+	}
+	if (hashNode->GetItem()->entries.GetShared()->GetSize() == 0) {
+		hashNode->Remove();
+	}
+}
 
-	b = b->Find(hash);
-	if (b == NULL) { return NULL; }
+template < typename type_t >
+void mtlStringMap<type_t>::RemoveAll( void )
+{
+	m_table.RemoveAll();
+}
 
-	mtlNode< mtlShared<Entry> > *n = b->GetItem().entries.GetShared()->GetFirst();
+template < typename type_t >
+const type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name) const
+{
+	mtlBranch<HashNode> *b = GetNode(name);
+	HashNode::ListNode *n = b->GetItem().entries.GetShared()->GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().GetShared()->name.Compare(name)) {
 			return &n->GetItem().GetShared()->entry;
@@ -84,16 +112,10 @@ const type_t *mtlStringMap::GetEntry(const mtlChars &name) const
 }
 
 template < typename type_t >
-type_t *mtlStringMap::GetEntry(const mtlChars &name)
+type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 {
-	mtlHash hash(name);
-	mtlBranch<HashNode> *b = m_table.GetRoot();
-	if (b == NULL) { return NULL; }
-
-	b = b->Find(hash);
-	if (b == NULL) { return NULL; }
-
-	mtlNode< mtlShared<Entry> > *n = b->GetItem().entries.GetShared()->GetFirst();
+	mtlBranch<HashNode> *b = GetNode(name);
+	HashNode::ListNode *n = b->GetItem().entries.GetShared()->GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().GetShared()->name.Compare(name)) {
 			return &n->GetItem().GetShared()->entry;

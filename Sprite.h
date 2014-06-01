@@ -9,62 +9,33 @@
 #include "MTL/mtlAsset.h"
 #include "MTL/mtlType.h"
 
+// REMEMBER:
+// Sprites must animate in height as well, since all textures must be n^2
+
 class Sprite : public mtlInherit<Graphics>
 {
-public:
-	struct Animation
-	{
-		mtlString		name;
-		mtlHash			hash;
-		mtlAsset<Image>	image;
-		int				frameCount;
-		float			framesPerSecond;
-		int				loopBack; // if animation does not loop then set loopBack to frameCount - 1
-		int				offsetX;
-		int				offsetY;
-
-		bool operator<(const Animation &r) { return hash < r.hash; }
-		bool operator==(const Animation &r) { return hash == r.hash; }
-	};
-	class Instance : public Graphics::Instance
-	{
-	private:
-		int		m_currentAnimation;
-		int		m_currentFrame;
-		Timer	m_frameTimer;
-		bool	m_paused;
-	public:
-		const Animation	*GetAnimation( void ) const;
-		void			SetAnimation(const mtlChars &name);
-		void			SetAnimation(int index);
-
-		int				GetFrame( void ) const;
-		void			SetFrame(int frame);
-
-		void			Start( void );
-		void			Pause( void );
-		void			Stop( void );
-		void			Restart( void );
-
-		void			TickFrame( void );
-	};
 private:
-	mtlArray<Animation> m_animations;
-	//mtlStringMap<Animation> m_animations;
+	mtlAsset<Image>	m_sheet;
+	int				m_frameWidth;
+	int				m_frameHeight;
+	float			m_framesPerSecond;
+	int				m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
 private:
 	Sprite(const Sprite&) {}
 	Sprite &operator=(const Sprite&) { return *this; }
 public:
-					Sprite( void );
+			Sprite( void );
 
-	int				GetAnimationCount( void ) const;
-	const Animation	*GetAnimation(const mtlChars &name) const;
-	const Animation	*GetAnimation(int index) const;
+	int		GetFrameCount( void ) const;
 
-	int				GetAnimationIndex(const mtlChars &name) const;
+	bool	Load(const mtlDirectory &file);
 
-	bool			Load(const mtlDirectory &file);
-	void			Destroy( void );
+	int		GetWidth( void ) const;
+	int		GetHeight( void ) const;
+	void	Destroy( void );
+	void	Bind( void );
+	void	Unbind( void );
+	void	Draw(Renderer &renderer, Transform transform, mmlVector<4> tint, float time);
 };
 
 #endif // SPRITE_H

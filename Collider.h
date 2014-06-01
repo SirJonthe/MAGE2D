@@ -23,8 +23,8 @@ public:
 	Transform &GetTransform( void );
 	const Transform &GetTransform( void ) const;
 
-	Box GetBoundingBox( void ) const = 0;
-	Circle GetBoundingCircle( void ) const = 0;
+	virtual Box GetBoundingBox( void ) const = 0;
+	virtual Circle GetBoundingCircle( void ) const = 0;
 };
 
 /*class PointCollider : public mtlInherit<Collider>
@@ -69,7 +69,7 @@ public:
 	AABBCollider(float minx, float miny, mmlVector<2> max);
 	AABBCollider(mmlVector<2> min, mmlVector<2> max);
 	AABBCollider(mmlVector<2> min, float maxx, float maxy);
-	AABBCollider(AABB aabb);
+	AABBCollider(Box aabb);
 	AABBCollider(const AABBCollider &collider);
 	AABBCollider &operator=(const AABBCollider &collider);
 

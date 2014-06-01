@@ -11,21 +11,6 @@
 
 class Image : public mtlInherit<Graphics>
 {
-public:
-	class Instance : public mtlInherit<Graphics::Instance>
-	{
-	private:
-		Image *m_image;
-	public:
-		void SetAnimation(const mtlChars &name) {}
-		void StartAnimation( void ) {}
-		void StopAnimation( void ) {}
-		void PauseAnimation( void ) {}
-		void RestartAnimation( void ) {}
-
-		void Update( void ) {}
-		void Draw(Renderer *renderer);
-	};
 private:
 	SDL_Surface		*m_image;
 	int				m_width;
@@ -53,7 +38,6 @@ public:
 	const Uint32					*GetPixels(int x, int y) const;
 	void							Bind( void ) const;
 	static void						Unbind( void );
-	mtlShared<Graphics::Instance>	GetInstance( void ) const;
 };
 
 #endif // IMAGE_H

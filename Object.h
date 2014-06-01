@@ -13,18 +13,18 @@ class Object : public mtlBase
 {
 	friend class Engine;
 private:
-	mtlShared<Graphics::Instance>	m_graphics; // only to get polymorphism
-	mtlString						m_name;
-	Transform						m_transform;
-	bool							m_destroy;
-	bool							m_collisions;
-	bool							m_visible;
-	bool							m_frozen;			// used by the debugger object to freeze game state
-	mtlShared<Collider>				m_collider;
-	unsigned long long				m_objectFlags;		// what is the object?
-	unsigned long long				m_collisionMask;	// what can the object collide with?
-	const unsigned long long		m_objectNumber;
-	Engine							*m_engine;
+	GraphicsInstance			m_graphics; // only to get polymorphism
+	mtlString					m_name;
+	Transform					m_transform;
+	bool						m_destroy;
+	bool						m_collisions;
+	bool						m_visible;
+	bool						m_frozen;			// used by the debugger object to freeze game state
+	mtlShared<Collider>			m_collider;
+	unsigned long long			m_objectFlags;		// what is the object?
+	unsigned long long			m_collisionMask;	// what can the object collide with?
+	const unsigned long long	m_objectNumber;
+	Engine						*m_engine;
 protected:
 	virtual void	OnInit( void ) {}
 	virtual void	OnUpdate( void ) {}
