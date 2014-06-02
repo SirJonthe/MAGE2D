@@ -110,12 +110,9 @@ void Object::LoadCollider( void )
 template < typename graphics_t >
 bool Object::LoadGraphics(const mtlChars &file)
 {
-	m_graphics.Delete();
-	mtlAsset<Graphics> asset = mtlAsset<Graphics>::Load<graphics_t>(file);
-	if (asset.GetAsset() == NULL) { return false; }
-	m_graphics = asset.GetAsset()->CreateInstance();
-	GetGraphics()->GetTransform().SetParent(&m_transform);
-	return m_graphics.GetGraphics() != NULL && m_graphics.GetGraphics()->GetError().GetSize() == 0;
+	m_graphics.GetTransform().SetParentTransform(&m_transform, false);
+	m_graphics = mtlAsset<Graphics>::Load<graphics_t>(file);
+	return m_graphics.GetGraphics().GetAsset() != NULL;
 }
 
 #endif // OBJECT_H

@@ -7,6 +7,7 @@
 #include "Image.h"
 #include "Renderer.h"
 #include "MTL/mtlString.h"
+#include "MTL/mtlStringMap.h"
 #include <iostream>
 
 class Controllable : public mtlInherit<Object>
@@ -25,6 +26,7 @@ ENGINE_REGISTER_OBJECT_TYPE(Controllable);
 void Unit_OpenGLTest( void );
 void Unit_RegisteredObjects( void );
 void Unit_Controllable(Engine &engine);
+void Unit_StringMap( void );
 
 int main(int argc, char **argv)
 {
@@ -34,6 +36,7 @@ int main(int argc, char **argv)
 	engine.SetWindowCaption("Lots-o-tests");
 	Unit_RegisteredObjects();
 	Unit_Controllable(engine);
+	Unit_StringMap();
 	return 0;
 }
 
@@ -176,4 +179,19 @@ void Unit_Controllable(Engine &engine)
 	engine.SetRenderer(new Renderer);
 
 	engine.RunGame();
+}
+
+void Unit_StringMap( void )
+{
+	std::cout << "Unit_StringMap: ";
+	mtlStringMap<Graphics> map;
+	Graphics *a = map.CreateEntry<Image>("~/.local/share/game/image.bmp");
+	Graphics *b = map.CreateEntry<Image>("~/.local/share/game/another_image.bmp");
+	Graphics *c = map.CreateEntry<Image>("~/.local/share/game/a_third_image.bmp");
+
+	if (a == map.GetEntry("~/.local/share/game/image.bmp") && b == map.GetEntry("~/.local/share/game/another_image.bmp") && c == map.GetEntry("~/.local/share/game/a_third_image.bmp")) {
+		std::cout << "success" << std::endl;
+	} else {
+		std::cout << "failed" << std::endl;
+	}
 }

@@ -21,23 +21,23 @@ private:
 	Image(const Image &) {}
 	Image &operator=(const Image &) { return *this; }
 public:
-									Image( void );
-									Image(const mtlDirectory &file);
-									~Image( void );
-	void							Destroy( void );
-	bool							Load(const mtlDirectory &file);
-	bool							IsGood( void ) const;
-	int								GetWidth( void ) const;
-	int								GetHeight( void ) const;
-	int								GetArea( void ) const;
-	const SDL_Surface				*GetSurface( void ) const;
-	bool							SetSurface(SDL_Surface *image);
-	bool							IsColorKey(int x, int y) const;
-	const Uint32					*GetPixels( void ) const;
-	const Uint32					*GetPixels(int y) const;
-	const Uint32					*GetPixels(int x, int y) const;
-	void							Bind( void ) const;
-	static void						Unbind( void );
+						Image( void );
+						Image(const mtlDirectory &file);
+						~Image( void );
+	void				Destroy( void );
+	bool				Load(const mtlDirectory &file);
+	bool				IsGood( void ) const;
+	int					GetWidth( void ) const;
+	int					GetHeight( void ) const;
+	int					GetArea( void ) const;
+	const SDL_Surface	*GetSurface( void ) const;
+	bool				SetSurface(SDL_Surface *image);
+	bool				IsColorKey(int x, int y) const;
+	const Uint32		*GetPixels( void ) const;
+	const Uint32		*GetPixels(int y) const;
+	const Uint32		*GetPixels(int x, int y) const;
+	void				Bind( void ) const;
+	static void			Unbind( void );
 };
 
 #endif // IMAGE_H

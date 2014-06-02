@@ -29,7 +29,7 @@ public:
 	virtual void Destroy( void ) = 0;
 	virtual void Bind( void ) = 0;
 	virtual void Unbind( void ) = 0;
-	virtual void Draw(Renderer &renderer, Transform transform, mmlVector<4> tint, float time) = 0;
+	virtual void Draw(Renderer &renderer, Transform transform, mmlVector<4> tint, float time) = 0; // RENDER HERE AND NOW (traditionally only called directly by renderer)
 };
 
 class GraphicsInstance
@@ -41,12 +41,17 @@ protected:
 	Timer				m_timer;
 	float				m_time;
 public:
-	GraphicsInstance( void ) : m_graphics(), m_transform(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) { m_timer.Start(); }
+	GraphicsInstance( void ) : m_graphics(), m_transform(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
+	GraphicsInstance(const GraphicsInstance &instance) : m_graphics(instance.m_graphics), m_transform(instance.m_transform), m_tint(instance.m_tint), m_timer(instance.m_timer), m_time(instance.m_time) {}
+	GraphicsInstance(const mtlAsset<Graphics> &graphics) : m_graphics(graphics), m_transform(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
+	GraphicsInstance &operator=(const GraphicsInstance &instance);
+	GraphicsInstance &operator=(const mtlAsset<Graphics> &graphics);
 
 	const mtlAsset<Graphics>	&GetGraphics( void ) const;
 	void						SetGraphics(const mtlAsset<Graphics> &graphics);
 	template < typename graphics_t >
 	bool						LoadGraphics(const mtlChars &file);
+	void						DeleteGraphics( void );
 
 	Transform		&GetTransform( void );
 	const Transform	&GetTransform( void ) const;
@@ -77,7 +82,7 @@ public:
 	bool	IsStopped( void ) const;
 	bool	IsTicking( void ) const;
 
-	void	Draw(Renderer &renderer);
+	void	Draw(Renderer &renderer); // DEFER RENDERING TO WHEN THE RENDERER SEES FIT (renderer gets a chance to sort the rendering order)
 };
 
 template < typename graphics_t >

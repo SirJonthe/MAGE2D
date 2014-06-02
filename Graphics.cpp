@@ -1,6 +1,23 @@
 #include "Graphics.h"
 #include "Renderer.h"
 
+GraphicsInstance &GraphicsInstance::operator =(const GraphicsInstance &instance)
+{
+	if (this != &instance) {
+		m_graphics = instance.m_graphics;
+		m_tint = instance.m_tint;
+		m_timer = instance.m_timer;
+		m_time = instance.m_time;
+	}
+	return *this;
+}
+
+GraphicsInstance &GraphicsInstance::operator =(const mtlAsset<Graphics> &graphics)
+{
+	m_graphics = graphics;
+	return *this;
+}
+
 const mtlAsset<Graphics> &GraphicsInstance::GetGraphics( void ) const
 {
 	return m_graphics;
@@ -9,6 +26,11 @@ const mtlAsset<Graphics> &GraphicsInstance::GetGraphics( void ) const
 void GraphicsInstance::SetGraphics(const mtlAsset<Graphics> &graphics)
 {
 	m_graphics = graphics;
+}
+
+void GraphicsInstance::DeleteGraphics( void )
+{
+	m_graphics.Delete();
 }
 
 Transform &GraphicsInstance::GetTransform( void )
