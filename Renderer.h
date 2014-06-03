@@ -17,7 +17,7 @@ private:
 		mmlMatrix<3,3>				worldTransform;
 	};
 private:
-	mtlArray<Instance>	m_graphics;
+	mtlList<Instance>	m_graphics;
 	mmlMatrix<3,3>		m_view;
 	GLfloat				m_vert[8];
 	GLfloat				m_tex[8];
@@ -33,10 +33,10 @@ public:
 					Renderer( void );
 	virtual			~Renderer( void );
 	virtual void	SetView(const Camera &camera);
-	virtual void	AddGraphics(transform, texture, tint); // image
-	virtual void	AddGraphics(transform, texture, uv, tint); // sprite
-	virtual void	AddGraphics(transform, vert, tint); // polygon
-	virtual void	AddGraphics(transform, image, vert, uv, tint); // arbitrary
+	virtual void	AddGraphics(const Transform &transform, const Image &image, const mmlVector<3> &tint); // image
+	virtual void	AddGraphics(const Transform &transform, const Image &image, const mmlVector<2> &uv1, const mmlVector<2> &uv2, const mmlVector<3> &tint); // sprite
+	virtual void	AddGraphics(const Transform &transform, const mtlArray< mmlVector<2> > &vert, const mmlVector<3> &tint); // polygon
+	virtual void	AddGraphics(const Transform &transform, const Image &image, const mtlArray< mmlVector<2> > &vert, const mtlArray< mmlVector<2> > &uv, const mmlVector<3> &tint); // polygon sprite
 	virtual void	RenderView( void );
 };
 

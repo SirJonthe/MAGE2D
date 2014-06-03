@@ -29,7 +29,7 @@ public:
 	virtual void Destroy( void ) = 0;
 	virtual void Bind( void ) = 0;
 	virtual void Unbind( void ) = 0;
-	virtual void Draw(Renderer &renderer, Transform transform, mmlVector<4> tint, float time) = 0; // RENDER HERE AND NOW (traditionally only called directly by renderer)
+	virtual void Draw(Renderer &renderer, const Transform &transform, const mmlVector<4> &tint, float time) = 0;
 };
 
 class GraphicsInstance
@@ -82,7 +82,7 @@ public:
 	bool	IsStopped( void ) const;
 	bool	IsTicking( void ) const;
 
-	void	Draw(Renderer &renderer); // DEFER RENDERING TO WHEN THE RENDERER SEES FIT (renderer gets a chance to sort the rendering order)
+	void	Draw(Renderer &renderer);
 };
 
 template < typename graphics_t >

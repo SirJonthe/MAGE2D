@@ -87,7 +87,7 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 }
 
 template < typename type_t >
-type_t *mtlStringMap::CreateEntry(const mtlChars &name)
+type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 {
 	return CreateEntry<type_t>(name);
 }

@@ -25,11 +25,13 @@ const mtlAsset<Graphics> &GraphicsInstance::GetGraphics( void ) const
 
 void GraphicsInstance::SetGraphics(const mtlAsset<Graphics> &graphics)
 {
+	DeleteGraphics();
 	m_graphics = graphics;
 }
 
 void GraphicsInstance::DeleteGraphics( void )
 {
+	// unbind vert, tex, uv, normals
 	m_graphics.Delete();
 }
 

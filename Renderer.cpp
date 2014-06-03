@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include "Polygon.h"
 #include <GL/glext.h>
 
 bool Renderer::GraphicsInstance::operator <(const Renderer::GraphicsInstance &inst) const
@@ -86,14 +85,67 @@ void Renderer::SetView(const Camera &camera)
 	glOrtho(-0.5, (camera.GetPixelsInViewWidth() - 1) + 0.5, (camera.GetPixelsInViewHeight() - 1) + 0.5, -0.5, 0.0, 1.0);
 }
 
-void Renderer::AddGraphics(const Graphics::Instance &graphics)
+void Renderer::AddGraphics(const Transform &transform, const mtlAsset<Image> &image, const mmlVector<3> &tint)
 {
-	if (graphics.GetInstanceType() == Image::GetClassType()) {
-		AddToGraphicsQueue(graphics);
-	}/* else if (graphics.GetInstanceType() == Polygon::GetClassType()) {
-		AddToGraphicsQueue(graphics, worldTransform);
-	}*/
-	// accept more types
+	if (image.GetAsset() == NULL) { return; }
+	mmlVector<2> uv1;
+	uv1[0] = uv1[1] = 0.0f;
+	mmlVector<2> uv2;
+	uv2[0] = uv2[1] = 1.0f;
+	AddGraphics(transform, image, uv1, uv2, tint);
+}
+
+void Renderer::AddGraphics(const Transform &transform, const mtlAsset<Image> &image, const mmlVector<2> &uv1, const mmlVector<2> &uv2, const mmlVector<3> &tint)
+{
+	if (image.GetAsset() == NULL) { return; }
+
+	Instance *inst = &m_graphics.AddLast();
+	inst->texture = image;
+	inst->vertex.Create(4); // size of the image in pixels
+	inst->vertex[0][0] = 0.0f;
+	inst->vertex[0][1] = (uv2[1] - uv1[1]) * image.GetAsset()->GetHeight();
+	inst->vertex[1][0] = 0.0f;
+	inst->vertex[1][1] = 0.0f;
+	inst->vertex[2][0] = (uv2[0] - uv1[0]) * image.GetAsset()->GetWidth();
+	inst->vertex[2][1] = 0.0f;
+	inst->vertex[3][0] = (uv2[0] - uv1[0]) * image.GetAsset()->GetWidth();
+	inst->vertex[3][1] = (uv2[1] - uv1[1]) * image.GetAsset()->GetHeight();
+	inst->uv.Create(4);
+	inst->uv[0][0] = uv1[0];
+	inst->uv[0][1] = uv1[1];
+	inst->uv[1][0] = uv1[0];
+	inst->uv[1][1] = uv2[1];
+	inst->uv[2][0] = uv2[0];
+	inst->uv[2][1] = uv2[1];
+	inst->uv[3][0] = uv2[0];
+	inst->uv[3][1] = uv1[1];
+	inst->tint = tint;
+	inst->worldTransform = transform.GetWorldTransform();
+}
+
+void Renderer::AddGraphics(const Transform &transform, const mtlArray< mmlVector<2> > &vert, const mmlVector<3> &tint)
+{
+	if (vert.GetSize() == 0) { return; }
+
+	Instance *inst = m_graphics.AddLast();
+	inst->worldTransform = transform.GetWorldTransform();
+	inst->vertex.Copy(vert);
+	inst->tint = tint;
+}
+
+void Renderer::AddGraphics(const Transform &transform, const mtlAsset<Image> &image, const mtlArray< mmlVector<2> > &vert, const mtlArray< mmlVector<2> > &uv, const mmlVector<3> &tint)
+{
+	if (image.GetAsset() == NULL) { return; }
+	if (vert.GetSize() == 0) { return; }
+	if (uv.GetSize() == 0) { return; }
+	if (vert.GetSize() != uv.GetSize()) { return; }
+
+	Instance *inst = m_graphics.AddLast();
+	inst->texture = image;
+	inst->vertex.Copy(vert);
+	inst->uv.Copy(uv);
+	inst->tint = tint;
+	inst->worldTransform = transform.GetWorldTransform();
 }
 
 void Renderer::RenderView( void )

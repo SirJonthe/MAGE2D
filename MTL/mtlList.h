@@ -52,7 +52,9 @@ public:
 	inline							mtlList( void );
 	inline							~mtlList( void );
 	void							AddLast(const type_t &p_value);
+	type_t							&AddLast( void );
 	void							AddFirst(const type_t &p_value);
+	type_t							&AddFirst( void );
 	void							RemoveLast( void );
 	void							RemoveFirst( void );
 	mtlNode<type_t>					*Insert(const type_t &p_value, mtlNode<type_t> *p_node);
@@ -169,12 +171,38 @@ void mtlList<type_t>::AddLast(const type_t &p_value)
 }
 
 template < typename type_t >
+type_t &mtlList<type_t>::AddLast( void )
+{
+	mtlNode<type_t> *node = new mtlNode<type_t>;
+	node->m_parent = this;
+	node->m_next = NULL;
+	node->m_prev = m_last;
+	m_last = node;
+	if (m_first == NULL) { m_first = m_last; }
+	++m_size;
+	return node->m_item;
+}
+
+template < typename type_t >
 void mtlList<type_t>::AddFirst(const type_t &p_value)
 {
 	mtlNode<type_t> *node = new mtlNode<type_t>(p_value, this, m_first, NULL);
 	m_first = node;
 	if (m_last == NULL) { m_last = m_first; }
 	++m_size;
+}
+
+template < typename type_t >
+type_t &mtlList<type_t>::AddFirst( void )
+{
+	mtlNode<type_t> *node = new mtlNode<type_t>;
+	node->m_parent = this;
+	node->m_next = m_first;
+	node->m_prev = NULL;
+	m_first = node;
+	if (m_last == NULL) { m_last = m_first; }
+	++m_size;
+	return node->m_item;
 }
 
 template < typename type_t >

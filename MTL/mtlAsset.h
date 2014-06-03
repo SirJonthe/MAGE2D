@@ -37,6 +37,7 @@ private:
 		bool operator==(const AssetNode &n) const { return hash.value == n.hash.value; }
 	};
 	static mtlBinaryTree<AssetNode> &GetAssetBank( void );
+	static void Purge(mtlBranch<AssetNode> *node);
 private:
 	mtlShared<Instance>	m_ref;
 public:
@@ -58,6 +59,26 @@ mtlBinaryTree<typename mtlAsset<type_t>::AssetNode> &mtlAsset<type_t>::GetAssetB
 {
 	static mtlBinaryTree<AssetNode> assetBank;
 	return assetBank;
+}
+
+template < typename type_t >
+void mtlAsset<type_t>::Purge(mtlBranch<typename mtlAsset<type_t>::AssetNode> *node)
+{
+	if (node != NULL) {
+		Purge(node->GetNegative());
+		mtlNode< mtlShared<Instance> > *n = node->GetItem().assets.GetShared()->GetFirst();
+		while (n != NULL) {
+			if (n->GetItem().GetCount() <= 1) { // should never be less than 1
+				n = n->Remove();
+			} else {
+				n = n->GetNext();
+			}
+		}
+		Purge(node->GetPositive());
+		if (node->GetItem().assets.GetShared()->GetSize() == 0) { // only remove once we are done with the node to avoid pressing for bugs
+			node = node->Remove();
+		}
+	}
 }
 
 template < typename type_t >
@@ -137,140 +158,8 @@ mtlAsset<type_t> mtlAsset<type_t>::Load(const mtlChars &file)
 template < typename type_t >
 void mtlAsset<type_t>::Purge( void )
 {
-	// in order traversal of tree
-	// at every node, remove all assets that only have 1 reference
-	// if list at node is empty, remove node
-		// requires Remove to be implemented in mtlBranch
-
-	/*mtlNode< mtlShared<Instance> > *node = GetAssetBank().GetFirst();
-	while (node != NULL) {
-		if (node->GetItem().GetCount() == 1) { // only this list references it
-			node = node->Remove(); // purge it from list
-		} else {
-			node = node->GetNext();
-		}
-	}*/
+	Purge(GetAssetBank().GetRoot());
+	// if (GetAssetBank().GetRoot() != NULL && !GetAssetBank().GetRoot()->IsBalanced(2)) { GetAssetBank().GetRoot()->Balance(); } // permit a difference of 2
 }
-
-/*template < typename type_t >
-class mtlAsset
-{
-private:
-	struct Ref
-	{
-		type_t			*asset;
-		int				count;
-		mtlHash			hash;
-		mtlNode<Ref>	*node;
-		mtlDirectory	filename;
-						Ref( void ) : asset(NULL), count(0), hash(""), node(NULL), filename("") {}
-	};
-private:
-	static mtlList<Ref> assets;
-private:
-	Ref			*m_ref;
-	mtlString	m_error;
-private:
-	void CopyReference(const mtlAsset<type_t> &p_asset);
-	void DeleteReference( void );
-	bool IsValid( void ) const { return m_ref != NULL && m_ref->count > 0 && m_ref->asset != NULL; }
-public:
-						mtlAsset( void ) : m_ref(NULL) {}
-	explicit			mtlAsset(const mtlAsset<type_t> &p_asset) : m_ref(NULL) { CopyReference(p_asset); }
-	//template < typename derived_t >
-	//explicit			mtlAsset(const mtlChars &p_filename) : m_ref(NULL) { Load<derived_t>(p_filename); }
-						~mtlAsset( void ) { DeleteReference(); }
-	mtlAsset<type_t>	&operator=(const mtlAsset<type_t> &p_asset) { CopyReference(p_asset); return *this; }
-	template < typename derived_t >
-	bool				Load(const mtlChars &p_filename);
-	bool				Load(const mtlChars &p_filename);
-	void				Invalidate( void ) { DeleteReference(); }
-	const type_t		*GetAsset( void ) const { return IsValid() ? m_ref->asset : NULL; }
-	const mtlDirectory	&GetFilename( void ) const { return IsValid() ? m_ref->filename : mtlDirectory(""); }
-	const mtlString		&GetError( void ) const { return m_error; }
-	static void			Purge( void );
-	static int			GetSize( void ) { return assets.GetSize(); }
-};
-
-template < typename type_t >
-mtlList<typename mtlAsset<type_t>::Ref> mtlAsset<type_t>::assets;
-
-template < typename type_t >
-void mtlAsset<type_t>::CopyReference(const mtlAsset<type_t> &p_asset)
-{
-	if (p_asset.m_ref != m_ref) {
-		DeleteReference();
-		if (p_asset.IsValid()) {
-			m_ref = p_asset.m_ref;
-			++m_ref->count;
-		}
-		m_error.Copy(p_asset.m_error);
-	}
-}
-
-template < typename type_t >
-void mtlAsset<type_t>::DeleteReference( void )
-{
-	if (IsValid()) {
-		--m_ref->count;
-	}
-	m_ref = NULL;
-}
-
-template < typename type_t >
-template < typename derived_t >
-bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
-{
-	DeleteReference();
-	mtlDirectory dir = p_filename;
-	mtlHash hash = mtlHash(dir.GetDirectory()); // should really forcibly convert filename to path relative to working directory
-	mtlNode<Ref> *node = assets.GetFirst();
-	while (node != NULL) {
-		if (node->GetItem().hash.value == hash.value) { break; } // REMEMBER: must also compare filename to account for hash collision
-		node = node->GetNext();
-	}
-	if (node != NULL) {
-		m_ref = &node->GetItem();
-		++m_ref->count;
-	} else {
-		assets.AddLast(Ref());
-		m_ref = &assets.GetLast()->GetItem();
-		m_ref->asset = new derived_t;
-		if (m_ref->asset->Load(p_filename)) {
-			m_ref->count = 1;
-			m_ref->hash = hash;
-			m_ref->node = assets.GetLast();
-			m_ref->filename = dir;
-			m_error.Copy("");
-		} else {
-			m_error.Copy(m_ref->asset->GetError());
-			delete m_ref->asset;
-			assets.Remove(assets.GetLast());
-			m_ref = NULL;
-			return false;
-		}
-	}
-	return true;
-}
-
-template < typename type_t >
-bool mtlAsset<type_t>::Load(const mtlChars &p_filename)
-{
-	return Load<type_t>(p_filename);
-}
-
-template < typename type_t >
-void mtlAsset<type_t>::Purge( void )
-{
-	mtlNode<Ref> *node = assets.GetFirst();
-	while (node != NULL) {
-		if (node->GetItem().count <= 0) {
-			delete node->GetItem().asset;
-			node = assets.Remove(node);
-		} else {
-			node = node->GetNext();
-		}
-	}
-}*/
 
 #endif
