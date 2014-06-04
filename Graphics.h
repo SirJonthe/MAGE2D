@@ -19,6 +19,7 @@ class Renderer;
 class Graphics : public mtlAssetInterface, public mtlBase
 {
 protected:
+	// try to store vertex/uv data here (that way Renderer only binds via Bind(), renders, and unbunds via Graphics::Unbind())
 	struct BindID { GLuint vertexBufferID, uvBufferID, normalBufferID, textureID; };
 	BindID m_id;
 	static BindID &Bound( void ) { static BindID b = {0,0,0,0}; return b; }
