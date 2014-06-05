@@ -396,19 +396,25 @@ const mtlList<SDL_Event> &Engine::GetEventList( void ) const
 	return m_events;
 }
 
-int Engine::GetRandom( void ) const
+int Engine::GetRandomInt( void ) const
 {
 	return rand();
 }
 
-int Engine::GetRandom(int max) const
+int Engine::GetRandomInt(int max) const
 {
 	return rand() % (max+1);
 }
 
-int Engine::GetRandom(int min, int max) const
+int Engine::GetRandomInt(int min, int max) const
 {
 	return GetRandom(max-min) + min;
+}
+
+float Engine::GetRandomFloat( void ) const
+{
+	const float invRand = 1.0f / float(RAND_MAX);
+	return float(rand()) * invRand;
 }
 
 const mtlList<Object*> &Engine::GetObjects( void ) const

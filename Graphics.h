@@ -4,6 +4,7 @@
 #include <GL/gl.h>
 #include "MTL/mtlAsset.h"
 #include "MTL/mtlType.h"
+#include "MTL/mtlArray.h"
 #include "Transform.h"
 #include "Timer.h"
 
@@ -18,19 +19,33 @@ class Renderer;
 
 class Graphics : public mtlAssetInterface, public mtlBase
 {
+private:
+	Graphics(const Graphics&) {}
+	Graphics &operator=(const Graphics&) { return *this; }
 protected:
-	// try to store vertex/uv data here (that way Renderer only binds via Bind(), renders, and unbunds via Graphics::Unbind())
-	struct BindID { GLuint vertexBufferID, uvBufferID, normalBufferID, textureID; };
-	BindID m_id;
-	static BindID &Bound( void ) { static BindID b = {0,0,0,0}; return b; }
+	struct BindID { GLuint vtx, uv, tex; };
+	BindID m_id; // generate buffers for all of these, even if empty
+	static Graphics *&Bound( void ) { static Graphics *b = NULL; return b; }
+protected:
+	void LoadVertexArray(const mtlArray< mmlVector<2> > &array);
+	void LoadUVArray(const mtlArray< mmlVector<2> > &array);
+	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format);
 public:
-	virtual ~Graphics( void ) {}
+	Graphics( void ); // construct buffers
+	virtual ~Graphics( void );
+
 	virtual int GetWidth( void ) const = 0;
 	virtual int GetHeight( void ) const = 0;
+
 	virtual void Destroy( void ) = 0;
-	virtual void Bind( void ) = 0;
-	virtual void Unbind( void ) = 0;
+
 	virtual void Draw(Renderer &renderer, const Transform &transform, const mmlVector<4> &tint, float time) = 0;
+
+	virtual bool IsGood( void ) const = 0;
+
+	void Bind( void );
+	void Unbind( void );
+	static void UnbindAll( void );
 };
 
 class GraphicsInstance

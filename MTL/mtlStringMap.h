@@ -81,7 +81,7 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 	}
 	Entry entry;
 	entry.name.Copy(name);
-	entry.entry.New<derived_t>();
+	entry.entry.template New<derived_t>(); // Jesus...
 	b->GetItem().entries.GetShared()->AddLast(entry);
 	return b->GetItem().entries.GetShared()->GetLast()->GetItem().entry.GetShared();
 }

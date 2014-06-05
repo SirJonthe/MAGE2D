@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <GL/glext.h>
+#include <SDL/SDL_image.h>
 #include "MML/mmlMath.h"
 #include "Image.h"
 #include "Renderer.h"
@@ -17,20 +18,20 @@ const Uint32 bmask = 0x00ff0000;
 const Uint32 amask = 0xff000000;
 #endif
 
-GLuint Image::m_bound = 0;
-
-Image::Image( void ) : m_image(NULL), m_width(0), m_height(0), m_id(0)
+Image::Image( void ) : m_image(NULL), m_width(0), m_height(0)
 {
 }
 
-Image::Image(const mtlDirectory &file) : m_image(NULL), m_width(0), m_height(0), m_id(0)
+Image::Image(const mtlDirectory &file) : m_image(NULL), m_width(0), m_height(0)
 {
 	Load(file);
 }
 
 Image::~Image( void )
 {
-	Destroy();
+	if (m_image != NULL) {
+		SDL_FreeSurface(m_image);
+	}
 }
 
 void Image::Destroy( void )
@@ -41,13 +42,6 @@ void Image::Destroy( void )
 	}
 	m_width = 0;
 	m_height = 0;
-	if (m_bound == m_id) {
-		Unbind();
-	}
-	if (m_id != 0) {
-		glDeleteTextures(1, &m_id);
-		m_id = 0;
-	}
 }
 
 bool Image::Load(const mtlDirectory &file)
@@ -56,7 +50,7 @@ bool Image::Load(const mtlDirectory &file)
 
 	Destroy();
 
-	SDL_Surface *image = SDL_LoadBMP(file.GetDirectory().GetChars());
+	SDL_Surface *image = IMG_Load(file.GetDirectory().GetChars());
 	if (image == NULL) {
 		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
 		return false;
@@ -120,30 +114,31 @@ bool Image::SetSurface(SDL_Surface *image)
 	m_width = m_image->w;
 	m_height = m_image->h;
 
-	glGenTextures(1, &m_id);
-	glBindTexture(GL_TEXTURE_2D, m_id);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_image->w, (GLsizei)m_image->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_image->pixels);
+	LoadTexture(m_image->pixels, m_width, m_height, GL_RGBA);
 
-	if (glGetError() != GL_NO_ERROR) {
-		std::cout << "\tfailed: OpenGL error" << std::endl;
-		SDL_FreeSurface(m_image);
-		m_image = NULL;
-		m_width	= 0;
-		m_height = 0;
-		m_id = 0;
-		return false;
-	}
+	mtlArray< mmlVector<2> > vtx;
+	vtx.Create(4);
+	vtx[0][0] = 0.0f;
+	vtx[0][1] = float(m_height);
+	vtx[1][0] = float(m_width);
+	vtx[1][1] = float(m_height);
+	vtx[2][0] = float(m_width);
+	vtx[2][1] = 0.0f;
+	vtx[3][0] = 0.0f;
+	vtx[3][1] = 0.0f;
+	LoadVertexArray(vtx);
 
-	if (m_bound != 0) {
-		glBindTexture(GL_TEXTURE_2D, m_bound);
-	} else {
-		Unbind();
-	}
+	mtlArray< mmlVector<2> > uv;
+	uv.Create(4);
+	uv[0] = 0.0f;
+	uv[1] = 1.0f;
+	uv[2] = 1.0f;
+	uv[3] = 1.0f;
+	uv[4] = 1.0f;
+	uv[5] = 0.0f;
+	uv[6] = 0.0f;
+	uv[7] = 0.0f;
+	LoadUVArray(uv);
 
 	return true;
 }
@@ -151,10 +146,13 @@ bool Image::SetSurface(SDL_Surface *image)
 bool Image::IsColorKey(int x, int y) const
 {
 	if (!IsGood()) { return true; }
-	Uint32 color, colorKey;
-	color = *GetPixels(x, y);
+	return IsColorKey(*GetPixels(x, y));
+}
+
+bool Image::IsColorKey(Uint32 pixel)
+{
 	colorKey = SDL_MapRGBA(m_image->format, 255, 0, 255, 0);
-	return color == colorKey;
+	return pixel == colorKey;
 }
 
 const Uint32 *Image::GetPixels( void ) const
@@ -172,16 +170,7 @@ const Uint32 *Image::GetPixels(int x, int y) const
 	return IsGood() ? ((Uint32*)(m_image->pixels) + y * m_image->w + x) : NULL;
 }
 
-void Image::Bind( void ) const
+void Image::Draw(Renderer &renderer, const Transform &transform, const mmlVector<4> &tint, float time)
 {
-	if (m_id != 0 && m_bound != m_id) {
-		glBindTexture(GL_TEXTURE_2D, m_id);
-		m_bound = m_id;
-	}
-}
-
-void Image::Unbind( void )
-{
-	glBindTexture(GL_TEXTURE_2D, 0);
-	m_bound = 0;
+	renderer.AddGraphics(transform, this, mmlVector<2>(0.0f, 0.0f), mmlVector<2>(1.0f, 1.0f), tint);
 }

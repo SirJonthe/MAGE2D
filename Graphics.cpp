@@ -1,6 +1,104 @@
 #include "Graphics.h"
 #include "Renderer.h"
 
+void Graphics::LoadVertexArray(const mtlArray< mmlVector<2> > &array)
+{
+	//glFinish(); // do we need to wait for everything else to finish?
+	glBindBuffer(GL_ARRAY_BUFFER, m_id.vtx);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+	glBufferData(GL_ARRAY_BUFFER, array.GetSize() * sizeof(mmlVector<2>), &(array[0][0]), GL_STATIC_DRAW);
+
+	if (Bound() != this) {
+		if (Bound() != NULL) {
+			glBindBuffer(GL_ARRAY_BUFFER, Bound()->m_id.vtx);
+		} else {
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+	}
+}
+
+void Graphics::LoadUVArray(const mtlArray< mmlVector<2> > &array)
+{
+	//glFinish(); // do we need to wait for everything else to finish?
+	glBindBuffer(GL_ARRAY_BUFFER, m_id.uv);
+	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+	glBufferData(GL_ARRAY_BUFFER, array.GetSize() * sizeof(mmlVector<2>), &(array[0][0]), GL_STATIC_DRAW);
+
+	if (Bound() != this) {
+		if (Bound() != NULL) {
+			glBindBuffer(GL_ARRAY_BUFFER, Bound()->m_id.uv);
+		} else {
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+	}
+}
+
+void Graphics::LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format)
+{
+	//glFinish(); // do we need to wait for everything else to finish?
+	glBindTexture(GL_TEXTURE_2D, m_id.tex);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+
+	if (Bound() != this) {
+		if (Bound() != NULL) {
+			glBindTexture(GL_TEXTURE_2D, Bound()->m_id.tex);
+		} else {
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	}
+}
+
+Graphics::Graphics( void )
+{
+	glGenBuffers(1, &m_id.vtx);
+	glGenBuffers(1, &m_id.uv);
+	glGenTextures(1, &m_id.tex);
+}
+
+Graphics::~Graphics( void )
+{
+	Unbind();
+	glDeleteBuffers(1, &m_id.vtx);
+	glDeleteBuffers(1, &m_id.uv);
+	glDeleteTextures(1, &m_id.tex);
+}
+
+void Graphics::Bind( void )
+{
+	if (IsGood()) {
+		glBindBuffer(GL_BUFFER, m_id.vtx);
+		glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0); // are these needed?
+		glBindBuffer(GL_BUFFER, m_id.uv);
+		glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0); // needed?
+		glBindTexture(GL_TEXTURE_2D, m_id.tex);
+		Bound() = this;
+	} else {
+		UnbindAll();
+	}
+}
+
+void Graphics::Unbind( void )
+{
+	if (Bound() == this) {
+		glBindBuffer(GL_VERTEX_ARRAY, 0);
+		glBindBuffer(GL_TEXCOORD_ARRAY, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		Bound() = NULL;
+	}
+}
+
+void Graphics::UnbindAll( void )
+{
+	if (Bound() != NULL) {
+		Bound()->Unbind();
+	}
+}
+
 GraphicsInstance &GraphicsInstance::operator =(const GraphicsInstance &instance)
 {
 	if (this != &instance) {
@@ -31,7 +129,9 @@ void GraphicsInstance::SetGraphics(const mtlAsset<Graphics> &graphics)
 
 void GraphicsInstance::DeleteGraphics( void )
 {
-	// unbind vert, tex, uv, normals
+	if (m_graphics.GetReferenceCount() == 1) {
+		m_graphics.GetAsset()->Unbind();
+	}
 	m_graphics.Delete();
 }
 

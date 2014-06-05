@@ -1,7 +1,8 @@
 --------
 --TODO--
 --------
-mtlAsset::Purge
+MergeSort for mtlList
+Redo Renderer again (this time Renderer only sorts, Bind(), glDrawArrays(), Unbind()
 Fix Sprite class
 Define and load a sprite format
 Collisions
@@ -20,12 +21,10 @@ More randomizer functions in engine
 ----------
 --DESIGN--
 ----------
+Before LoadTexture, LoadVertexArray, or LoadUVArray has been called, all of those things should be disabled
 Graphics instances must render themselves using a given renderer
-Renderer must only provide raw rendering of primitives relative to camera view
-Graphics objects contain vertex[, uv, and texture] data
-	Graphics is bound via Bind()
-	Graphics is rendered via Renderer
-	Graphics is unbound via Unbind()
+In order for font to work properly I think I need to store font in an extended Graphics object
+	Graphics objects store mirrors global state, font modifies global state which might desync Graphics mirrored state from global state
 
 -------------------
 --LONG TERM PLANS--

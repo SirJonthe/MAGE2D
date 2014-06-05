@@ -82,9 +82,10 @@ public:
 	void						SetUpdateFrequency(float updatesPerSecond);
 	float						GetDeltaTime( void ) const;
 	const mtlList<SDL_Event>	&GetEventList( void ) const;
-	int							GetRandom( void ) const;
-	int							GetRandom(int max) const;
-	int							GetRandom(int min, int max) const;
+	int							GetRandomInt( void ) const;
+	int							GetRandomInt(int max) const;
+	int							GetRandomInt(int min, int max) const;
+	float						GetRandomFloat( void ) const;
 	const mtlList<Object*>		&GetObjects( void ) const;
 	static void					FilterByName(const mtlList<Object*> &in, mtlList<Object*> &out, const mtlChars &name);
 	template < typename type_t >

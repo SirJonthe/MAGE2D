@@ -40,9 +40,6 @@ void Renderer::SetViewTransform(mmlMatrix<3,3> viewTransform)
 
 Renderer::Renderer( void ) : m_graphics(), m_view(mmlMatrix<3,3>::IdentityMatrix()), m_vertId(0), m_texId(0)
 {
-	m_graphics.poolMemory = true;
-	m_graphics.SetCapacity(512);
-
 	glGenBuffers(1, &m_vertId);
 	glGenBuffers(1, &m_texId);
 
@@ -179,7 +176,7 @@ void Renderer::RenderView( void )
 
 		glColor4f(graphics->GetItem().tint[0], graphics->GetItem().tint[1], graphics->GetItem().tint[2], graphics->GetItem().tint[3]);
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertId);
+		/*glBindBuffer(GL_ARRAY_BUFFER, m_vertId);
 		glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
 		glBufferData(GL_ARRAY_BUFFER, graphics->GetItem().vertex.GetSize() * sizeof(float), &graphics->GetItem().vertex[0], GL_STATIC_DRAW);
 
@@ -192,12 +189,16 @@ void Renderer::RenderView( void )
 			Image::Unbind();
 			// unbind uv...
 			glBindBuffer(GL_ARRAY_BUFFER, m_texId);
+		}*/
+
+		if (graphics->GetItem().image.GetAsset() != NULL) {
+			graphics->GetItem().image.GetAsset()->Bind();
 		}
 
 		glDrawArrays(GL_QUADS, 0, 4);
 
 		graphics = graphics->GetNext();
 	}
-	Image::Unbind();
+	Graphics::UnbindAll();
 	ClearGraphicsQueue();
 }

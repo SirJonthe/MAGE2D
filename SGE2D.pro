@@ -60,6 +60,7 @@ OTHER_FILES += \
 LIBS += \
 	-lSDL \
 	-lSDLmain \
+	-lSDLimage \
 	-lSDL_mixer \
 	-lGL \
 	-lGLU
