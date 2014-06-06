@@ -3,124 +3,69 @@
 #include "MML/mmlMath.h"
 #include "MTL/mtlParser.h"
 
-const Sprite::Animation *Sprite::Instance::GetAnimation( void ) const
+int Sprite::GetFrameCount( void ) const
 {
-	if (GetGraphics() == NULL) {
-		return NULL;
-	}
-	return GetGraphics()->GetAnimation(m_currentAnimation);
+	return m_numFrames;
 }
 
-void Sprite::Instance::SetAnimation(const mtlChars &name)
+int Sprite::GetFramesPerRow( void ) const
 {
-	if (GetGraphics() == NULL) { return; }
-	int i =	GetGraphics()->GetAnimationIndex(name);
-	SetAnimation(i);
+	return m_sheet.GetAsset() != NULL ? m_sheet.GetAsset()->GetWidth() / m_frameWidth : 0;
 }
 
-void Sprite::Instance::SetAnimation(int index)
+int Sprite::GetFramesPerColumn( void ) const
 {
-	if (GetGraphics() != NULL && index >= 0 && index < GetGraphics()->GetAnimationCount()) {
-		m_currentAnimation = index;
-		m_currentFrame = 0;
-		m_frameTimer.SetIntervalsPerSecond(GetAnimation()->framesPerSecond);
-	}
+	return m_sheet.GetAsset() != NULL ? m_sheet.GetAsset()->GetHeight() / m_frameHeight : 0;
 }
 
-int Sprite::Instance::GetFrame( void ) const
+int Sprite::GetWidth( void ) const
 {
-	return m_currentFrame;
+	return m_frameWidth;
 }
 
-void Sprite::Instance::SetFrame(int frame)
+int Sprite::GetHeight( void ) const
 {
-	if (frame < 0 || GetAnimation() == NULL) { return; }
-	m_currentFrame = frame;
-	const Sprite::Animation *animation = GetAnimation();
-	if (animation != NULL && m_currentFrame >= animation->frameCount) {
-		m_currentFrame = (m_currentFrame % animation->frameCount) + animation->loopBack;
-	}
+	return m_frameHeight;
 }
 
-void Sprite::Instance::Start( void )
+float Sprite::GetFramesPerSecond( void ) const
 {
-	m_paused = false;
-	m_frameTimer.Start();
+	return m_framesPerSecond;
 }
 
-void Sprite::Instance::Pause( void )
+float Sprite::GetFrameDelay( void ) const
 {
-	m_paused = true;
+	return m_framesPerSecond != 0.0f ? 1.0f / m_framesPerSecond : 0.0f;
 }
 
-void Sprite::Instance::Stop( void )
+int Sprite::GetLoopbackFrame( void ) const
 {
-	m_frameTimer.Stop();
-	m_currentFrame = 0;
-}
-
-void Sprite::Instance::Restart( void )
-{
-	m_paused = false;
-	m_currentFrame = 0;
-	m_frameTimer.Restart();
-}
-
-void Sprite::Instance::TickFrame( void )
-{
-	if (GetAnimation() == NULL) { return; }
-	m_frameTimer.Tick();
-	SetFrame(m_currentFrame + int(m_frameTimer.GetTimeDeltaTick()));
-}
-
-Sprite::Sprite( void ) : m_animations()
-{}
-
-int Sprite::GetAnimationCount( void ) const
-{
-	return m_animations.GetSize();
-}
-
-const Sprite::Animation *Sprite::GetAnimation(const mtlChars &name) const
-{
-	int i = GetAnimationIndex(name);
-	if (i < 0) { return NULL; }
-	return &m_animations[i];
-}
-
-const Sprite::Animation *Sprite::GetAnimation(int index) const
-{
-	if (index < 0 || index >= GetAnimationCount()) {
-		return NULL;
-	}
-	return &m_animations[index];
-}
-
-int Sprite::GetAnimationIndex(const mtlChars &name) const
-{
-	const mtlHash hash = mtlHash(name);
-	for (int i = 0; i < GetAnimationCount(); ++i) {
-		if (m_animations[i].hash.value == hash.value && m_animations[i].name.Compare(name)) {
-			return i;
-		}
-	}
-	return -1;
+	return m_loopBack;
 }
 
 bool Sprite::Load(const mtlDirectory &file)
 {
 	Destroy();
-	mtlArray<Animation> animations;
 
 	if (!file.GetExtension().Compare("sprite")) { return false; }
 
 	// parse
 
-	animations.MergeSort(m_animations);
 	return true;
 }
 
 void Sprite::Destroy( void )
 {
-	m_animations.Free();
+	m_sheet.Release();
+	m_frameWidth = 0;
+	m_frameHeight = 0;
+	m_numFrames = 0;
+	m_framesPerSecond = 0.0f;
+	m_loopBack = 0;
+}
+
+void Sprite::Draw(float time) const
+{
+	// get frame based on time
+	// call Graphics::Draw() with appropriate values
 }

@@ -1,9 +1,7 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include <SDL/SDL.h>
 #include "Image.h"
-#include "Graphics.h"
 #include "MTL/mtlArray.h"
 #include "MTL/mtlDirectory.h"
 #include "MTL/mtlAsset.h"
@@ -18,6 +16,7 @@ private:
 	mtlAsset<Image>	m_sheet;
 	int				m_frameWidth;
 	int				m_frameHeight;
+	int				m_numFrames;
 	float			m_framesPerSecond;
 	int				m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
 private:
@@ -26,16 +25,18 @@ private:
 public:
 			Sprite( void );
 
+	int		GetFramesPerRow( void ) const;
+	int		GetFramesPerColumn( void ) const;
 	int		GetFrameCount( void ) const;
-
-	bool	Load(const mtlDirectory &file);
-
 	int		GetWidth( void ) const;
 	int		GetHeight( void ) const;
+	float	GetFramesPerSecond( void ) const;
+	float	GetFrameDelay( void ) const;
+	int		GetLoopbackFrame( void ) const;
+
+	bool	Load(const mtlDirectory &file);
 	void	Destroy( void );
-	void	Bind( void );
-	void	Unbind( void );
-	void	Draw(Renderer &renderer, Transform transform, mmlVector<4> tint, float time);
+	void	Draw(float time) const;
 };
 
 #endif // SPRITE_H

@@ -1,8 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include <GL/gl.h>
-#include <SDL/SDL.h>
 #include "MTL/mtlString.h"
 #include "MTL/mtlType.h"
 #include "Common.h"
@@ -30,19 +28,18 @@ public:
 
 	int					GetWidth( void ) const;
 	int					GetHeight( void ) const;
-	int					GetArea( void ) const;
 
 	const SDL_Surface	*GetSurface( void ) const;
 	bool				SetSurface(SDL_Surface *image);
 
 	bool				IsColorKey(int x, int y) const;
-	static bool			IsColorKey(Uint32 pixel);
+	bool				IsColorKey(Uint32 pixel) const;
 
 	const Uint32		*GetPixels( void ) const;
 	const Uint32		*GetPixels(int y) const;
 	const Uint32		*GetPixels(int x, int y) const;
 
-	void				Draw(Renderer &renderer, const Transform &transform, const mmlVector<4> &tint, float time);
+	void				Draw(float time) const;
 };
 
 #endif // IMAGE_H

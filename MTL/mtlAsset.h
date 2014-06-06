@@ -46,7 +46,8 @@ public:
 	mtlAsset<type_t> &operator=(const mtlAsset<type_t> &asset);
 
 	const type_t *GetAsset( void ) const;
-	void Delete( void );
+	void Release( void );
+	bool IsNull( void ) const;
 	int GetReferenceCount( void ) const;
 
 	template < typename derived_t >
@@ -103,15 +104,22 @@ const type_t *mtlAsset<type_t>::GetAsset( void ) const
 }
 
 template < typename type_t >
-void mtlAsset<type_t>::Delete( void )
+void mtlAsset<type_t>::Release( void )
 {
 	m_ref.Delete();
 }
 
 template < typename type_t >
+bool mtlAsset<type_t>::IsNull( void ) const
+{
+	return m_ref.IsNull();
+}
+
+template < typename type_t >
 int mtlAsset<type_t>::GetReferenceCount( void ) const
 {
-	return m_ref.GetCount();
+	 // the tree always references the object so we need to subtract one to get the relevant count
+	return m_ref.GetCount() - 1;
 }
 
 template < typename type_t >

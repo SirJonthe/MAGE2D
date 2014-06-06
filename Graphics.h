@@ -1,14 +1,13 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include <GL/gl.h>
+#include "Platform.h"
+
 #include "MTL/mtlAsset.h"
 #include "MTL/mtlType.h"
 #include "MTL/mtlArray.h"
 #include "Transform.h"
 #include "Timer.h"
-
-class Renderer;
 
 // Idea:
 // Graphics has Draw function, does not pass an animation parameter (time parameter instead of frame parameter)
@@ -24,38 +23,38 @@ private:
 	Graphics &operator=(const Graphics&) { return *this; }
 protected:
 	struct BindID { GLuint vtx, uv, tex; };
-	BindID m_id; // generate buffers for all of these, even if empty
-	static Graphics *&Bound( void ) { static Graphics *b = NULL; return b; }
 protected:
-	void LoadVertexArray(const mtlArray< mmlVector<2> > &array);
-	void LoadUVArray(const mtlArray< mmlVector<2> > &array);
-	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format);
+	BindID m_id; // generate buffers for all of these, even if empty
+protected:
+	void LoadVertexArray(const mtlArray< mmlVector<2> > &array) const;
+	void LoadUVArray(const mtlArray< mmlVector<2> > &array) const;
+	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format) const;
+	void Draw(int vtxOffset, int uvOffset, int numTriangles) const;
 public:
 	Graphics( void ); // construct buffers
 	virtual ~Graphics( void );
 
 	virtual int GetWidth( void ) const = 0;
 	virtual int GetHeight( void ) const = 0;
-
-	virtual void Destroy( void ) = 0;
-
-	virtual void Draw(Renderer &renderer, const Transform &transform, const mmlVector<4> &tint, float time) = 0;
-
 	virtual bool IsGood( void ) const = 0;
+	virtual void Destroy( void ) = 0;
+	virtual void Draw(float time) const = 0;
 
-	void Bind( void );
-	void Unbind( void );
-	static void UnbindAll( void );
+	int GetArea( void ) const;
+
+	static void Unbind( void );
 };
 
 class GraphicsInstance
 {
-protected:
+private:
 	mtlAsset<Graphics>	m_graphics;
 	Transform			m_transform;
 	mmlVector<4>		m_tint;
 	Timer				m_timer;
 	float				m_time;
+private:
+	void Unbind( void ) const;
 public:
 	GraphicsInstance( void ) : m_graphics(), m_transform(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
 	GraphicsInstance(const GraphicsInstance &instance) : m_graphics(instance.m_graphics), m_transform(instance.m_transform), m_tint(instance.m_tint), m_timer(instance.m_timer), m_time(instance.m_time) {}
@@ -98,7 +97,7 @@ public:
 	bool	IsStopped( void ) const;
 	bool	IsTicking( void ) const;
 
-	void	Draw(Renderer &renderer);
+	void	Draw( void );
 };
 
 template < typename graphics_t >

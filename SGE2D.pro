@@ -14,9 +14,7 @@ SOURCES += main.cpp \
     MTL/mtlDirectory.cpp \
     Transform.cpp \
     Tools.cpp \
-    Renderer.cpp \
     Collider.cpp \
-    Camera.cpp \
     GUI.cpp \
     Graphics.cpp
 
@@ -45,13 +43,12 @@ HEADERS += \
     MTL/mtlArray.h \
     Tools.h \
     Graphics.h \
-    Renderer.h \
     Collider.h \
-    Camera.h \
     GUI.h \
     MTL/mtlPointer.h \
     MTL/mtlType.h \
-    MTL/mtlStringMap.h
+    MTL/mtlStringMap.h \
+    Platform.h
 
 OTHER_FILES += \
     TODO.txt \
@@ -60,7 +57,7 @@ OTHER_FILES += \
 LIBS += \
 	-lSDL \
 	-lSDLmain \
-	-lSDLimage \
+	-lSDL_image \
 	-lSDL_mixer \
 	-lGL \
 	-lGLU

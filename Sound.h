@@ -1,7 +1,7 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include <SDL/SDL_mixer.h>
+#include "Platform.h"
 #include "MTL/mtlAsset.h"
 #include "MTL/mtlString.h"
 

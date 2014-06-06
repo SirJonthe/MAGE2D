@@ -1,10 +1,7 @@
 #include <cstdlib>
 #include <iostream>
-#include <GL/glext.h>
-#include <SDL/SDL_image.h>
 #include "MML/mmlMath.h"
 #include "Image.h"
-#include "Renderer.h"
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 const Uint32 rmask = 0xff000000;
@@ -74,11 +71,6 @@ int Image::GetHeight( void ) const
 	return m_height;
 }
 
-int Image::GetArea( void ) const
-{
-	return m_width*m_height;
-}
-
 const SDL_Surface *Image::GetSurface( void ) const
 {
 	return m_image;
@@ -130,14 +122,14 @@ bool Image::SetSurface(SDL_Surface *image)
 
 	mtlArray< mmlVector<2> > uv;
 	uv.Create(4);
-	uv[0] = 0.0f;
-	uv[1] = 1.0f;
-	uv[2] = 1.0f;
-	uv[3] = 1.0f;
-	uv[4] = 1.0f;
-	uv[5] = 0.0f;
-	uv[6] = 0.0f;
-	uv[7] = 0.0f;
+	uv[0][0] = 0.0f;
+	uv[0][1] = 1.0f;
+	uv[1][2] = 1.0f;
+	uv[1][3] = 1.0f;
+	uv[2][4] = 1.0f;
+	uv[2][5] = 0.0f;
+	uv[3][6] = 0.0f;
+	uv[3][7] = 0.0f;
 	LoadUVArray(uv);
 
 	return true;
@@ -149,9 +141,9 @@ bool Image::IsColorKey(int x, int y) const
 	return IsColorKey(*GetPixels(x, y));
 }
 
-bool Image::IsColorKey(Uint32 pixel)
+bool Image::IsColorKey(Uint32 pixel) const
 {
-	colorKey = SDL_MapRGBA(m_image->format, 255, 0, 255, 0);
+	Uint32 colorKey = SDL_MapRGBA(m_image->format, 255, 0, 255, 0);
 	return pixel == colorKey;
 }
 
@@ -170,7 +162,7 @@ const Uint32 *Image::GetPixels(int x, int y) const
 	return IsGood() ? ((Uint32*)(m_image->pixels) + y * m_image->w + x) : NULL;
 }
 
-void Image::Draw(Renderer &renderer, const Transform &transform, const mmlVector<4> &tint, float time)
+void Image::Draw(float time) const
 {
-	renderer.AddGraphics(transform, this, mmlVector<2>(0.0f, 0.0f), mmlVector<2>(1.0f, 1.0f), tint);
+	// call Graphics::Draw();
 }

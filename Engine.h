@@ -1,18 +1,15 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#ifdef _MSC_VER
-#pragma comment(lib, "SDL.lib")
-#pragma comment(lib, "SDLmain.lib")
-#endif
+#include "Platform.h"
 
-#include <SDL/SDL.h>
 #include "MTL/mtlString.h"
 #include "MTL/mtlList.h"
+#include "MTL/mtlType.h"
 #include "Timer.h"
 #include "Sound.h"
 #include "Common.h"
-#include "Renderer.h"
+#include "Graphics.h"
 
 class Object;
 
@@ -44,13 +41,13 @@ private:
 	};
 private:
 	mtlList<Object*>				m_objects;
+	Object							*m_camera;
 	mtlList<SDL_Event>				m_events;
 	Timer							m_timer;
 	float							m_deltaSeconds;
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;
-	Renderer						*m_renderer;
 private:
 	void							GenerateEventList( void );
 	void							UpdateObjects( void );
@@ -74,6 +71,9 @@ public:
 								~Engine( void );
 	bool						Init(int argc, char **argv);
 	void						AddObject(Object *object);
+	Object						*GetCamera( void );
+	const Object				*GetCamera( void ) const;
+	void						SetCamera(Object *camera);
 	void						DestroyAllObjects( void );
 	void						SetWindowCaption(const mtlChars &caption);
 	int							RunGame( void );
@@ -101,7 +101,6 @@ public:
 	bool						PlayMusic(const mtlChars &file);
 	void						StopMusic( void );
 	void						UpdateVideo( void ) const;
-	void						SetRenderer(Renderer *renderer);
 	template < typename type_t >
 	Object						*AddObject( void );
 	Object						*AddObject( void );

@@ -1,11 +1,7 @@
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glu.h>
 #include "Engine.h"
 #include "GUI.h"
 #include "Object.h"
 #include "Image.h"
-#include "Renderer.h"
 #include "MTL/mtlString.h"
 #include "MTL/mtlStringMap.h"
 #include <iostream>
@@ -175,8 +171,6 @@ void Unit_Controllable(Engine &engine)
 	if (c != NULL && !c->LoadGraphics<Image>("test.bmp")) {
 		return;
 	}
-
-	engine.SetRenderer(new Renderer);
 
 	engine.RunGame();
 }

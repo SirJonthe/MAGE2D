@@ -13,7 +13,7 @@ class Object : public mtlBase
 {
 	friend class Engine;
 private:
-	GraphicsInstance			m_graphics; // only to get polymorphism
+	GraphicsInstance			m_graphics;
 	mtlString					m_name;
 	Transform					m_transform;
 	bool						m_destroy;
@@ -29,64 +29,67 @@ protected:
 	virtual void	OnInit( void ) {}
 	virtual void	OnUpdate( void ) {}
 	virtual void	OnCollision(Object&) {}
+	virtual void	OnDraw( void ) { m_graphics.Draw(); }
 	virtual void	OnGUI( void ) {}
 	virtual void	OnFinal( void ) {}
 private:
 	Object(const Object&) : m_objectNumber(0) {}
 	Object &operator=(const Object&) { return *this; }
 public:
-	explicit			Object( void );
-	virtual				~Object( void ) {}
+	explicit				Object( void );
+	virtual					~Object( void ) {}
 
-	const mtlString		&GetName( void ) const;
-	void				SetName(const mtlChars &name);
+	const mtlString			&GetName( void ) const;
+	void					SetName(const mtlChars &name);
 
-	unsigned long long	GetObjectNumber( void ) const;
+	unsigned long long		GetObjectNumber( void ) const;
 
-	void				Destroy( void );
-	bool				IsTicking( void ) const;
+	void					Destroy( void );
+	bool					IsTicking( void ) const;
 
-	bool				IsCollidable( void ) const;
-	void				DisableCollisions( void );
-	void				EnableCollisions( void );
-	void				ToggleCollisions( void );
-	bool				GetCollisionMask(unsigned int bit) const;
-	unsigned int		GetCollisionMasks(unsigned int mask = 0xffffffff) const;
-	void				SetCollisionMask(unsigned int bit, bool state);
-	void				SetCollisionMasks(unsigned int mask);
-	void				ClearAllCollisionMasks( void );
-	void				DestroyCollider( void );
-	const Collider		*GetCollider( void ) const;
-	Collider			*GetCollider( void );
-	void				SetCollider(mtlShared<Collider> &collider);
+	bool					IsCollidable( void ) const;
+	void					DisableCollisions( void );
+	void					EnableCollisions( void );
+	void					ToggleCollisions( void );
+	bool					GetCollisionMask(unsigned int bit) const;
+	unsigned long long		GetCollisionMasks(unsigned int mask = 0xffffffffffffffff) const;
+	void					SetCollisionMask(unsigned int bit, bool state);
+	void					SetCollisionMasks(unsigned int mask);
+	void					ClearAllCollisionMasks( void );
+	void					DestroyCollider( void );
+	const Collider			*GetCollider( void ) const;
+	Collider				*GetCollider( void );
+	void					SetCollider(mtlShared<Collider> &collider);
 	template < typename collider_t >
-	void				LoadCollider( void );
+	void					LoadCollider( void );
 
-	Transform			&GetTransform( void );
-	const Transform		&GetTransform( void ) const;
+	Transform				&GetTransform( void );
+	const Transform			&GetTransform( void ) const;
 
 	template < typename object_t >
-	const object_t		*GetAsType( void ) const;
+	const object_t			*GetAsType( void ) const;
 	template < typename object_t >
-	object_t			*GetAsType( void );
-	bool				GetObjectFlag(unsigned int bit) const;
-	unsigned int		GetObjectFlags(unsigned int mask = 0xffffffff) const;
-	void				SetObjectFlag(unsigned int bit, bool state);
-	void				SetObjectFlags(unsigned int mask);
-	void				ClearAllObjectFlags( void );
+	object_t				*GetAsType( void );
+	bool					GetObjectFlag(unsigned int bit) const;
+	unsigned long long		GetObjectFlags(unsigned int mask = 0xffffffffffffffff) const;
+	void					SetObjectFlag(unsigned int bit, bool state);
+	void					SetObjectFlags(unsigned int mask);
+	void					ClearAllObjectFlags( void );
 
-	bool				IsVisible( void ) const;
-	void				EnableGraphics( void );
-	void				DisableGraphics( void );
-	void				ToggleGraphics( void );
-	void				DestroyGraphics( void );
-	const Graphics		*GetGraphics( void ) const;
-	void				SetGraphics(const mtlAsset<Graphics> &graphics);
+	bool					IsVisible( void ) const;
+	void					EnableGraphics( void );
+	void					DisableGraphics( void );
+	void					ToggleGraphics( void );
+	void					DestroyGraphics( void );
+	const GraphicsInstance	&GetGraphics( void ) const;
+	GraphicsInstance		&GetGraphics( void );
+	void					SetGraphics(const mtlAsset<Graphics> &graphics);
+	void					SetGraphics(const GraphicsInstance &graphics);
 	template < typename graphics_t >
-	bool				LoadGraphics(const mtlChars &file);
+	bool					LoadGraphics(const mtlChars &file);
 
-	const Engine		*GetEngine( void ) const;
-	Engine				*GetEngine( void );
+	const Engine			*GetEngine( void ) const;
+	Engine					*GetEngine( void );
 };
 
 template < typename object_t >

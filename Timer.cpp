@@ -1,5 +1,5 @@
+#include "Platform.h"
 #include "Timer.h"
-#include <SDL/SDL.h>
 
 Timer::Timer(float intervalsPerSecond) : m_timeLast(-1.0f), m_timeNow(-1.0f), m_interval(0.0f), m_delta(0.0f)
 {

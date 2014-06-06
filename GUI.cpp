@@ -1,6 +1,5 @@
+#include "Platform.h"
 #include "GUI.h"
-#include <GL/glext.h>
-#include <iostream>
 #include <climits>
 
 static GLuint tId = 0, vId = 0, uvId = 0;

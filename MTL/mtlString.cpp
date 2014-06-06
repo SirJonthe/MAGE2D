@@ -42,12 +42,26 @@ void mtlChars::ToLower(char *str, int num)
 	}
 }
 
-bool mtlSubstring::Compare(const mtlChars &p_str) const
+bool mtlSubstring::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	if (p_str.GetSize() != GetSize()) { return false; }
-	for (int i = 0; i < GetSize(); ++i) {
-		if (p_str.GetChars()[i] != m_str[i]) {
-			return false;
+	if (p_caseSensitive) {
+		for (int i = 0; i < GetSize(); ++i) {
+			if (p_str.GetChars()[i] != m_str[i]) {
+				return false;
+			}
+		}
+	} else {
+		mtlString a;
+		a.Copy(*this);
+		a.ToLower();
+		mtlString b;
+		b.Copy(p_str);
+		b.ToLower();
+		for (int i = 0; i < GetSize(); ++i) {
+			if (a.GetChars()[i] != b.GetChars()[i]) {
+				return false;
+			}
 		}
 	}
 	return true;
@@ -130,6 +144,19 @@ int mtlSubstring::FindLastString(const mtlChars &p_str) const
 		}
 	}
 	return -1;
+}
+
+bool mtlSubstring::ToBool(bool &p_out) const
+{
+	if (Compare("true", false)) {
+		p_out = true;
+		return true;
+	}
+	if (Compare("false", false)) {
+		p_out = false;
+		return true;
+	}
+	return false;
 }
 
 bool mtlSubstring::ToInt(int &p_out) const
@@ -361,13 +388,32 @@ void mtlString::Copy(const mtlChars &p_str)
 	}
 }
 
-bool mtlString::Compare(const mtlChars &p_str) const
+bool mtlString::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 {
 	const int p_num = p_str.GetSize();
 	if (m_size != p_num) { return false; }
-	for (int i = 0; i < m_size; ++i) {
-		if (m_str[i] != p_str.GetChars()[i]) { return false; }
+	if (p_caseSensitive) {
+		for (int i = 0; i < m_size; ++i) {
+			if (m_str[i] != p_str.GetChars()[i]) { return false; }
+		}
+	} else {
+		mtlString a;
+		a.Copy(*this);
+		a.ToLower();
+		mtlString b;
+		b.Copy(p_str);
+		b.ToLower();
+		for (int i = 0; i < m_size; ++i) {
+			if (a.GetChars()[i] != b.GetChars()[i]) { return false; }
+		}
 	}
+	return true;
+}
+
+bool mtlString::FromBool(bool b)
+{
+	if (b) { Copy("true"); }
+	else { Copy("false"); }
 	return true;
 }
 

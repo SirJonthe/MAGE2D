@@ -41,7 +41,7 @@ bool Object::IsTicking( void ) const
 
 bool Object::IsCollidable( void ) const
 {
-	return m_collisions && m_collider != NULL;
+	return m_collisions && !m_collider.IsNull();
 }
 
 void Object::DisableCollisions( void )
@@ -168,16 +168,26 @@ void Object::DestroyGraphics( void )
 	m_graphics = mtlAsset<Graphics>();
 }
 
-const Graphics *Object::GetGraphics( void ) const
+const GraphicsInstance &Object::GetGraphics( void ) const
 {
-	if (m_graphics.GetShared() == NULL) { return NULL; }
-	return m_graphics.GetShared()->GetGraphics();
+	return m_graphics;
+}
+
+GraphicsInstance &Object::GetGraphics( void )
+{
+	return m_graphics;
 }
 
 void Object::SetGraphics(const mtlAsset<Graphics> &graphics)
 {
-	m_graphics = graphics.GetAsset()->CreateInstance();
-	GetGraphics()->GetTransform().SetParent(&m_transform);
+	m_graphics = graphics;
+	m_graphics.GetTransform().SetParentTransform(&m_transform);
+}
+
+void Object::SetGraphics(const GraphicsInstance &graphics)
+{
+	m_graphics = graphics;
+	m_graphics.GetTransform().SetParentTransform(&m_transform);
 }
 
 const Engine *Object::GetEngine( void ) const

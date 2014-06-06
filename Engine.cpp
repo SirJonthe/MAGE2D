@@ -1,4 +1,3 @@
-#include <SDL/SDL.h>
 #include <iostream>
 #include "Engine.h"
 #include "Object.h"
@@ -62,15 +61,34 @@ void Engine::CollideObjects( void )
 
 void Engine::DrawObjects( void )
 {
-	if (m_renderer == NULL) { return; }
+	if (m_camera == NULL) { return; }
+	const mmlMatrix<3,3> viewTransform = mmlInv(m_camera->GetTransform().GetWorldTransform());
+
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible() && object->GetItem()->GetGraphics() != NULL) {
-			m_renderer->AddGraphics(*object->GetItem()->GetGraphics(), object->GetItem()->GetTransform().GetWorldTransform());
+		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible()) {
+			const mmlMatrix<3,3> t = object->GetItem()->GetTransform().GetWorldTransform() * viewTransform;
+			GLfloat m[16] = {
+				t[0][0], t[0][1], 0.0f, 0.0f,
+				t[1][0], t[1][1], 0.0f, 0.0f,
+				0.0f,    0.0f,    1.0f, 0.0f,
+				t[0][2], t[1][2], 0.0f, 1.0f
+			};
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(m);
+			glColor4f(
+				object->GetItem()->GetGraphics().GetRed(),
+				object->GetItem()->GetGraphics().GetGreen(),
+				object->GetItem()->GetGraphics().GetBlue(),
+				object->GetItem()->GetGraphics().GetAlpha()
+			);
+			object->GetItem()->OnDraw();
 		}
 		object = object->GetNext();
 	}
-	m_renderer->RenderView();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
 void Engine::DrawGUI( void )
@@ -102,6 +120,7 @@ void Engine::DestroyObjects( void )
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->m_destroy) {
+			if (m_camera == object->GetItem()) { m_camera = NULL; }
 			delete object->GetItem();
 			object = object->Remove();
 		} else {
@@ -120,7 +139,7 @@ void Engine::UpdateTimer( void )
 		SDL_Delay(Uint32((1000.0f / 60.0f) * (1.0f - m_timer.GetTimeDeltaTick())));
 	}
 	m_timer.Tick();
-	m_deltaSeconds = m_timer.GetTimeDeltaSecondsTick()
+	m_deltaSeconds = m_timer.GetTimeDeltaSecondsTick();
 }
 
 bool Engine::Collide(const Object *a, const Object *b) const
@@ -175,7 +194,7 @@ bool Engine::GetPixelOverlap(const Object *a, const Object *b, Box o) const
 
 mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )
 {
-	static mtlBinaryTree<TypeNode> typeTree;
+	static mtlBinaryTree<TypeNode> typeTree; // should be a mtlStringMap
 	return typeTree;
 }
 
@@ -198,7 +217,7 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 	}
 }
 
-Engine::Engine( void ) : m_objects(), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL), m_renderer(NULL)
+Engine::Engine( void ) : m_objects(), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL)
 {
 }
 
@@ -207,7 +226,6 @@ Engine::~Engine( void )
 	if (SDL_GetVideoSurface() != NULL) {
 		SDL_FreeSurface(SDL_GetVideoSurface());
 	}
-	delete m_renderer;
 	StopMusic();
 	Mix_CloseAudio();
 	GUI::Destroy();
@@ -302,6 +320,25 @@ void Engine::AddObject(Object *object)
 	object->OnInit();
 }
 
+Object *Engine::GetCamera( void )
+{
+	return m_camera;
+}
+
+const Object *Engine::GetCamera( void ) const
+{
+	return m_camera;
+}
+
+void Engine::SetCamera(Object *camera)
+{
+	if (camera == NULL || camera->m_engine != this) {
+		m_camera = NULL;
+	} else {
+		m_camera = camera;
+	}
+}
+
 void Engine::DestroyAllObjects( void )
 {
 	mtlNode<Object*> *object = m_objects.GetFirst();
@@ -331,8 +368,8 @@ int Engine::RunGame( void )
 	if (m_inLoop) { return 0; } // some stupid object is recursively calling RunGame
 
 	std::cout << "[START main loop]" << std::endl;
-	if (m_renderer == NULL) {
-		std::cout << "WARNING: No renderer" << std::endl;
+	if (m_camera == NULL) {
+		std::cout << "WARNING: No camera at game start" << std::endl;
 	}
 
 	m_quit = false;
@@ -408,7 +445,7 @@ int Engine::GetRandomInt(int max) const
 
 int Engine::GetRandomInt(int min, int max) const
 {
-	return GetRandom(max-min) + min;
+	return GetRandomInt(max-min) + min;
 }
 
 float Engine::GetRandomFloat( void ) const
@@ -520,14 +557,6 @@ void Engine::UpdateVideo( void ) const
 {
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void Engine::SetRenderer(Renderer *renderer)
-{
-	if (m_renderer != NULL) {
-		delete m_renderer;
-	}
-	m_renderer = renderer;
 }
 
 Object *Engine::AddObject( void )

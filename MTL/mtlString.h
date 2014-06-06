@@ -44,13 +44,14 @@ public:
 	inline int			GetSize( void ) const;
 	inline mtlSubstring	GetSubstring(int p_start, int p_end = -1) const;
 	inline const char	*GetChars( void ) const; // this one is dangerous (not NULL terminated by m_end)
-	bool				Compare(const mtlChars &p_str) const;
+	bool				Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
 	void				SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
 	void				SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
 	int					FindFirstChar(const mtlChars &p_str) const;
 	int					FindLastChar(const mtlChars &p_str) const;
 	int					FindFirstString(const mtlChars &p_str) const;
 	int					FindLastString(const mtlChars &p_str) const;
+	bool				ToBool(bool &p_out) const;
 	bool				ToInt(int &p_out) const;
 	bool				ToFloat(float &p_out) const;
 };
@@ -82,7 +83,7 @@ public:
 	void				Remove(int p_begin, int p_num);
 	void				Free( void );
 	void				Copy(const mtlChars &p_str);
-	bool				Compare(const mtlChars &p_str) const;
+	bool				Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
 	inline void			ToLower( void );
 	inline mtlSubstring	GetSubstring(int p_start, int p_end = -1) const;
 	inline const char	*GetChars( void ) const;
@@ -93,8 +94,10 @@ public:
 	inline int			FindLastChar(const mtlChars &p_str) const;
 	inline int			FindFirstString(const mtlChars &p_str) const;
 	inline int			FindLastString(const mtlChars &p_str) const;
+	inline bool			ToBool(bool &p_out) const;
 	inline bool			ToInt(int &p_out) const;
 	inline bool			ToFloat(float &p_out) const;
+	bool				FromBool(bool b);
 	bool				FromInt(int i);
 	bool				FromFloat(float f);
 };
@@ -277,6 +280,11 @@ int mtlString::FindFirstString(const mtlChars &p_str) const
 int mtlString::FindLastString(const mtlChars &p_str) const
 {
 	return mtlSubstring(*this).FindLastString(p_str);
+}
+
+bool mtlString::ToBool(bool &p_out) const
+{
+	return mtlSubstring(*this).ToBool(p_out);
 }
 
 bool mtlString::ToInt(int &p_out) const

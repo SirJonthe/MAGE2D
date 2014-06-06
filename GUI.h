@@ -1,8 +1,6 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include <GL/gl.h>
-#include <SDL/SDL.h>
 #include "Common.h"
 #include "MTL/mtlString.h"
 

@@ -362,7 +362,7 @@ Box AABBCollider::GetBoundingBox( void ) const
 Circle AABBCollider::GetBoundingCircle( void ) const
 {
 	Circle c;
-	c.center = (m_box.min - m_box.min) / 2.0f;
+	c.center = (m_box.min - m_box.min) * 0.5f;
 	c.radius = (c.center - m_box.max).Len();
 	return c;
 }

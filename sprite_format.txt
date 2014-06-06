@@ -1,31 +1,29 @@
-new_animation = "name of animation" {
+// this is an sprite file that we want our unspecified values to default to
+// can only be invoked at head (anywhere else would overwrite previous settings)
+default = "some_sprite.sprite"
 
-	// loading an image file (both equivalent)
-	file_absolute = "~/user/Game/Content/image.bmp"
-	file_relative = "../image.bmp"
-	
-	// frame width and frame count (frame height is always equal to the height of the image)
-	frame_width = 32
-	frame_count = 15
+// loading an image file (both equivalent)
+file_absolute = "~/user/Game/Content/image.bmp"
+file_relative = "../image.bmp"
 
-	// (all below are equivalent)
-	frames_per_second = 2
-	frame_delay_ms = 500
-	frame_delay_seconds = 0.5
-	
-	// this offset is applied to the image when drawing it
-	offset_x = 10
-	offset_y = 15
-	
-	// equivalents of setting loop (default 1)
-	is_looping = true
-	is_looping = 1 // if looping is set to 0, loopback frame is forced to frame_count - 1
-	
-	// sets the frame on which the animation loops back onto (0 default)
-	loopback_frame = 5	
-}
+frame_width = 24 // this will round to number of full frames per row ()
+frame_height = 24 // this will round to number of full frames per column
 
-new_animation = "some other animation" extend "name of animation" = {
-	// defaults to the settings of "name of animation"
-	// override stuff manually
-}
+// not equivalent (for instance, last row of frames might not contain as many frames as previous rows)
+frame_count = 15
+
+// (all below are equivalent)
+frames_per_second = 2
+frame_delay_ms = 500
+frame_delay_seconds = 0.5
+
+// this offset is applied to the image when drawing it
+offset_x = 10
+offset_y = 15
+
+// equivalents of setting loop (default 1)
+is_looping = true
+is_looping = 1 // if looping is set to 0, loopback frame is forced to frame_count - 1
+
+// sets the frame on which the animation loops back onto (0 default)
+loopback_frame = 5
