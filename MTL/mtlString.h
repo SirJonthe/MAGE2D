@@ -40,7 +40,7 @@ private:
 public:
 	inline				mtlSubstring( void );
 	inline				mtlSubstring(const mtlChars &p_parent, int p_start, int p_end);
-	inline explicit		mtlSubstring(const mtlChars &p_parent);
+	inline				mtlSubstring(const mtlChars &p_parent);
 	inline int			GetSize( void ) const;
 	inline mtlSubstring	GetSubstring(int p_start, int p_end = -1) const;
 	inline const char	*GetChars( void ) const; // this one is dangerous (not NULL terminated by m_end)
@@ -72,7 +72,8 @@ private:
 	void		NewPoolPreserve(int p_size);
 public:
 	inline				mtlString( void );
-	inline				mtlString(const mtlChars &p_str);
+	inline explicit		mtlString(const mtlChars &p_str);
+	inline explicit		mtlString(const mtlSubstring &p_str);
 	inline				~mtlString( void );
 	inline int			GetSize( void ) const;
 	void				SetSize(int p_size);

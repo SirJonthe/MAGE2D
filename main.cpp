@@ -167,7 +167,9 @@ void Unit_RegisteredObjects( void )
 void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
+	Object *camera = engine.AddObject("Object");
 	Object *c = engine.AddObject("Controllable");
+	engine.SetCamera(camera);
 	if (c != NULL && !c->LoadGraphics<Image>("test.bmp")) {
 		return;
 	}
@@ -183,9 +185,39 @@ void Unit_StringMap( void )
 	Graphics *b = map.CreateEntry<Image>("~/.local/share/game/another_image.bmp");
 	Graphics *c = map.CreateEntry<Image>("~/.local/share/game/a_third_image.bmp");
 
-	if (a == map.GetEntry("~/.local/share/game/image.bmp") && b == map.GetEntry("~/.local/share/game/another_image.bmp") && c == map.GetEntry("~/.local/share/game/a_third_image.bmp")) {
-		std::cout << "success" << std::endl;
-	} else {
-		std::cout << "failed" << std::endl;
-	}
+	if (a != map.GetEntry("~/.local/share/game/image.bmp")) { std::cout << "failed" << std::endl; return; }
+	if (b != map.GetEntry("~/.local/share/game/another_image.bmp")) { std::cout << "failed" << std::endl; return; }
+	if (c != map.GetEntry("~/.local/share/game/a_third_image.bmp")) { std::cout << "failed" << std::endl; return; }
+	std::cout << "success" << std::endl;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

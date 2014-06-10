@@ -217,7 +217,7 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 	}
 }
 
-Engine::Engine( void ) : m_objects(), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL)
+Engine::Engine( void ) : m_objects(), m_camera(NULL), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL)
 {
 }
 
@@ -621,4 +621,36 @@ void Engine::GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types)
 {
 	types.RemoveAll();
 	GetRegisteredTypes(GetTypeTree().GetRoot(), types);
+}
+
+void Engine::PrintError(GLenum error)
+{
+	switch (error) {
+	case GL_NO_ERROR:
+		std::cout << "GL_NO_ERROR" << std::endl;
+		break;
+	case GL_INVALID_ENUM:
+		std::cout << "GL_INVALID_ENUM" << std::endl;
+		break;
+	case  GL_INVALID_VALUE:
+		std::cout << "GL_INVALID_VALUE" << std::endl;
+		break;
+	case  GL_INVALID_OPERATION:
+		std::cout << "GL_INVALID_OPERATION" << std::endl;
+		break;
+	case  GL_STACK_OVERFLOW:
+		std::cout << "GL_STACK_OVERFLOW" << std::endl;
+		break;
+	case  GL_STACK_UNDERFLOW:
+		std::cout << "GL_STACK_UNDERFLOW" << std::endl;
+		break;
+	case  GL_OUT_OF_MEMORY:
+		std::cout << "GL_OUT_OF_MEMORY" << std::endl;
+		break;
+	}
+}
+
+void Engine::PrintError( void )
+{
+	PrintError(glGetError());
 }

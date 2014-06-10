@@ -104,11 +104,13 @@ public:
 	template < typename type_t >
 	Object						*AddObject( void );
 	Object						*AddObject( void );
-	Object						*AddObject(const mtlChars &typeName); // can fail if that type name is not registered
+	Object						*AddObject(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
 	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types); // requires recursive in-order tree traversal to build tree
 	template < typename graphics_t >
 	static mtlAsset<Graphics>	LoadGraphics(const mtlChars &file);
+	static void					PrintError(GLenum error);
+	static void					PrintError( void );
 };
 
 #define ENGINE_REGISTER_OBJECT_TYPE(ObjectTypeName) \

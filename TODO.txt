@@ -74,6 +74,9 @@ Compiler warnings
 --------
 --BUGS--
 --------
+mtlStringMap - Unit_StringMap
+	Only adding first entry (CreateEntry)?
+	Not finding other entries because only first entry is stored?
 mtlString::Append still not working
 Pretty sure mtlArray::Resize not working as expected (will always allocate data as if pooling is disabled?)
 

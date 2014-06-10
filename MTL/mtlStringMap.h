@@ -83,7 +83,7 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 	entry.name.Copy(name);
 	entry.entry.template New<derived_t>(); // Jesus...
 	b->GetItem().entries.GetShared()->AddLast(entry);
-	return b->GetItem().entries.GetShared()->GetLast()->GetItem().entry.GetShared();
+	return b->GetItem().entries.GetShared()->GetLast()->GetItem().entry.GetShared(); // puke worthy
 }
 
 template < typename type_t >
@@ -119,6 +119,7 @@ template < typename type_t >
 const type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name) const
 {
 	mtlBranch<HashNode> *b = GetNode(name);
+	if (b == NULL) { return NULL; }
 	typename HashNode::ListNode *n = b->GetItem().entries.GetShared()->GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().name.Compare(name)) {
@@ -133,6 +134,7 @@ template < typename type_t >
 type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 {
 	mtlBranch<HashNode> *b = GetNode(name);
+	if (b == NULL) { return NULL; }
 	typename HashNode::ListNode *n = b->GetItem().entries.GetShared()->GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().name.Compare(name)) {
@@ -142,6 +144,5 @@ type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 	}
 	return NULL;
 }
-
 
 #endif // MTL_STRINGMAP_INCLUDED__

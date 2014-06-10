@@ -100,7 +100,7 @@ mtlAsset<type_t> &mtlAsset<type_t>::operator=(const mtlAsset<type_t> &asset)
 template < typename type_t >
 const type_t *mtlAsset<type_t>::GetAsset( void ) const
 {
-	return m_ref.GetShared()->asset;
+	return m_ref.GetShared() != NULL ? m_ref.GetShared()->asset : NULL;
 }
 
 template < typename type_t >

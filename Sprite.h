@@ -8,7 +8,7 @@
 #include "MTL/mtlType.h"
 
 // REMEMBER:
-// Sprites must animate in height as well, since all textures must be n^2
+// Sprites may animate in height as well
 
 class Sprite : public mtlInherit<Graphics>
 {
@@ -32,7 +32,10 @@ public:
 	int		GetHeight( void ) const;
 	float	GetFramesPerSecond( void ) const;
 	float	GetFrameDelay( void ) const;
+	float	GetAnimationTime( void ) const;
 	int		GetLoopbackFrame( void ) const;
+
+	int		GetFrameIndex(float time) const;
 
 	bool	Load(const mtlDirectory &file);
 	void	Destroy( void );

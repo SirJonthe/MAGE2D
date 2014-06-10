@@ -34,18 +34,35 @@ void Graphics::LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, 
 	Unbind();
 }
 
-void Graphics::Draw(int vtxOffset, int uvOffset, int numTriangles) const
+void Graphics::DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count) const
 {
 	if (!IsGood()) { return; }
 
-	glBindBuffer(GL_BUFFER, m_id.vtx);
-	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)(vtxOffset * sizeof(mmlVector<2>))); // are these needed?
-	glBindBuffer(GL_BUFFER, m_id.uv);
-	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)(uvOffset * sizeof(mmlVector<2>))); // needed?
+	glBindBuffer(GL_ARRAY_BUFFER, m_id.vtx);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)(vtxOffset * sizeof(mmlVector<2>)));
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_id.uv);
+	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)(uvOffset * sizeof(mmlVector<2>)));
+
 	glBindTexture(GL_TEXTURE_2D, m_id.tex);
 
-	//glDrawArrays(GL_QUADS, 0, 4); // this needs to change to accomodate all arrays
-	glDrawArrays(GL_TRIANGLES, 0, numTriangles*3);
+	// GL_QUAD* and GL_POLYGON is decrecated
+	switch (mode) {
+	case GL_TRIANGLES:
+	case GL_TRIANGLE_STRIP:
+	case GL_TRIANGLE_FAN:
+		glDrawArrays(mode, 0, count*3);
+		break;
+	case GL_LINES:
+	case GL_LINE_LOOP:
+	case GL_LINE_STRIP:
+		glDrawArrays(mode, 0, count*2);
+		break;
+	case GL_POINTS:
+		glDrawArrays(mode, 0, count);
+		break;
+	default: break;
+	}
 
 	Unbind();
 }

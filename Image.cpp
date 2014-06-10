@@ -94,13 +94,21 @@ bool Image::SetSurface(SDL_Surface *image)
 		return false;
 	}
 
+	if (SDL_MUSTLOCK(m_image)) {
+		SDL_LockSurface(m_image);
+	}
+
 	Uint32 *pixels = (Uint32*)m_image->pixels;
 	Uint32 colorKey = SDL_MapRGBA(m_image->format, 255, 0, 255, 255);
 	Uint32 alpha = colorKey & (~m_image->format->Amask);
-	for (int i; i < m_image->w*m_image->h; ++i, ++pixels) {
+	for (int i = 0; i < m_image->w*m_image->h; ++i, ++pixels) {
 		if ((*pixels | m_image->format->Amask) == colorKey) {
 			*pixels = alpha;
 		}
+	}
+
+	if (SDL_MUSTLOCK(m_image)) {
+		SDL_UnlockSurface(m_image);
 	}
 
 	m_width = m_image->w;
@@ -111,25 +119,25 @@ bool Image::SetSurface(SDL_Surface *image)
 	mtlArray< mmlVector<2> > vtx;
 	vtx.Create(4);
 	vtx[0][0] = 0.0f;
-	vtx[0][1] = float(m_height);
+	vtx[0][1] = 0.0f;
 	vtx[1][0] = float(m_width);
-	vtx[1][1] = float(m_height);
-	vtx[2][0] = float(m_width);
-	vtx[2][1] = 0.0f;
-	vtx[3][0] = 0.0f;
-	vtx[3][1] = 0.0f;
+	vtx[1][1] = 0.0f;
+	vtx[2][0] = 0.0f;
+	vtx[2][1] = float(m_height);
+	vtx[3][0] = float(m_width);
+	vtx[3][1] = float(m_height);
 	LoadVertexArray(vtx);
 
 	mtlArray< mmlVector<2> > uv;
 	uv.Create(4);
 	uv[0][0] = 0.0f;
-	uv[0][1] = 1.0f;
-	uv[1][2] = 1.0f;
-	uv[1][3] = 1.0f;
-	uv[2][4] = 1.0f;
-	uv[2][5] = 0.0f;
-	uv[3][6] = 0.0f;
-	uv[3][7] = 0.0f;
+	uv[0][1] = 0.0f;
+	uv[1][0] = 1.0f;
+	uv[1][1] = 0.0f;
+	uv[2][0] = 0.0f;
+	uv[2][1] = 1.0f;
+	uv[3][0] = 1.0f;
+	uv[3][1] = 1.0f;
 	LoadUVArray(uv);
 
 	return true;
@@ -162,7 +170,7 @@ const Uint32 *Image::GetPixels(int x, int y) const
 	return IsGood() ? ((Uint32*)(m_image->pixels) + y * m_image->w + x) : NULL;
 }
 
-void Image::Draw(float time) const
+void Image::Draw(float) const
 {
-	// call Graphics::Draw();
+	DrawGraphics(0, 0, GL_TRIANGLE_STRIP, 2);
 }

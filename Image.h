@@ -39,7 +39,7 @@ public:
 	const Uint32		*GetPixels(int y) const;
 	const Uint32		*GetPixels(int x, int y) const;
 
-	void				Draw(float time) const;
+	void				Draw(float) const;
 };
 
 #endif // IMAGE_H

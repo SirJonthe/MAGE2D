@@ -29,7 +29,7 @@ protected:
 	void LoadVertexArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadUVArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format) const;
-	void Draw(int vtxOffset, int uvOffset, int numTriangles) const;
+	void DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count) const;
 public:
 	Graphics( void ); // construct buffers
 	virtual ~Graphics( void );
