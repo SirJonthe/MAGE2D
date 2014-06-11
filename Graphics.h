@@ -29,7 +29,7 @@ protected:
 	void LoadVertexArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadUVArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format) const;
-	void DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count) const;
+	void DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count, long long textureID = -1) const;
 public:
 	Graphics( void ); // construct buffers
 	virtual ~Graphics( void );
@@ -41,6 +41,8 @@ public:
 	virtual void Draw(float time) const = 0;
 
 	int GetArea( void ) const;
+
+	GLuint GetTextureID( void ) const;
 
 	static void Unbind( void );
 };

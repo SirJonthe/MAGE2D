@@ -2,14 +2,11 @@
 // can only be invoked at head (anywhere else would overwrite previous settings)
 default = "some_sprite.sprite"
 
-// loading an image file (both equivalent)
-file_absolute = "~/user/Game/Content/image.bmp"
-file_relative = "../image.bmp"
+// loading an image file (supports abs/rel directories)
+image_file = "~/user/Game/Content/image.bmp"
 
-frame_width = 24 // this will round to number of full frames per row ()
-frame_height = 24 // this will round to number of full frames per column
-
-// not equivalent (for instance, last row of frames might not contain as many frames as previous rows)
+frame_width = 24 // this will round to number of full frames per row
+// not equivalent (for instance, last row of frames might not contain as many frames as previous rows, if not specified we assume entire image is covered in frames uniformly)
 frame_count = 15
 
 // (all below are equivalent)

@@ -34,7 +34,7 @@ void Graphics::LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, 
 	Unbind();
 }
 
-void Graphics::DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count) const
+void Graphics::DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count, long long textureID) const
 {
 	if (!IsGood()) { return; }
 
@@ -44,9 +44,12 @@ void Graphics::DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei co
 	glBindBuffer(GL_ARRAY_BUFFER, m_id.uv);
 	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)(uvOffset * sizeof(mmlVector<2>)));
 
-	glBindTexture(GL_TEXTURE_2D, m_id.tex);
+	if (textureID < 0) {
+		glBindTexture(GL_TEXTURE_2D, m_id.tex);
+	} else {
+		glBindTexture(GL_TEXTURE_2D, (GLuint)textureID);
+	}
 
-	// GL_QUAD* and GL_POLYGON is decrecated
 	switch (mode) {
 	case GL_TRIANGLES:
 	case GL_TRIANGLE_STRIP:
@@ -85,6 +88,11 @@ Graphics::~Graphics( void )
 int Graphics::GetArea( void ) const
 {
 	return GetWidth() * GetHeight();
+}
+
+GLuint Graphics::GetTextureID( void ) const
+{
+	return m_id.tex;
 }
 
 void Graphics::Unbind( void )

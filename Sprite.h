@@ -13,15 +13,28 @@
 class Sprite : public mtlInherit<Graphics>
 {
 private:
-	mtlAsset<Image>	m_sheet;
-	int				m_frameWidth;
-	int				m_frameHeight;
-	int				m_numFrames;
-	float			m_framesPerSecond;
-	int				m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
+	struct Metadata
+	{
+		mtlString file;
+		int frameWidth; // init to -1 (calculate m_frameCount based on this if not -1)
+		int frameCount; // init to -1 (calculate m_frameWidth based on this if not -1)
+		float framesPerSecond;
+		int offset_x;
+		int offset_y;
+		int loopBack;
+	};
+private:
+	mtlAsset<Graphics>	m_sheet;
+	int					m_frameWidth;
+	int					m_frameHeight;
+	int					m_numFrames;
+	float				m_framesPerSecond;
+	int					m_startFrame;
+	int					m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
 private:
 	Sprite(const Sprite&) {}
 	Sprite &operator=(const Sprite&) { return *this; }
+	bool LoadMetadata(Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened);
 public:
 			Sprite( void );
 
@@ -34,6 +47,7 @@ public:
 	float	GetFrameDelay( void ) const;
 	float	GetAnimationTime( void ) const;
 	int		GetLoopbackFrame( void ) const;
+	//int		GetStartFrame( void ) const;
 
 	int		GetFrameIndex(float time) const;
 
