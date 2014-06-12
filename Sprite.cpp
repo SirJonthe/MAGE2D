@@ -47,13 +47,74 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 			if (!LoadMetadata(defaultOut, defaultFile, filesOpened)) {
 				return false;
 			}
-			// merge with OUT
+			out.file.Copy(defaultOut.file);
+			out.frameCount = defaultOut.frameCount;
+			out.framesPerSecond = defaultOut.framesPerSecond;
+			out.frameWidth = defaultOut.frameWidth;
+			out.loopBack = defaultOut.loopBack;
+			out.offset_x = defaultOut.offset_x;
+			out.offset_y = defaultOut.offset_y;
 		} else if (param.Compare("image_file")) {
 			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize()-1] != '\"') {
 				SetError("Malformed string value");
 				return false;
 			}
 			out.file.Copy(val.GetSubstring(1, val.GetSize()-1));
+		} else if (param.Compare("frame_width")) {
+			if (!val.ToInt(out.frameWidth)) {
+				SetError("frame_width must be integer");
+				return false;
+			} else if (out.frameWidth < 0) {
+				SetError("frame_width must be positive integer");
+				return false;
+			}
+		} else if (val.Compare("frame_count")) {
+			if (!val.ToInt(out.frameCount) || out.frameCount < 0) {
+				SetError("frame_count must be positive integer");
+				return false;
+			}
+		} else if (val.Compare("frames_per_second")) {
+			if (!val.ToFloat(out.framesPerSecond) || out.framesPerSecond < 0.0f) {
+				SetError("frames_per_second must be positive float");
+				return false;
+			}
+		} else if (val.Compare("frame_delay_ms")) {
+			int i;
+			if (!val.ToInt(i) || i < 0) {
+				SetError("frame_delay_ms must be positive integer");
+				return false;
+			}
+			out.framesPerSecond = 1.0f / (float(i) / 1000.0f);
+		} else if (val.Compare("frame_delay_seconds")) {
+			int i;
+			if (!val.ToInt(i) || i < 0) {
+				SetError("frame_delay_seconds must be positive integer");
+				return false;
+			}
+			out.framesPerSecond = 1.0f / float(i);
+		} else if (val.Compare("offset_x")) {
+			if (!val.ToInt(out.offset_x)) {
+				SetError("offset_x must be integer");
+				return false;
+			}
+		} else if (val.Compare("offset_y")) {
+			if (!val.ToInt(out.offset_y)) {
+				SetError("offset_y must be integer");
+				return false;
+			}
+		} else if (val.Compare("is_looping")) {
+			if (!val.ToBool(out.isLooping)) {
+				SetError("is_looping must be boolean");
+				return false;
+			}
+		} else if (val.Compare("loopback_frame")) {
+			if (!val.ToInt(out.loopBack) || out.loopBack < 0) {
+				SetError("loopback_frame must be positive integer");
+				return false;
+			}
+		} else {
+			SetError("Unknown parameter");
+			return false;
 		}
 	}
 	return true;
@@ -141,25 +202,41 @@ bool Sprite::Load(const mtlDirectory &file)
 	}
 
 	// calculate final values
-
 	m_sheet = mtlAsset<Graphics>::Load<Image>(out.file);
 	if (!m_sheet.IsNull()) {
+		m_frameHeight = m_sheet.GetAsset()->GetHeight();
+		if (out.frameCount == -1 && out.frameWidth == -1) {
+			m_numFrames = 1;
+			m_frameWidth = m_sheet.GetAsset()->GetWidth();
+		} else if (out.frameCount == -1) {
+			m_frameWidth = out.frameWidth;
+			m_numFrames = m_sheet.GetAsset()->GetWidth() / m_frameWidth;
+		} else if (out.frameWidth == -1) {
+			m_numFrames = out.frameCount;
+			m_frameWidth = m_sheet.GetAsset()->GetWidth() / m_numFrames;
+		}
+		m_framesPerSecond = out.framesPerSecond;
+		if (out.isLooping) {
+			m_loopBack = out.loopBack;
+		} else {
+			m_loopBack = m_numFrames - 1;
+		}
 
 		mtlArray< mmlVector<2> > vtx;
 		vtx.Create(6);
-		vtx[0][0] = 0.0f;
-		vtx[0][1] = 0.0f;
-		vtx[1][0] = float(GetWidth());
-		vtx[1][1] = 0.0f;
-		vtx[2][0] = 0.0f;
-		vtx[2][1] = float(GetHeight());
+		vtx[0][0] = out.offset_x;
+		vtx[0][1] = out.offset_y;
+		vtx[1][0] = float(GetWidth()) + out.offset_x;
+		vtx[1][1] = out.offset_y;
+		vtx[2][0] = out.offset_x;
+		vtx[2][1] = float(GetHeight()) + out.offset_y;
 
-		vtx[3][0] = float(GetWidth());
-		vtx[3][1] = 0.0f;
-		vtx[4][0] = float(GetWidth());
-		vtx[4][1] = float(GetHeight());
-		vtx[5][0] = 0.0f;
-		vtx[5][1] = float(GetHeight());
+		vtx[3][0] = float(GetWidth()) + out.offset_x;
+		vtx[3][1] = out.offset_y;
+		vtx[4][0] = float(GetWidth()) + out.offset_x;
+		vtx[4][1] = float(GetHeight()) + out.offset_y;
+		vtx[5][0] = out.offset_x;
+		vtx[5][1] = float(GetHeight()) + out.offset_y;
 		LoadVertexArray(vtx);
 
 		mtlArray< mmlVector<2> > uv;
@@ -197,7 +274,6 @@ void Sprite::Destroy( void )
 	m_numFrames = 0;
 	m_framesPerSecond = 0.0f;
 	m_loopBack = 0;
-	m_startFrame = 0;
 }
 
 void Sprite::Draw(float time) const
