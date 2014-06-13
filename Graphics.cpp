@@ -133,6 +133,26 @@ void GraphicsInstance::DeleteGraphics( void )
 	m_graphics.Release();
 }
 
+int GraphicsInstance::GetGraphicsWidth( void ) const
+{
+	return !m_graphics.IsNull() ? m_graphics.GetAsset()->GetWidth() : 0;
+}
+
+int GraphicsInstance::GetGraphicsHeight( void ) const
+{
+	return !m_graphics.IsNull() ? m_graphics.GetAsset()->GetHeight() : 0;
+}
+
+int GraphicsInstance::GetGraphicsArea( void ) const
+{
+	return !m_graphics.IsNull() ? m_graphics.GetAsset()->GetArea() : 0;
+}
+
+bool GraphicsInstance::IsGood( void ) const
+{
+	return !m_graphics.IsNull() ? m_graphics.GetAsset()->IsGood() : 0;
+}
+
 Transform &GraphicsInstance::GetTransform( void )
 {
 	return m_transform;

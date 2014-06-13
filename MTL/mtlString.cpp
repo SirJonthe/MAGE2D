@@ -68,37 +68,53 @@ bool mtlSubstring::Compare(const mtlChars &p_str, bool p_caseSensitive) const
 }
 
 
-void mtlSubstring::SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const
+void mtlSubstring::SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
 {
 	const int num = p_str.GetSize();
 	int start = 0;
 	for (int i = 0; i < m_size; ++i) {
 		if (mtlChars::SameAsAny(m_str[i], p_str.GetChars(), num)) {
 			//if (i - start > 0) {
-			p_out.AddLast(mtlSubstring(*this, start, i));
+			mtlSubstring str(*this, start, i);
+			if (p_ignoreWhiteSpace) {
+				str.Trim();
+			}
+			p_out.AddLast(str);
 			//}
 			start = i + 1;
 		}
 	}
 	//if (GetSize() - start > 0) {
-	p_out.AddLast(mtlSubstring(*this, start, GetSize()));
+	mtlSubstring str(*this, start, GetSize());
+	if (p_ignoreWhiteSpace) {
+		str.Trim();
+	}
+	p_out.AddLast(str);
 	//}
 }
 
-void mtlSubstring::SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const
+void mtlSubstring::SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
 {
 	int start = 0;
 	const int num = p_str.GetSize();
 	for (int i = 0; i < GetSize() - num; ++i) {
 		if (mtlChars::SameAsAll(m_str+i, p_str.GetChars(), num)) {
 			//if (i - start > 0) {
-			p_out.AddLast(mtlSubstring(*this, start, i));
+			mtlSubstring str(*this, start, i);
+			if (p_ignoreWhiteSpace) {
+				str.Trim();
+			}
+			p_out.AddLast(str);
 			//}
 			start = i + num;
 		}
 	}
 	//if (GetSize() - start > 0) {
-	p_out.AddLast(mtlSubstring(*this, start, GetSize()));
+	mtlSubstring str(*this, start, GetSize());
+	if (p_ignoreWhiteSpace) {
+		str.Trim();
+	}
+	p_out.AddLast(str);
 	//}
 }
 
@@ -246,6 +262,33 @@ bool mtlSubstring::ToFloat(float &p_out) const
 	}
 	p_out = (float)(val * sign);
 	return true;
+}
+
+void mtlSubstring::Trim( void )
+{
+	for (int i = 0; i < m_size; ++i) {
+		if (m_str[0] == ' ' || m_str[0] == '\t' || m_str[0] == '\n' || m_str[0] == '\r') {
+			++m_str;
+			--m_size;
+		} else {
+			break;
+		}
+	}
+
+	for (int i = m_size - 1; i >= 0; --i) {
+		if (m_str[i] == ' ' || m_str[i] == '\t' || m_str[i] == '\n' || m_str[i] == '\r') {
+			--m_size;
+		} else {
+			break;
+		}
+	}
+}
+
+mtlSubstring mtlSubstring::GetTrimmed( void ) const
+{
+	mtlSubstring s(*this);
+	s.Trim();
+	return s;
 }
 
 void mtlString::SetSize(int p_size)
@@ -435,6 +478,13 @@ bool mtlString::FromFloat(float f)
 		Copy(mtlChars::Dynamic(ch_out, size));
 	}
 	return size >= 0;
+}
+
+mtlSubstring mtlString::GetTrimmed( void ) const
+{
+	mtlSubstring s(*this);
+	s.Trim();
+	return s;
 }
 
 /*mtlHash::mtlHash(const mtlChars &p_str) // probably prevents template constructor from getting called

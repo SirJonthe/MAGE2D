@@ -7,6 +7,8 @@
 class mtlString;
 class mtlSubstring;
 
+// Merge mtlChars and mtlSubstring to mtlChars?
+
 class mtlChars
 {
 private:
@@ -45,8 +47,8 @@ public:
 	inline mtlSubstring	GetSubstring(int p_start, int p_end = -1) const;
 	inline const char	*GetChars( void ) const; // this one is dangerous (not NULL terminated by m_end)
 	bool				Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
-	void				SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
-	void				SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
+	void				SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
+	void				SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
 	int					FindFirstChar(const mtlChars &p_str) const;
 	int					FindLastChar(const mtlChars &p_str) const;
 	int					FindFirstString(const mtlChars &p_str) const;
@@ -54,6 +56,8 @@ public:
 	bool				ToBool(bool &p_out) const;
 	bool				ToInt(int &p_out) const;
 	bool				ToFloat(float &p_out) const;
+	void				Trim( void );
+	mtlSubstring		GetTrimmed( void ) const;
 };
 
 class mtlString
@@ -89,8 +93,8 @@ public:
 	inline mtlSubstring	GetSubstring(int p_start, int p_end = -1) const;
 	inline const char	*GetChars( void ) const;
 	inline char			*GetChars( void );
-	inline void			SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
-	inline void			SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const;
+	inline void			SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
+	inline void			SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace = true) const;
 	inline int			FindFirstChar(const mtlChars &p_str) const;
 	inline int			FindLastChar(const mtlChars &p_str) const;
 	inline int			FindFirstString(const mtlChars &p_str) const;
@@ -101,6 +105,7 @@ public:
 	bool				FromBool(bool b);
 	bool				FromInt(int i);
 	bool				FromFloat(float f);
+	mtlSubstring		GetTrimmed( void ) const;
 };
 
 template <unsigned int N, unsigned int I>
@@ -253,14 +258,14 @@ char *mtlString::GetChars( void )
 	return m_str;
 }
 
-void mtlString::SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const
+void mtlString::SplitByChar(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
 {
-	mtlSubstring(*this).SplitByChar(p_out, p_str);
+	mtlSubstring(*this).SplitByChar(p_out, p_str, p_ignoreWhiteSpace);
 }
 
-void mtlString::SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str) const
+void mtlString::SplitByString(mtlList<mtlSubstring> &p_out, const mtlChars &p_str, bool p_ignoreWhiteSpace) const
 {
-	mtlSubstring(*this).SplitByString(p_out, p_str);
+	mtlSubstring(*this).SplitByString(p_out, p_str, p_ignoreWhiteSpace);
 }
 
 int mtlString::FindFirstChar(const mtlChars &p_chars) const

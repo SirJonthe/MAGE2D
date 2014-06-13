@@ -68,52 +68,54 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 				SetError("frame_width must be positive integer");
 				return false;
 			}
-		} else if (val.Compare("frame_count")) {
+		} else if (param.Compare("frame_count")) {
 			if (!val.ToInt(out.frameCount) || out.frameCount < 0) {
 				SetError("frame_count must be positive integer");
 				return false;
 			}
-		} else if (val.Compare("frames_per_second")) {
+		} else if (param.Compare("frames_per_second")) {
 			if (!val.ToFloat(out.framesPerSecond) || out.framesPerSecond < 0.0f) {
 				SetError("frames_per_second must be positive float");
 				return false;
 			}
-		} else if (val.Compare("frame_delay_ms")) {
+		} else if (param.Compare("frame_delay_ms")) {
 			int i;
 			if (!val.ToInt(i) || i < 0) {
 				SetError("frame_delay_ms must be positive integer");
 				return false;
 			}
 			out.framesPerSecond = 1.0f / (float(i) / 1000.0f);
-		} else if (val.Compare("frame_delay_seconds")) {
+		} else if (param.Compare("frame_delay_seconds")) {
 			int i;
 			if (!val.ToInt(i) || i < 0) {
 				SetError("frame_delay_seconds must be positive integer");
 				return false;
 			}
 			out.framesPerSecond = 1.0f / float(i);
-		} else if (val.Compare("offset_x")) {
+		} else if (param.Compare("offset_x")) {
 			if (!val.ToInt(out.offset_x)) {
 				SetError("offset_x must be integer");
 				return false;
 			}
-		} else if (val.Compare("offset_y")) {
+		} else if (param.Compare("offset_y")) {
 			if (!val.ToInt(out.offset_y)) {
 				SetError("offset_y must be integer");
 				return false;
 			}
-		} else if (val.Compare("is_looping")) {
+		} else if (param.Compare("is_looping")) {
 			if (!val.ToBool(out.isLooping)) {
 				SetError("is_looping must be boolean");
 				return false;
 			}
-		} else if (val.Compare("loopback_frame")) {
+		} else if (param.Compare("loopback_frame")) {
 			if (!val.ToInt(out.loopBack) || out.loopBack < 0) {
 				SetError("loopback_frame must be positive integer");
 				return false;
 			}
 		} else {
-			SetError("Unknown parameter");
+			mtlString error("Unknown parameter: \"");
+			error.Append(param).Append("\"");
+			SetError(error);
 			return false;
 		}
 	}
@@ -122,16 +124,6 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 
 Sprite::Sprite( void ) : mtlInherit<Graphics>(), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
 {}
-
-int Sprite::GetFramesPerRow( void ) const
-{
-	return m_sheet.GetAsset() != NULL ? m_sheet.GetAsset()->GetWidth() / m_frameWidth : 0;
-}
-
-int Sprite::GetFramesPerColumn( void ) const
-{
-	return m_sheet.GetAsset() != NULL ? m_sheet.GetAsset()->GetHeight() / m_frameHeight : 0;
-}
 
 int Sprite::GetFrameCount( void ) const
 {
@@ -281,4 +273,9 @@ void Sprite::Draw(float time) const
 	if (!m_sheet.IsNull()) {
 		DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
 	}
+}
+
+bool Sprite::IsGood( void ) const
+{
+	return !m_sheet.IsNull() && m_sheet.GetAsset()->IsGood();
 }

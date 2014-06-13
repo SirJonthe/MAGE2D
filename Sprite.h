@@ -39,8 +39,6 @@ private:
 public:
 			Sprite( void );
 
-	int		GetFramesPerRow( void ) const;
-	int		GetFramesPerColumn( void ) const;
 	int		GetFrameCount( void ) const;
 	int		GetWidth( void ) const;
 	int		GetHeight( void ) const;
@@ -55,6 +53,7 @@ public:
 	bool	Load(const mtlDirectory &file);
 	void	Destroy( void );
 	void	Draw(float time) const;
+	bool	IsGood( void ) const;
 };
 
 #endif // SPRITE_H

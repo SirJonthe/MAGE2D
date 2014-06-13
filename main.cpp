@@ -170,8 +170,24 @@ void Unit_Controllable(Engine &engine)
 	Object *camera = engine.AddObject("Object");
 	Object *c = engine.AddObject("Controllable");
 	engine.SetCamera(camera);
-	if (c != NULL && !c->LoadGraphics<Image>("test.bmp")) {
+	if (c == NULL || !c->LoadGraphics<Sprite>("test.sprite")) {
+		std::cout << "\tfailed to load" << std::endl;
 		return;
+	} else {
+		const Sprite *s = dynamic_cast<const Sprite*>(c->GetGraphics().GetGraphics().GetAsset());
+		if (s != NULL) {
+			if (s->GetError().GetChars() != NULL) {
+				std::cout << "\terror: " << s->GetError().GetChars() << std::endl;
+			}
+			std::cout << "\taddress: " << std::hex << s << std::dec << std::endl;
+			std::cout << "\tis_good: " << s->IsGood() << std::endl;
+			std::cout << "\twidth: " << s->GetWidth() << std::endl;
+			std::cout << "\theight: " << s->GetHeight() << std::endl;
+			std::cout << "\tframe_count: " << s->GetFrameCount() << std::endl;
+			std::cout << "\tframe_delay: " << s->GetFrameDelay() << std::endl;
+			std::cout << "\tframes_per_second: " << s->GetFramesPerSecond() << std::endl;
+			std::cout << "\tloopback_frame: " << s->GetLoopbackFrame() << std::endl;
+		}
 	}
 
 	engine.RunGame();

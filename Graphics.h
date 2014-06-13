@@ -69,6 +69,10 @@ public:
 	template < typename graphics_t >
 	bool						LoadGraphics(const mtlChars &file);
 	void						DeleteGraphics( void );
+	int							GetGraphicsWidth( void ) const;
+	int							GetGraphicsHeight( void ) const;
+	int							GetGraphicsArea( void ) const;
+	bool						IsGood( void ) const;
 
 	Transform		&GetTransform( void );
 	const Transform	&GetTransform( void ) const;
