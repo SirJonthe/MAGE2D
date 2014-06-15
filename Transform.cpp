@@ -349,7 +349,7 @@ int Transform::GetAxisXDirection( void ) const
 
 void Transform::SetAxisXDirection(int x)
 {
-	x = mmlClamp(-1, x, 1);
+	x = x < 0 ? -1 : 1;
 	m_transform[0][0] = fabs(m_transform[0][0]) * x;
 }
 
@@ -366,7 +366,7 @@ int Transform::GetAxisYDirection( void ) const
 
 void Transform::SetAxisYDirection(int y)
 {
-	y = mmlClamp(-1, y, 1);
+	y = y < 0 ? -1 : 1;
 	m_transform[1][1] = fabs(m_transform[1][1]) * y;
 }
 

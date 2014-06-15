@@ -25,14 +25,14 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 	int lineNumber = 0;
 	while (!read.IsEndOfFile()) {
 		++lineNumber;
-		mtlList<mtlSubstring> param_val;
+		mtlList<mtlChars> param_val;
 		read.ReadLine().SplitByChar(param_val, "=");
 		if (param_val.GetSize() != 2) {
 			SetError("Parameter/value mismatch");
 			return false;
 		}
-		mtlSubstring param = param_val.GetFirst()->GetItem();
-		mtlSubstring val = param_val.GetFirst()->GetNext()->GetItem();
+		mtlChars param = param_val.GetFirst()->GetItem();
+		mtlChars val = param_val.GetFirst()->GetNext()->GetItem();
 		if (param.Compare("default")) {
 			if (lineNumber == 1) {
 				SetError("\"default\" must be first parameter of file");
@@ -245,8 +245,8 @@ bool Sprite::Load(const mtlDirectory &file)
 
 			uv[vtx+3][0] = uInc * (i+1);
 			uv[vtx+3][1] = 1.0f;
-			uv[vtx+4][0] = uInc * i;
-			uv[vtx+4][1] = 1.0f;
+			uv[vtx+4][0] = uInc * (i+1);
+			uv[vtx+4][1] = 0.0f;
 			uv[vtx+5][0] = uInc * i;
 			uv[vtx+5][1] = 0.0f;
 		}
@@ -271,7 +271,8 @@ void Sprite::Destroy( void )
 void Sprite::Draw(float time) const
 {
 	if (!m_sheet.IsNull()) {
-		DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
+		//DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
+		DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, 0);
 	}
 }
 

@@ -70,12 +70,6 @@ mtlDirectory::mtlDirectory(const mtlString &p_directory)
 	CalculateComponents();
 }
 
-mtlDirectory::mtlDirectory(const mtlSubstring &p_directory)
-{
-	m_dir.Copy(p_directory);
-	CalculateComponents();
-}
-
 /*mtlDirectory::mtlDirectory(const char *p_directory)
 {
 	m_dir.Copy(p_directory);
@@ -102,13 +96,6 @@ mtlDirectory &mtlDirectory::operator=(const mtlString &p_directory)
 	return *this;
 }
 
-mtlDirectory &mtlDirectory::operator=(const mtlSubstring &p_directory)
-{
-	m_dir.Copy(p_directory);
-	CalculateComponents();
-	return *this;
-}
-
 /*mtlDirectory &mtlDirectory::operator=(const char *p_directory)
 {
 	m_dir.Copy(p_directory);
@@ -125,20 +112,20 @@ mtlDirectory &mtlDirectory::operator=(const mtlDirectory &p_directory)
 	return *this;
 }
 
-mtlSubstring mtlDirectory::GetFilename( void ) const
+mtlChars mtlDirectory::GetFilename( void ) const
 {
-	if (m_file1 < 0) { return mtlSubstring(); }
+	if (m_file1 < 0) { return mtlChars(); }
 	return m_dir.GetSubstring(m_file0, m_file1);
 }
 
-mtlSubstring mtlDirectory::GetExtension( void ) const
+mtlChars mtlDirectory::GetExtension( void ) const
 {
-	if (m_dir.GetSize() == 0) { return mtlSubstring(); }
+	if (m_dir.GetSize() == 0) { return mtlChars(); }
 	return m_dir.GetSubstring(m_ext0, m_dir.GetSize());
 }
 
-mtlSubstring mtlDirectory::GetFolders( void ) const
+mtlChars mtlDirectory::GetFolders( void ) const
 {
-	if (m_file0 < 0) { return mtlSubstring(); }
+	if (m_file0 < 0) { return mtlChars(); }
 	return m_dir.GetSubstring(0, m_file0);
 }
