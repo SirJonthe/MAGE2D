@@ -19,6 +19,8 @@ public:
 
 ENGINE_REGISTER_OBJECT_TYPE(Controllable);
 
+void PrintString(const mtlChars &ch);
+
 void Unit_OpenGLTest( void );
 void Unit_RegisteredObjects( void );
 void Unit_Controllable(Engine &engine);
@@ -102,6 +104,19 @@ void Controllable::OnGUI( void )
 Controllable::Controllable( void ) : m_movement(0.0f, 0.0f)
 {
 	SetName("object_controllable");
+}
+
+void PrintString(const mtlChars &ch)
+{
+	if (!ch.IsNull()) {
+		if (ch.IsNullTerminated()) {
+			std::cout << ch.GetChars();
+		} else {
+			for (int i = 0; i < ch.GetSize(); ++i) {
+				std::cout << ch[i];
+			}
+		}
+	}
 }
 
 void Unit_OpenGLTest( void )
@@ -206,34 +221,3 @@ void Unit_StringMap( void )
 	if (c != map.GetEntry("~/.local/share/game/a_third_image.bmp")) { std::cout << "failed" << std::endl; return; }
 	std::cout << "success" << std::endl;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

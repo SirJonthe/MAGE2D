@@ -1,8 +1,6 @@
 --------
 --TODO--
 --------
-Fix Sprite class
-Define and load a sprite format
 Collisions
 	Per pixel
 	Box

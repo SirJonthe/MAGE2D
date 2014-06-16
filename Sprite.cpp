@@ -171,7 +171,7 @@ int Sprite::GetFrameIndex(float time) const
 
 	const float delay = GetFrameDelay();
 	const float totalAnimationTime = delay * GetFrameCount();
-	float progress = (time / totalAnimationTime) /*+ delay * GetStartFrame()*/;
+	float progress = (time / totalAnimationTime);
 	if (progress > 1.0f) {
 		progress = mmlMax2((delay * GetLoopbackFrame()) / totalAnimationTime, progress - int(progress));
 	}
@@ -232,7 +232,7 @@ bool Sprite::Load(const mtlDirectory &file)
 		LoadVertexArray(vtx);
 
 		mtlArray< mmlVector<2> > uv;
-		uv.Create(GetFrameCount() * 6);
+		/*uv.Create(GetFrameCount() * 6);
 		const float uInc = 1.0f / GetWidth();
 		for (int i = 0; i < GetFrameCount(); ++i) {
 			const int vtx = i * 6;
@@ -249,7 +249,21 @@ bool Sprite::Load(const mtlDirectory &file)
 			uv[vtx+4][1] = 0.0f;
 			uv[vtx+5][0] = uInc * i;
 			uv[vtx+5][1] = 0.0f;
-		}
+		}*/
+		uv.Create(6); // Works, almost guaranteed that uv coords above are broken
+		uv[0][0] = 0.0f;
+		uv[0][1] = 1.0f;
+		uv[1][0] = 1.0f;
+		uv[1][1] = 1.0f;
+		uv[2][0] = 0.0f;
+		uv[2][1] = 0.0f;
+
+		uv[3][0] = 1.0f;
+		uv[3][1] = 1.0f;
+		uv[4][0] = 1.0f;
+		uv[4][1] = 0.0f;
+		uv[5][0] = 0.0f;
+		uv[5][1] = 0.0f;
 		LoadUVArray(uv);
 
 		return true;
@@ -272,7 +286,7 @@ void Sprite::Draw(float time) const
 {
 	if (!m_sheet.IsNull()) {
 		//DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
-		DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, 0);
+		DrawGraphics(0, 0, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
 	}
 }
 

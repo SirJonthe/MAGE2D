@@ -9,7 +9,12 @@ unsigned long long int GetObjectNumber( void )
 	return objectCounter++;
 }
 
-Object::Object( void ) : m_transform(), m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false), m_collider(), m_objectFlags(0x0000000000000001), m_collisionMask(0xffffffffffffffff), m_objectNumber(GetObjectNumber())
+Object::Object( void ) :
+	m_graphics(), m_name(), m_transform(),
+	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
+	m_collider(),
+	m_objectFlags(0x0000000000000001), m_collisionMask(0xffffffffffffffff), m_objectNumber(GetObjectNumber()),
+	m_engine(NULL)
 {
 	m_name.Copy("object_generic");
 }

@@ -180,7 +180,7 @@ mtlChars::mtlChars( void ) :
 
 template < int t_size >
 mtlChars::mtlChars(const char (&p_str)[t_size], int p_size) :
-	m_str(p_str), m_size(GetSizeActual(t_size, p_size))
+	m_str(p_str), m_size(GetSizeActual(t_size-1, p_size))
 {}
 
 mtlChars::mtlChars(const mtlChars &p_str, int p_size) :
@@ -193,7 +193,7 @@ mtlChars::mtlChars(const mtlString &p_str, int p_size) :
 
 template < int t_size >
 mtlChars::mtlChars(const char (&p_str)[t_size], int p_start, int p_end) :
-	m_str(p_str + p_start), m_size(GetSizeActual(t_size, p_start, p_end))
+	m_str(p_str + p_start), m_size(GetSizeActual(t_size-1, p_start, p_end))
 {}
 
 mtlChars::mtlChars(const mtlChars &p_str, int p_start, int p_end) :
@@ -201,7 +201,7 @@ mtlChars::mtlChars(const mtlChars &p_str, int p_start, int p_end) :
 {}
 
 mtlChars::mtlChars(const mtlString &p_str, int p_start, int p_end) :
-	m_str(p_str.GetChars()), m_size(GetSizeActual(p_str.GetSize(), p_start, p_end))
+	m_str(p_str.GetChars() + p_start), m_size(GetSizeActual(p_str.GetSize(), p_start, p_end))
 {}
 
 const char *mtlChars::GetChars( void ) const

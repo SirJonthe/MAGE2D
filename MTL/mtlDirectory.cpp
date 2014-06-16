@@ -10,27 +10,6 @@
 #include "mtlParser.h"
 #include "mtlDirectory.h"
 
-/*void mtlDirectory::CopyDirectory(const char *p_str, int p_num)
-{
-	for (int i = 0; i < p_num; ++i) {
-		if (*p_str == ' ' || *p_str == '\t' || *p_str == '\n') {
-			++p_str;
-			--p_num;
-			--i;
-		} else {
-			break;
-		}
-	}
-	for (int i = p_num - 1; i >= 0; --i) {
-		if (p_str[i] == ' ' || p_str[i] == '\t' || p_str[i] == '\n') {
-			--p_num;
-		} else {
-			break;
-		}
-	}
-	m_dir.Copy(p_str, p_num);
-}*/
-
 void mtlDirectory::CalculateComponents( void )
 {
 	m_file0 = m_dir.FindLastChar("\\/") + 1;
@@ -70,12 +49,6 @@ mtlDirectory::mtlDirectory(const mtlString &p_directory)
 	CalculateComponents();
 }
 
-/*mtlDirectory::mtlDirectory(const char *p_directory)
-{
-	m_dir.Copy(p_directory);
-	CalculateComponents();
-}*/
-
 mtlDirectory::mtlDirectory(const mtlDirectory &p_directory)
 {
 	m_dir.Copy(p_directory.m_dir);
@@ -95,13 +68,6 @@ mtlDirectory &mtlDirectory::operator=(const mtlString &p_directory)
 	CalculateComponents();
 	return *this;
 }
-
-/*mtlDirectory &mtlDirectory::operator=(const char *p_directory)
-{
-	m_dir.Copy(p_directory);
-	CalculateComponents();
-	return *this;
-}*/
 
 mtlDirectory &mtlDirectory::operator=(const mtlDirectory &p_directory)
 {
