@@ -232,38 +232,24 @@ bool Sprite::Load(const mtlDirectory &file)
 		LoadVertexArray(vtx);
 
 		mtlArray< mmlVector<2> > uv;
-		/*uv.Create(GetFrameCount() * 6);
-		const float uInc = 1.0f / GetWidth();
+		uv.Create(GetFrameCount() * 6);
+		const float uInc = 1.0f / float(GetFrameCount());
 		for (int i = 0; i < GetFrameCount(); ++i) {
 			const int vtx = i * 6;
 			uv[vtx+0][0] = uInc * i;
-			uv[vtx+0][1] = 1.0f;
+			uv[vtx+0][1] = 0.0f;
 			uv[vtx+1][0] = uInc * (i+1);
-			uv[vtx+1][1] = 1.0f;
+			uv[vtx+1][1] = 0.0f;
 			uv[vtx+2][0] = uInc * i;
-			uv[vtx+2][1] = 0.0f;
+			uv[vtx+2][1] = 1.0f;
 
 			uv[vtx+3][0] = uInc * (i+1);
-			uv[vtx+3][1] = 1.0f;
+			uv[vtx+3][1] = 0.0f;
 			uv[vtx+4][0] = uInc * (i+1);
-			uv[vtx+4][1] = 0.0f;
+			uv[vtx+4][1] = 1.0f;
 			uv[vtx+5][0] = uInc * i;
-			uv[vtx+5][1] = 0.0f;
-		}*/
-		uv.Create(6); // Works, almost guaranteed that uv coords above are broken
-		uv[0][0] = 0.0f;
-		uv[0][1] = 1.0f;
-		uv[1][0] = 1.0f;
-		uv[1][1] = 1.0f;
-		uv[2][0] = 0.0f;
-		uv[2][1] = 0.0f;
-
-		uv[3][0] = 1.0f;
-		uv[3][1] = 1.0f;
-		uv[4][0] = 1.0f;
-		uv[4][1] = 0.0f;
-		uv[5][0] = 0.0f;
-		uv[5][1] = 0.0f;
+			uv[vtx+5][1] = 1.0f;
+		}
 		LoadUVArray(uv);
 
 		return true;

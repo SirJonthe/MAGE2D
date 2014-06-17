@@ -10,7 +10,7 @@ namespace GUI
 void Init( void );
 void Destroy( void );
 
-void SetIdentityView( void );
+void SetGUIView( void );
 
 void SetColor(float r, float g, float b, float a = 1.0f);
 void SetColor(mmlVector<3> color);

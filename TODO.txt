@@ -17,7 +17,6 @@ More randomizer functions in engine
 ----------
 --DESIGN--
 ----------
-Camera should CENTER on camera transform (i.e. camera position is in center of screen)
 Type tree in Engine should be mtlStringMap instead of mtlBinaryTree (saves a ton of code)
 In order for font to work properly I think I need to store font in an extended Graphics object
 	Graphics objects store mirrors global state, font modifies global state which might desync Graphics mirrored state from global state
@@ -73,6 +72,11 @@ Compiler warnings
 --------
 --BUGS--
 --------
+Transform
+	ApplyWorldTranslation
+	ApplyLocalRotation?
+		Transform: SetAxisXDirection and SetAxisYDirection might need to flip both components
+
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?
 	Not finding other entries because only first entry is stored?

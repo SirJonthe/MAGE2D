@@ -61,8 +61,9 @@ void Engine::CollideObjects( void )
 
 void Engine::DrawObjects( void )
 {
-	if (m_camera == NULL) { return; }
-	const mmlMatrix<3,3> viewTransform = mmlInv(m_camera->GetTransform().GetWorldTransform());
+	Engine::SetGameView();
+
+	const mmlMatrix<3,3> viewTransform = (m_camera != NULL) ? (mmlInv(m_camera->GetTransform().GetWorldTransform())) : (mmlMatrix<3,3>::IdentityMatrix());
 
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
@@ -96,7 +97,7 @@ void Engine::DrawGUI( void )
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->IsTicking()) {
-			GUI::SetIdentityView();
+			GUI::SetGUIView();
 			GUI::SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 			object->GetItem()->OnGUI();
 		}
@@ -190,6 +191,16 @@ bool Engine::GetPixelOverlap(const Object *a, const Object *b, Box o) const
 	}*/
 
 	return false;
+}
+
+void Engine::SetGameView( void )
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	//glOrtho(-0.5, (SDL_GetVideoSurface()->w - 1) + 0.5, (SDL_GetVideoSurface()->h - 1) + 0.5, -0.5, 0.0, 1.0);
+	const GLdouble halfW = float(SDL_GetVideoSurface()->w) / 2.0;
+	const GLdouble halfH = float(SDL_GetVideoSurface()->h) / 2.0;
+	glOrtho(-halfW - 0.5, halfW + 0.5, halfH + 0.5, -halfH - 0.5, 0.0, 1.0);
 }
 
 mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )
@@ -298,9 +309,7 @@ bool Engine::Init(int argc, char **argv)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-0.5, (SDL_GetVideoSurface()->w - 1) + 0.5, (SDL_GetVideoSurface()->h - 1) + 0.5, -0.5, 0.0, 1.0);
+	Engine::SetGameView();
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);

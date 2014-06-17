@@ -248,7 +248,7 @@ void GUI::Destroy( void )
 	glDeleteTextures(1, &tId);
 }
 
-void GUI::SetIdentityView( void )
+void GUI::SetGUIView( void )
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

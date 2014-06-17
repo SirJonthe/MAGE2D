@@ -10,6 +10,7 @@ class Controllable : public mtlInherit<Object>
 {
 private:
 	mmlVector<2> m_movement;
+	float m_rotation;
 protected:
 	void OnUpdate( void );
 	void OnGUI( void );
@@ -59,6 +60,12 @@ void Controllable::OnUpdate( void )
 				m_movement[0] += 1.0f;
 				GetTransform().SetAxisXDirection(-1);
 				break;
+			case SDLK_a:
+				m_rotation += 1.0f;
+				break;
+			case SDLK_s:
+				m_rotation -= 1.0f;
+				break;
 			case SDLK_ESCAPE:
 				GetEngine()->EndGame();
 				break;
@@ -79,6 +86,12 @@ void Controllable::OnUpdate( void )
 			case SDLK_RIGHT:
 				m_movement[0] -= 1.0f;
 				break;
+			case SDLK_a:
+				m_rotation -= 1.0f;
+				break;
+			case SDLK_s:
+				m_rotation += 1.0f;
+				break;
 			default: break;
 			}
 			break;
@@ -87,6 +100,7 @@ void Controllable::OnUpdate( void )
 		event = event->GetNext();
 	}
 	GetTransform().ApplyLocalTranslation(m_movement);
+	GetTransform().ApplyLocalRotation(m_rotation * GetEngine()->GetDeltaTime(), mmlVector<2>(0.0f, 0.0f));
 }
 
 void Controllable::OnGUI( void )
@@ -101,7 +115,7 @@ void Controllable::OnGUI( void )
 	GUI::Text("!");
 }
 
-Controllable::Controllable( void ) : m_movement(0.0f, 0.0f)
+Controllable::Controllable( void ) : m_movement(0.0f, 0.0f), m_rotation(0.0f)
 {
 	SetName("object_controllable");
 }
@@ -182,27 +196,19 @@ void Unit_RegisteredObjects( void )
 void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
-	Object *camera = engine.AddObject("Object");
-	Object *c = engine.AddObject("Controllable");
-	engine.SetCamera(camera);
-	if (c == NULL || !c->LoadGraphics<Sprite>("test.sprite")) {
+	//Object *camera = engine.AddObject("Object");
+	Object *a = engine.AddObject("Controllable");
+	engine.SetCamera(a);
+	//engine.SetCamera(camera);
+	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
-	} else {
-		const Sprite *s = dynamic_cast<const Sprite*>(c->GetGraphics().GetGraphics().GetAsset());
-		if (s != NULL) {
-			if (s->GetError().GetChars() != NULL) {
-				std::cout << "\terror: " << s->GetError().GetChars() << std::endl;
-			}
-			std::cout << "\taddress: " << std::hex << s << std::dec << std::endl;
-			std::cout << "\tis_good: " << s->IsGood() << std::endl;
-			std::cout << "\twidth: " << s->GetWidth() << std::endl;
-			std::cout << "\theight: " << s->GetHeight() << std::endl;
-			std::cout << "\tframe_count: " << s->GetFrameCount() << std::endl;
-			std::cout << "\tframe_delay: " << s->GetFrameDelay() << std::endl;
-			std::cout << "\tframes_per_second: " << s->GetFramesPerSecond() << std::endl;
-			std::cout << "\tloopback_frame: " << s->GetLoopbackFrame() << std::endl;
-		}
+	}
+
+	Object *b = engine.AddObject<Object>();
+	if (b == NULL || !b->LoadGraphics<Image>("test.bmp")) {
+		std::cout << "\tfailed to load" << std::endl;
+		return;
 	}
 
 	engine.RunGame();
