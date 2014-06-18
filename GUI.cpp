@@ -5,8 +5,10 @@
 static GLuint tId = 0, vId = 0, uvId = 0;
 static GLfloat vert[8];
 static GLfloat uv[8];
-static int caret_x = 0;
-static int caret_y = 0;
+
+int &CaretX( void ) { static int caret_x = 0; return caret_x; }
+int &CaretY( void ) { static int caret_y = 0; return caret_y; }
+int &Newl( void ) { static int newl = 0; return newl; }
 
 #define first_char '!'
 #define last_char '~'
@@ -274,50 +276,50 @@ void GUI::SetColor(mmlVector<4> color)
 
 void GUI::SetCaretXY(int x, int y)
 {
-	caret_x = x;
-	caret_y = y;
+	CaretX() = x;
+	CaretY() = y;
 }
 
 void GUI::SetCaretX(int x)
 {
-	caret_x = x;
+	CaretX() = x;
 }
 
 void GUI::SetCaretY(int y)
 {
-	caret_y = y;
+	CaretY() = y;
 }
 
 void GUI::SetCaretUV(float u, float v)
 {
-	caret_x = u * (SDL_GetVideoSurface()->w - 1);
-	caret_y = v * (SDL_GetVideoSurface()->h - 1);
+	CaretX() = u * (SDL_GetVideoSurface()->w - 1);
+	CaretY() = v * (SDL_GetVideoSurface()->h - 1);
 }
 
 void GUI::SetCaretU(float u)
 {
-	caret_x = u * (SDL_GetVideoSurface()->w - 1);
+	CaretX() = u * (SDL_GetVideoSurface()->w - 1);
 }
 
 void GUI::SetCaretV(float v)
 {
-	caret_y = v * (SDL_GetVideoSurface()->h - 1);
+	CaretY() = v * (SDL_GetVideoSurface()->h - 1);
 }
 
 Point GUI::GetCaretXY( void )
 {
-	Point c = { caret_x, caret_y };
+	Point c = { CaretX(), CaretY() };
 	return c;
 }
 
 int GUI::GetCaretX( void )
 {
-	return caret_x;
+	return CaretX();
 }
 
 int GUI::GetCaretY( void )
 {
-	return caret_y;
+	return CaretY();
 }
 
 mmlVector<2> GUI::GetCaretUV( void )
@@ -327,18 +329,26 @@ mmlVector<2> GUI::GetCaretUV( void )
 
 float GUI::GetCaretU( void )
 {
-	return float(caret_x) / float(SDL_GetVideoSurface()->w - 1);
+	return float(CaretX()) / float(SDL_GetVideoSurface()->w - 1);
 }
 
 float GUI::GetCaretV( void )
 {
-	return float(caret_y) / float(SDL_GetVideoSurface()->h - 1);
+	return float(CaretY()) / float(SDL_GetVideoSurface()->h - 1);
+}
+
+void GUI::NewLine( void )
+{
+	CaretX() = 0;
+	CaretY() += Newl();
+	Newl() = 0;
 }
 
 void GUI::Text(const mtlChars &text, int scale)
 {
 	if (text.GetSize() == 0) { return; }
 	scale = mmlMax2(1, scale);
+	Newl() = mmlMax2(Newl(), char_px_height * scale);
 
 	glBindBuffer(GL_ARRAY_BUFFER, uvId);
 	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0);
@@ -365,17 +375,17 @@ void GUI::Text(const mtlChars &text, int scale)
 			continue;
 		}
 
-		vert[0] = caret_x + ox;
-		vert[1] = caret_y + oy + char_px_height * scale;
+		vert[0] = CaretX() + ox;
+		vert[1] = CaretY() + oy + char_px_height * scale;
 
-		vert[2] = caret_x + ox + char_px_width * scale;
-		vert[3] = caret_y + oy + char_px_height * scale;
+		vert[2] = CaretX() + ox + char_px_width * scale;
+		vert[3] = CaretY() + oy + char_px_height * scale;
 
-		vert[4] = caret_x + ox + char_px_width * scale;
-		vert[5] = caret_y + oy;
+		vert[4] = CaretX() + ox + char_px_width * scale;
+		vert[5] = CaretY() + oy;
 
-		vert[6] = caret_x + ox;
-		vert[7] = caret_y + oy;
+		vert[6] = CaretX() + ox;
+		vert[7] = CaretY() + oy;
 
 		glBindBuffer(GL_ARRAY_BUFFER, vId);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
@@ -406,8 +416,8 @@ void GUI::Text(const mtlChars &text, int scale)
 
 		ox += char_px_width * scale;
 	}
-	caret_x += int(ox);
-	caret_y += int(oy);
+	CaretX() += int(ox);
+	CaretY() += int(oy);
 }
 
 void GUI::Text(const mtlChars &text, int x, int y, int scale)
@@ -421,6 +431,69 @@ void GUI::Text(const mtlChars &text, float u, float v, int scale)
 	SetCaretUV(u, v);
 	Text(text, scale);
 }
+
+void GUI::Text(int number, int scale)
+{
+	mtlString text;
+	text.FromInt(number);
+	Text(text, scale);
+}
+
+void GUI::Text(int number, int x, int y, int scale)
+{
+	mtlString text;
+	text.FromInt(number);
+	Text(text, x, y, scale);
+}
+
+void GUI::Text(int number, float u, float v, int scale)
+{
+	mtlString text;
+	text.FromInt(number);
+	Text(text, u, v, scale);
+}
+
+void GUI::Text(float number, int scale)
+{
+	mtlString text;
+	text.FromFloat(number);
+	Text(text, scale);
+}
+
+void GUI::Text(float number, int x, int y, int scale)
+{
+	mtlString text;
+	text.FromFloat(number);
+	Text(text, x, y, scale);
+}
+
+void GUI::Text(float number, float u, float v, int scale)
+{
+	mtlString text;
+	text.FromFloat(number);
+	Text(text, u, v, scale);
+}
+
+/*void GUI::Text(bool boolean, int scale)
+{
+	mtlString text;
+	text.FromBool(boolean);
+	Text(text, scale);
+}
+
+void GUI::Text(bool boolean, int x, int y, int scale)
+{
+	mtlString text;
+	text.FromBool(boolean);
+	Text(text, x, y, scale);
+}
+
+void GUI::Text(bool boolean, float u, float v, int scale)
+{
+	mtlString text;
+	text.FromBool(boolean);
+	Text(text, u, v, scale);
+}*/
 
 void GUI::Box(Rect rect)
 {
@@ -444,6 +517,8 @@ void GUI::Box(Rect rect)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
 
 	glDrawArrays(GL_QUADS, 0, 4);
+
+	Newl() = mmlMax2(Newl(), rect.h);
 }
 
 void GUI::Box(mmlVector<2> min, mmlVector<2> max)

@@ -94,6 +94,7 @@ void Engine::DrawObjects( void )
 
 void Engine::DrawGUI( void )
 {
+	GUI::SetCaretXY(0, 0);
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->IsTicking()) {

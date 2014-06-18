@@ -5,8 +5,8 @@ Legal notice
 ------------
 Copyright Jonathan Karlsson (SirJonthe@github) 2014
 
-* This library is free to use, share, and modify for anyone, as long
-  as credit goes where credit is due. In short, have the decency to
+* This library is free to use, share, and modify for anyone and for any purpose
+  as long as credit goes where credit is due. In short, have the decency to
   credit the original author (and subsequent authors in case of modification).
 * This code is provided "as-is", i.e. the author give no guarantees as to how
   well it will work, if at all, for whatever purpose.
@@ -28,12 +28,12 @@ About
 
 Planned features
 ----------------
-* Animated sprites with an external sprite format.
 * Collisions.
   - Various primitive shapes.
   - Pixel perfect.
 * A small physics engine.
   - Various primitive shapes.
+  - Maybe pixel perfect...
 
 Compiling
 ---------

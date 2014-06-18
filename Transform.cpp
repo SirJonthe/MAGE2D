@@ -336,15 +336,9 @@ void Transform::WorldAxisYLookAt(float x, float y)
 	WorldAxisYLookAt(mmlVector<2>(x, y));
 }
 
-int Transform::GetAxisXDirection( void ) const
+/*int Transform::GetAxisXDirection( void ) const
 {
-	int x = 0;
-	if (m_transform[0][0] < 0.0f) {
-		x = -1;
-	} else if (m_transform[0][0] > 0.0f) {
-		x = 1;
-	}
-	return x;
+	return m_transform[0][0] < 0.0f ? -1 : 1;
 }
 
 void Transform::SetAxisXDirection(int x)
@@ -353,15 +347,14 @@ void Transform::SetAxisXDirection(int x)
 	m_transform[0][0] = fabs(m_transform[0][0]) * x;
 }
 
+void Transform::FlipAxisXDirection( void )
+{
+	m_transform[0] = -m_transform[0];
+}
+
 int Transform::GetAxisYDirection( void ) const
 {
-	int y = 0;
-	if (m_transform[1][1] < 0.0f) {
-		y = -1;
-	} else if (m_transform[1][1] > 0.0f) {
-		y = 1;
-	}
-	return y;
+	return m_transform[1][1] < 0.0f ? -1 : 1;
 }
 
 void Transform::SetAxisYDirection(int y)
@@ -369,6 +362,11 @@ void Transform::SetAxisYDirection(int y)
 	y = y < 0 ? -1 : 1;
 	m_transform[1][1] = fabs(m_transform[1][1]) * y;
 }
+
+void Transform::FlipAxisYDirection( void )
+{
+	m_transform[1] = -m_transform[1];
+}*/
 
 void Transform::ApplyLocalTranslation(mmlVector<2> vector)
 {

@@ -1,6 +1,11 @@
 --------
 --TODO--
 --------
+Debug transforms
+	Fundamentally broken
+	GetWorld* gives wrong result
+	SetWorld* blows stack
+	Can't do collisions/physics otherwise
 Collisions
 	Per pixel
 	Box
@@ -11,8 +16,10 @@ Physics?
 		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
 More randomizer functions in engine
 	Own random function
-	Floating point [0.0,1.0) (goes from 0 but never reaches 1)
 	Non linear randomizer
+More sophisticated way of handling events
+	Object registers a callback for the events that it is interested in handling
+	Alternatively, compose all separate events into a large state that can be checked in O(1) time instead of O(n)
 
 ----------
 --DESIGN--
@@ -76,7 +83,6 @@ Transform
 	ApplyWorldTranslation
 	ApplyLocalRotation?
 		Transform: SetAxisXDirection and SetAxisYDirection might need to flip both components
-
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?
 	Not finding other entries because only first entry is stored?

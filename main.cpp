@@ -18,7 +18,19 @@ public:
 	Controllable( void );
 };
 
+class FollowCamera : public mtlInherit<Object>
+{
+private:
+	Object *m_follow;
+protected:
+	void OnInit( void );
+	void OnUpdate( void );
+public:
+	FollowCamera( void );
+};
+
 ENGINE_REGISTER_OBJECT_TYPE(Controllable);
+ENGINE_REGISTER_OBJECT_TYPE(FollowCamera);
 
 void PrintString(const mtlChars &ch);
 
@@ -54,11 +66,9 @@ void Controllable::OnUpdate( void )
 				break;
 			case SDLK_LEFT:
 				m_movement[0] -= 1.0f;
-				GetTransform().SetAxisXDirection(1);
 				break;
 			case SDLK_RIGHT:
 				m_movement[0] += 1.0f;
-				GetTransform().SetAxisXDirection(-1);
 				break;
 			case SDLK_a:
 				m_rotation += 1.0f;
@@ -100,24 +110,46 @@ void Controllable::OnUpdate( void )
 		event = event->GetNext();
 	}
 	GetTransform().ApplyLocalTranslation(m_movement);
-	GetTransform().ApplyLocalRotation(m_rotation * GetEngine()->GetDeltaTime(), mmlVector<2>(0.0f, 0.0f));
+	GetTransform().ApplyLocalRotation(m_rotation * GetEngine()->GetDeltaTime(), GetTransform().GetLocalPosition());
 }
 
 void Controllable::OnGUI( void )
 {
-	GUI::SetColor(1.0f, 0.0f, 0.0f);
-	GUI::Text("Hello", 0, 0);
-	GUI::SetColor(0.0f, 1.0f, 0.0f);
-	GUI::Text(", ");
-	GUI::SetColor(0.0f, 0.0f, 1.0f);
-	GUI::Text("world");
-	GUI::SetColor(1.0f, 1.0f, 1.0f);
-	GUI::Text("!");
+	mmlVector<2> pos = GetTransform().GetLocalPosition();
+	GUI::Text("Local=");
+	GUI::Text(pos[0]); GUI::Text(","); GUI::Text(pos[1]); GUI::Text(","); GUI::Text(pos[2]);
+
+	GUI::NewLine();
+
+	pos = GetTransform().GetWorldPosition();
+	GUI::Text("World=");
+	GUI::Text(pos[0]); GUI::Text(","); GUI::Text(pos[1]); GUI::Text(","); GUI::Text(pos[2]);
 }
 
 Controllable::Controllable( void ) : m_movement(0.0f, 0.0f), m_rotation(0.0f)
 {
 	SetName("object_controllable");
+}
+
+void FollowCamera::OnInit( void )
+{
+	mtlList<Object*> objects;
+	GetEngine()->FilterByRTTI<Controllable>(GetEngine()->GetObjects(), objects);
+	if (objects.GetSize() > 0) {
+		m_follow = objects.GetFirst()->GetItem();
+	}
+}
+
+void FollowCamera::OnUpdate( void )
+{
+	if (m_follow != NULL) {
+		GetTransform().SetLocalPosition(m_follow->GetTransform().GetLocalPosition());
+	}
+}
+
+FollowCamera::FollowCamera( void ) : m_follow(NULL)
+{
+	SetName("object_camera");
 }
 
 void PrintString(const mtlChars &ch)
@@ -198,7 +230,8 @@ void Unit_Controllable(Engine &engine)
 	std::cout << "Unit_Controllable: " << std::endl;
 	//Object *camera = engine.AddObject("Object");
 	Object *a = engine.AddObject("Controllable");
-	engine.SetCamera(a);
+	Object *c = engine.AddObject("FollowCamera");
+	engine.SetCamera(c);
 	//engine.SetCamera(camera);
 	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;

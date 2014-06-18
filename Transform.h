@@ -75,11 +75,13 @@ public:
 	void WorldAxisYLookAt(mmlVector<2> point);
 	void WorldAxisYLookAt(float x, float y);
 
-	int GetAxisXDirection( void ) const;
+	/*int GetAxisXDirection( void ) const;
 	void SetAxisXDirection(int x);
+	void FlipAxisXDirection( void );
 
 	int GetAxisYDirection( void ) const;
 	void SetAxisYDirection(int y);
+	void FlipAxisYDirection( void );*/
 
 	void ApplyLocalTranslation(mmlVector<2> vector);
 	void ApplyLocalTranslation(float x, float y);

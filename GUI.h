@@ -28,10 +28,20 @@ int GetCaretY( void );
 mmlVector<2> GetCaretUV( void );
 float GetCaretU( void );
 float GetCaretV( void );
+void NewLine( void );
 
 void Text(const mtlChars &text, int scale = 1);
 void Text(const mtlChars &text, int x, int y, int scale = 1);
 void Text(const mtlChars &text, float u, float v, int scale = 1);
+void Text(int number, int scale = 1);
+void Text(int number, int x, int y, int scale = 1);
+void Text(int number, float u, float v, int scale = 1);
+void Text(float number, int scale = 1);
+void Text(float number, int x, int y, int scale = 1);
+void Text(float number, float u, float v, int scale = 1);
+/*void Text(bool boolean, int scale = 1);
+void Text(bool boolean, int x, int y, int scale = 1);
+void Text(bool boolean, float u, float v, int scale = 1);*/
 void Box(Rect rect);
 void Box(mmlVector<2> min, mmlVector<2> max);
 //void Image(const Image &image, Rect rect);
