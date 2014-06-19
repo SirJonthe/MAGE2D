@@ -180,6 +180,8 @@ int Sprite::GetFrameIndex(float time) const
 
 bool Sprite::Load(const mtlDirectory &file)
 {
+	std::cout << "Sprite::Load: " << file.GetDirectory().GetChars() << std::endl;
+
 	Destroy();
 
 	if (!file.GetExtension().Compare("sprite")) {

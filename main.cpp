@@ -14,6 +14,7 @@ private:
 protected:
 	void OnUpdate( void );
 	void OnGUI( void );
+	void OnDraw( void );
 public:
 	Controllable( void );
 };
@@ -25,6 +26,7 @@ private:
 protected:
 	void OnInit( void );
 	void OnUpdate( void );
+	void OnGUI( void );
 public:
 	FollowCamera( void );
 };
@@ -109,21 +111,36 @@ void Controllable::OnUpdate( void )
 		}
 		event = event->GetNext();
 	}
-	GetTransform().ApplyLocalTranslation(m_movement);
-	GetTransform().ApplyLocalRotation(m_rotation * GetEngine()->GetDeltaTime(), GetTransform().GetLocalPosition());
+	GetTransform().ApplyLocalTranslation(GetTransform().GetLocalAxisX() * m_movement[0] + GetTransform().GetLocalAxisY() * m_movement[1]);
+	//GetTransform().ApplyLocalTranslation(m_movement);
+	GetTransform().ApplyLocalRotation(m_rotation * GetEngine()->GetDeltaTime());
 }
 
 void Controllable::OnGUI( void )
 {
-	mmlVector<2> pos = GetTransform().GetLocalPosition();
-	GUI::Text("Local=");
-	GUI::Text(pos[0]); GUI::Text(","); GUI::Text(pos[1]); GUI::Text(","); GUI::Text(pos[2]);
-
+	mmlMatrix<2,2> r = GetTransform().GetLocalRotation();
+	GUI::Text("Object={");
 	GUI::NewLine();
+	for (int i = 0; i < 2; ++i) {
+		GUI::Text("\t");
+		for (int j = 0; j < 2; ++j) {
+			GUI::Text(r[i][j]);
+			GUI::Text(";");
+		}
+		GUI::NewLine();
+	}
+	GUI::Text("}");
+	GUI::NewLine();
+}
 
-	pos = GetTransform().GetWorldPosition();
-	GUI::Text("World=");
-	GUI::Text(pos[0]); GUI::Text(","); GUI::Text(pos[1]); GUI::Text(","); GUI::Text(pos[2]);
+void Controllable::OnDraw( void )
+{
+	Object::OnDraw();
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glBegin(GL_LINES);
+	glVertex2f(0.0f, 0.0f);
+	glVertex2f(20.0f, 0.0f);
+	glEnd();
 }
 
 Controllable::Controllable( void ) : m_movement(0.0f, 0.0f), m_rotation(0.0f)
@@ -145,6 +162,14 @@ void FollowCamera::OnUpdate( void )
 	if (m_follow != NULL) {
 		GetTransform().SetLocalPosition(m_follow->GetTransform().GetLocalPosition());
 	}
+}
+
+void FollowCamera::OnGUI( void )
+{
+	GUI::SetColor(1.0f, 1.0f, 0.0f);
+	mmlVector<2> p = GetTransform().GetLocalPosition();
+	GUI::Text("Camera=");
+	GUI::Text(p[0]); GUI::Text(";"); GUI::Text(p[1]);
 }
 
 FollowCamera::FollowCamera( void ) : m_follow(NULL)
@@ -231,6 +256,9 @@ void Unit_Controllable(Engine &engine)
 	//Object *camera = engine.AddObject("Object");
 	Object *a = engine.AddObject("Controllable");
 	Object *c = engine.AddObject("FollowCamera");
+	//Object *d = engine.AddObject<Object>();
+	//d->GetTransform().SetLocalPosition(5, 5);
+	//a->GetTransform().SetParentTransform(&d->GetTransform());
 	engine.SetCamera(c);
 	//engine.SetCamera(camera);
 	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
@@ -239,10 +267,14 @@ void Unit_Controllable(Engine &engine)
 	}
 
 	Object *b = engine.AddObject<Object>();
+	b->SetName("NPC");
 	if (b == NULL || !b->LoadGraphics<Image>("test.bmp")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
+	b->GetGraphics().SetRed(0.2f);
+	b->GetGraphics().SetGreen(0.2f);
+	b->GetGraphics().SetBlue(0.2f);
 
 	engine.RunGame();
 }

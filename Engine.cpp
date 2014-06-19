@@ -63,17 +63,33 @@ void Engine::DrawObjects( void )
 {
 	Engine::SetGameView();
 
-	const mmlMatrix<3,3> viewTransform = (m_camera != NULL) ? (mmlInv(m_camera->GetTransform().GetWorldTransform())) : (mmlMatrix<3,3>::IdentityMatrix());
+	//const mmlMatrix<3,3> viewTransform = (m_camera != NULL) ? (mmlInv(m_camera->GetTransform().GetWorldTransform())) : (mmlMatrix<3,3>::IdentityMatrix());
+	const mmlMatrix<2,2> rotation = m_camera != NULL ? mmlInv(m_camera->GetTransform().GetWorldRotation()) : mmlMatrix<2,2>::IdentityMatrix();
+	const mmlVector<2> position = m_camera != NULL ? -m_camera->GetTransform().GetWorldPosition() : mmlVector<2>(0.0f, 0.0f);
 
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible()) {
-			const mmlMatrix<3,3> t = object->GetItem()->GetTransform().GetWorldTransform() * viewTransform;
-			GLfloat m[16] = {
+			//const mmlMatrix<3,3> t = object->GetItem()->GetTransform().GetWorldTransform() * viewTransform;
+			const mmlMatrix<2,2> r = object->GetItem()->GetTransform().GetWorldRotation() * rotation;
+			const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position) * r;
+			/*GLfloat m[16] = {
 				t[0][0], t[0][1], 0.0f, 0.0f,
 				t[1][0], t[1][1], 0.0f, 0.0f,
 				0.0f,    0.0f,    1.0f, 0.0f,
 				t[0][2], t[1][2], 0.0f, 1.0f
+			};*/
+			/*GLfloat m[16] = {
+				t[0][0], t[1][0], 0.0f, 0.0f,
+				t[0][1], t[1][1], 0.0f, 0.0f,
+				0.0f,    0.0f,    1.0f, 0.0f,
+				t[0][2], t[1][2], 0.0f, 1.0f
+			};*/
+			GLfloat m[16] = {
+				r[0][0], r[1][0], 0.0f, 0.0f,
+				r[0][1], r[1][1], 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				p[0], p[1], 0.0f, 1.0f
 			};
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(m);
@@ -322,7 +338,11 @@ bool Engine::Init(int argc, char **argv)
 
 void Engine::AddObject(Object *object)
 {
-	if (object == NULL || object->m_engine != NULL) {
+	if (object == NULL) {
+		std::cout << "Engine::AddObject: Object is NULL" << std::endl;
+		return;
+	} else if (object->m_engine != NULL) {
+		std::cout << "Engine::AddObject: Object is already attached to an engine" << std::endl;
 		return;
 	}
 	m_objects.AddLast(object);
@@ -379,7 +399,7 @@ int Engine::RunGame( void )
 
 	std::cout << "[START main loop]" << std::endl;
 	if (m_camera == NULL) {
-		std::cout << "WARNING: No camera at game start" << std::endl;
+		std::cout << "Engine::RunGame: No camera at game start" << std::endl;
 	}
 
 	m_quit = false;

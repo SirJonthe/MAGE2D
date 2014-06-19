@@ -12,11 +12,11 @@ SOURCES += main.cpp \
     MTL/mtlString.cpp \
     MTL/mtlParser.cpp \
     MTL/mtlDirectory.cpp \
-    Transform.cpp \
     Tools.cpp \
     Collider.cpp \
     GUI.cpp \
-    Graphics.cpp
+    Graphics.cpp \
+    Transform.cpp
 
 HEADERS += \
     Timer.h \
@@ -26,7 +26,6 @@ HEADERS += \
     Image.h \
     Engine.h \
     Common.h \
-    Transform.h \
     MML/mmlVector.h \
     MML/mmlQuaternion.h \
     MML/mmlMatrix.h \
@@ -48,7 +47,8 @@ HEADERS += \
     MTL/mtlPointer.h \
     MTL/mtlType.h \
     MTL/mtlStringMap.h \
-    Platform.h
+    Platform.h \
+    Transform.h
 
 OTHER_FILES += \
     TODO.txt \

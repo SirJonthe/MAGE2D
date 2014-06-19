@@ -20,6 +20,11 @@ More randomizer functions in engine
 More sophisticated way of handling events
 	Object registers a callback for the events that it is interested in handling
 	Alternatively, compose all separate events into a large state that can be checked in O(1) time instead of O(n)
+According to asset manager: "/home/jonathan/Code/SGE2D/Debug/test.bmp" is not same as relative file "test.bmp"
+	Fix so that the engine detects absolute and relative files so that there is no risk of loading something twice
+Define a safe way to reference objects inside engine
+	mtlExclusive and mtlReference
+	mtlReference required NULL check though
 
 ----------
 --DESIGN--
