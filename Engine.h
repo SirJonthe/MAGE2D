@@ -13,6 +13,22 @@
 
 class Object;
 
+struct MouseButton
+{
+	enum Button
+	{
+		Left = SDL_BUTTON_LEFT,
+		Middle = SDL_BUTTON_MIDDLE,
+		Right = SDL_BUTTON_RIGHT,
+		WheelUp = SDL_BUTTON_WHEELUP,
+		WheelDown = SDL_BUTTON_WHEELDOWN,
+		X1 = SDL_BUTTON_X1,
+		X2 = SDL_BUTTON_X2,
+
+		Last
+	};
+};
+
 class Engine
 {
 private:
@@ -39,17 +55,31 @@ private:
 		bool operator>(const TypeNode &n) { return hash > n.hash; }
 		bool operator==(const TypeNode &n) { return hash == n.hash; }
 	};
+	enum InputState
+	{
+		None,
+		Press,
+		Release,
+		Hold
+	};
 private:
 	mtlList<Object*>				m_objects;
 	Object							*m_camera;
-	mtlList<SDL_Event>				m_events;
+	//mtlList<SDL_Event>				m_events;
 	Timer							m_timer;
 	float							m_deltaSeconds;
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;
+	int								m_mouseX;
+	int								m_mouseY;
+	int								m_prevMouseX;
+	int								m_prevMouseY;
+	unsigned char					m_keyState[SDLK_LAST];
+	unsigned char					m_mouseButtonState[MouseButton::Last];
 private:
-	void							GenerateEventList( void );
+	//void							GenerateEventList( void );
+	void							UpdateInputBuffers( void );
 	void							UpdateObjects( void );
 	void							CollideObjects( void );
 	void							DrawObjects( void );
@@ -82,7 +112,7 @@ public:
 	void						KillProgram( void );
 	void						SetUpdateFrequency(float updatesPerSecond);
 	float						GetDeltaTime( void ) const;
-	const mtlList<SDL_Event>	&GetEventList( void ) const;
+	//const mtlList<SDL_Event>	&GetEventList( void ) const;
 	int							GetRandomInt( void ) const;
 	int							GetRandomInt(int max) const;
 	int							GetRandomInt(int min, int max) const;
@@ -112,6 +142,23 @@ public:
 	static mtlAsset<Graphics>	LoadGraphics(const mtlChars &file);
 	static void					PrintError(GLenum error);
 	static void					PrintError( void );
+
+	Point						GetMousePosition( void ) const;
+	Point						GetMouseMovement( void ) const;
+	void						SetMousePosition(int x, int y); // make sure to negate
+	void						SetMousePosition(Point p);
+
+	bool						IsDown(SDLKey key) const;
+	bool						IsUp(SDLKey key) const;
+	bool						IsPressed(SDLKey key) const;
+	bool						IsHeld(SDLKey key) const;
+	bool						IsReleased(SDLKey key) const;
+
+	bool						IsDown(MouseButton::Button button) const;
+	bool						IsUp(MouseButton::Button button) const;
+	bool						IsPressed(MouseButton::Button button) const;
+	bool						IsHeld(MouseButton::Button button) const;
+	bool						IsReleased(MouseButton::Button button) const;
 };
 
 #define ENGINE_REGISTER_OBJECT_TYPE(ObjectTypeName) \

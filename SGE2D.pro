@@ -51,8 +51,7 @@ HEADERS += \
     Transform.h
 
 OTHER_FILES += \
-    TODO.txt \
-    sprite_format.txt
+    TODO.txt
 
 LIBS += \
 	-lSDL \

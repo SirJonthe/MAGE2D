@@ -4,7 +4,7 @@
 #include "GUI.h"
 #include "MML/mmlMath.h"
 
-void Engine::GenerateEventList( void )
+/*void Engine::GenerateEventList( void )
 {
 	m_events.RemoveAll();
 	SDL_Event event;
@@ -19,6 +19,21 @@ void Engine::GenerateEventList( void )
 			break;
 		case SDL_QUIT: m_quit = true; break;
 		}
+	}
+}*/
+
+void Engine::UpdateInputBuffers( void )
+{
+	SDL_PumpEvents();
+	Uint8 *keys = SDL_GetKeyState(NULL);
+	for (int i = 0; i < SDLK_LAST; ++i) {
+		m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 4;
+	}
+	m_prevMouseX = m_mouseX;
+	m_prevMouseY = m_mouseY;
+	Uint8 mouse = SDL_GetMouseState(&m_mouseX, &m_mouseY);
+	for (int i = 0; i < MouseButton::Last; ++i) {
+		m_mouseButtonState[i] = ((m_mouseState[i] << 1) | ((mouse >> i) & 1)) & 4;
 	}
 }
 
@@ -245,7 +260,7 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 	}
 }
 
-Engine::Engine( void ) : m_objects(), m_camera(NULL), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL)
+Engine::Engine( void ) : m_objects(), m_camera(NULL), m_events(), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL), m_mouseX(0), m_mouseY(0), m_prevMouseX(0), m_prevMouseY(0)
 {
 }
 
@@ -408,7 +423,8 @@ int Engine::RunGame( void )
 	m_timer.Restart();
 
 	while (!m_quit) {
-		GenerateEventList();
+		//GenerateEventList();
+		UpdateInputBuffers();
 		UpdateObjects();
 		CollideObjects();
 		DrawObjects();
@@ -458,10 +474,10 @@ float Engine::GetDeltaTime( void ) const
 	return m_deltaSeconds;
 }
 
-const mtlList<SDL_Event> &Engine::GetEventList( void ) const
+/*const mtlList<SDL_Event> &Engine::GetEventList( void ) const
 {
 	return m_events;
-}
+}*/
 
 int Engine::GetRandomInt( void ) const
 {
@@ -683,4 +699,9 @@ void Engine::PrintError(GLenum error)
 void Engine::PrintError( void )
 {
 	PrintError(glGetError());
+}
+
+Point Engine::GetMousePosition( void ) const
+{
+	return Point(m_mouseX, m_mouseY);
 }
