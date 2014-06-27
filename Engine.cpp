@@ -27,13 +27,12 @@ void Engine::UpdateInputBuffers( void )
 	SDL_PumpEvents();
 	Uint8 *keys = SDL_GetKeyState(NULL);
 	for (int i = 0; i < SDLK_LAST; ++i) {
-		m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 4;
+		m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 3;
 	}
-	m_prevMouseX = m_mouseX;
-	m_prevMouseY = m_mouseY;
-	Uint8 mouse = SDL_GetMouseState(&m_mouseX, &m_mouseY);
+	m_prevMousePosition = m_mousePosition;
+	Uint8 mouse = SDL_GetMouseState(&m_mousePosition.x, &m_mousePosition.y);
 	for (int i = 0; i < MouseButton::Last; ++i) {
-		m_mouseButtonState[i] = ((m_mouseState[i] << 1) | ((mouse >> i) & 1)) & 4;
+		m_mouseButtonState[i] = ((m_mouseButtonState[i] << 1) | ((mouse >> i) & 1)) & 3;
 	}
 }
 
@@ -260,8 +259,18 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 	}
 }
 
-Engine::Engine( void ) : m_objects(), m_camera(NULL), m_events(), m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL), m_mouseX(0), m_mouseY(0), m_prevMouseX(0), m_prevMouseY(0)
+Engine::Engine( void ) : m_objects(), m_camera(NULL), /*m_events(),*/ m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL)
 {
+	m_mousePosition.x = 0;
+	m_mousePosition.y = 0;
+	m_prevMousePosition.x = 0;
+	m_prevMousePosition.y = 0;
+	for (int i = 0; i < SDLK_LAST; ++i) {
+		m_keyState[i] = InputState::None;
+	}
+	for (int i = 0; i < MouseButton::Last; ++i) {
+		m_mouseButtonState[i] = InputState::None;
+	}
 }
 
 Engine::~Engine( void )
@@ -703,5 +712,73 @@ void Engine::PrintError( void )
 
 Point Engine::GetMousePosition( void ) const
 {
-	return Point(m_mouseX, m_mouseY);
+	return m_mousePosition;
+}
+
+Point Engine::GetMouseMovement( void ) const
+{
+	Point p;
+	p.x = m_mousePosition.x	- m_prevMousePosition.x;
+	p.y = m_mousePosition.y - m_prevMousePosition.y;
+	return p;
+}
+
+void Engine::SetMousePosition(int x, int y)
+{
+	SDL_WarpMouse((Uint16)x, (Uint16)y);
+}
+
+void Engine::SetMousePosition(Point p)
+{
+	SDL_WarpMouse((Uint16)p.x, (Uint16)p.y);
+}
+
+bool Engine::IsDown(SDLKey key) const
+{
+	return m_keyState[key] != InputState::None;
+}
+
+bool Engine::IsUp(SDLKey key) const
+{
+	return m_keyState[key] == InputState::None;
+}
+
+bool Engine::IsPressed(SDLKey key) const
+{
+	return m_keyState[key] == InputState::Press;
+}
+
+bool Engine::IsHeld(SDLKey key) const
+{
+	return m_keyState[key] == InputState::Hold;
+}
+
+bool Engine::IsReleased(SDLKey key) const
+{
+	return m_keyState[key] == InputState::Release;
+}
+
+bool Engine::IsDown(MouseButton::Button button) const
+{
+	return m_mouseButtonState[button] != InputState::None;
+}
+
+bool Engine::IsUp(MouseButton::Button button) const
+{
+	return m_mouseButtonState[button] == InputState::None;
+}
+
+bool Engine::IsPressed(MouseButton::Button button) const
+{
+	return m_mouseButtonState[button] == InputState::Press;
+}
+
+bool Engine::IsHeld(MouseButton::Button button) const
+{
+	return m_mouseButtonState[button] == InputState::Hold;
+}
+
+bool Engine::IsReleased(MouseButton::Button button) const
+{
+	return m_mouseButtonState[button] == InputState::Release;
 }

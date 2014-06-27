@@ -41,6 +41,7 @@ public:
 	void ApplyLocalTranslation(float x, float y);
 	void ApplyLocalTranslation(const mmlVector<2> &translation);
 	void ApplyLocalRotation(float angle);
+	void ApplyLocalRotation(const mmlVector<2> &around, float angle);
 };
 
 #endif // TRANSFORM_H

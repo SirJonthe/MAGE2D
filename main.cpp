@@ -8,9 +8,6 @@
 
 class Controllable : public mtlInherit<Object>
 {
-private:
-	mmlVector<2> m_movement;
-	float m_rotation;
 protected:
 	void OnUpdate( void );
 	void OnGUI( void );
@@ -55,65 +52,27 @@ int main(int argc, char **argv)
 
 void Controllable::OnUpdate( void )
 {
-	const mtlNode<SDL_Event> *event = GetEngine()->GetEventList().GetFirst();
-	while (event != NULL) {
-		switch (event->GetItem().type) {
-		case SDL_KEYDOWN:
-			switch (event->GetItem().key.keysym.sym) {
-			case SDLK_UP:
-				m_movement[1] -= 1.0f;
-				break;
-			case SDLK_DOWN:
-				m_movement[1] += 1.0f;
-				break;
-			case SDLK_LEFT:
-				m_movement[0] -= 1.0f;
-				break;
-			case SDLK_RIGHT:
-				m_movement[0] += 1.0f;
-				break;
-			case SDLK_a:
-				m_rotation += 1.0f;
-				break;
-			case SDLK_s:
-				m_rotation -= 1.0f;
-				break;
-			case SDLK_ESCAPE:
-				GetEngine()->EndGame();
-				break;
-			default: break;
-			}
-			break;
-		case SDL_KEYUP:
-			switch (event->GetItem().key.keysym.sym) {
-			case SDLK_UP:
-				m_movement[1] += 1.0f;
-				break;
-			case SDLK_DOWN:
-				m_movement[1] -= 1.0f;
-				break;
-			case SDLK_LEFT:
-				m_movement[0] += 1.0f;
-				break;
-			case SDLK_RIGHT:
-				m_movement[0] -= 1.0f;
-				break;
-			case SDLK_a:
-				m_rotation -= 1.0f;
-				break;
-			case SDLK_s:
-				m_rotation += 1.0f;
-				break;
-			default: break;
-			}
-			break;
-		default: break;
-		}
-		event = event->GetNext();
+	if (GetEngine()->IsDown(SDLK_UP)) {
+		GetTransform().ApplyLocalTranslation(0.0f, -1.0f);
 	}
-	GetTransform().ApplyLocalTranslation(GetTransform().GetLocalAxisX() * m_movement[0] + GetTransform().GetLocalAxisY() * m_movement[1]);
-	//GetTransform().ApplyLocalTranslation(m_movement);
-	GetTransform().ApplyLocalRotation(m_rotation * GetEngine()->GetDeltaTime());
+	if (GetEngine()->IsDown(SDLK_DOWN)) {
+		GetTransform().ApplyLocalTranslation(0.0f, 1.0f);
+	}
+	if (GetEngine()->IsDown(SDLK_LEFT)) {
+		GetTransform().ApplyLocalTranslation(-1.0f, 0.0f);
+	}
+	if (GetEngine()->IsDown(SDLK_RIGHT)) {
+		GetTransform().ApplyLocalTranslation(1.0f, 0.0f);
+	}
+	if (GetEngine()->IsDown(SDLK_a)) {
+		GetTransform().ApplyLocalRotation(-GetEngine()->GetDeltaTime());
+	}
+	if (GetEngine()->IsDown(SDLK_s)) {
+		GetTransform().ApplyLocalRotation(GetEngine()->GetDeltaTime());
+	}
+	if (GetEngine()->IsDown(SDLK_ESCAPE)) {
+		GetEngine()->EndGame();
+	}
 }
 
 void Controllable::OnGUI( void )
@@ -143,7 +102,7 @@ void Controllable::OnDraw( void )
 	glEnd();
 }
 
-Controllable::Controllable( void ) : m_movement(0.0f, 0.0f), m_rotation(0.0f)
+Controllable::Controllable( void )
 {
 	SetName("object_controllable");
 }

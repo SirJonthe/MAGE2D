@@ -125,3 +125,12 @@ void Transform::ApplyLocalRotation(float angle)
 {
 	m_rotation *= GetRotationMatrix(angle);
 }
+
+void Transform::ApplyLocalRotation(const mmlVector<2> &around, float angle)
+{
+	mmlMatrix<2,2> rot = GetRotationMatrix(angle);
+	m_rotation *= rot;
+	m_position -= around;
+	m_position *= rot;
+	m_position += around;
+}

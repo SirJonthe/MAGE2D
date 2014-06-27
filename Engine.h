@@ -55,12 +55,15 @@ private:
 		bool operator>(const TypeNode &n) { return hash > n.hash; }
 		bool operator==(const TypeNode &n) { return hash == n.hash; }
 	};
-	enum InputState
+	struct InputState
 	{
-		None,
-		Press,
-		Release,
-		Hold
+		enum
+		{
+			None,
+			Press,
+			Release,
+			Hold
+		};
 	};
 private:
 	mtlList<Object*>				m_objects;
@@ -71,10 +74,8 @@ private:
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;
-	int								m_mouseX;
-	int								m_mouseY;
-	int								m_prevMouseX;
-	int								m_prevMouseY;
+	Point							m_mousePosition;
+	Point							m_prevMousePosition;
 	unsigned char					m_keyState[SDLK_LAST];
 	unsigned char					m_mouseButtonState[MouseButton::Last];
 private:
