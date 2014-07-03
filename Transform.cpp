@@ -56,6 +56,17 @@ const Transform *Transform::GetParentTransform( void ) const
 
 void Transform::SetParentTransform(const Transform *parent, bool preserve)
 {
+	if (preserve) {
+		if (parent == NULL) {
+			m_position = GetWorldPosition();
+			m_rotation = GetWorldRotation();
+		} else {
+			// GetWorldRotation() = parent->GetWorldRotation() * X;
+			// X = new local rotation (m_rotation)
+			m_position += (parent->GetWorldPosition() - GetWorldPosition());
+			m_rotation = parent->GetWorldRotation() * mmlInv(GetWorldRotation());
+		}
+	}
 	m_parent = parent;
 }
 
@@ -71,7 +82,8 @@ const mmlMatrix<2,2> &Transform::GetLocalRotation( void ) const
 
 mmlMatrix<2,2> Transform::GetWorldRotation( void ) const
 {
-	return m_rotation * GetParentWorldRotation();
+	//return m_rotation * GetParentWorldRotation();
+	return GetParentWorldRotation() * m_rotation;
 }
 
 void Transform::SetName(const mtlChars &name)
@@ -110,6 +122,20 @@ const mmlVector<2> &Transform::GetLocalAxisY( void ) const
 	return m_rotation[1];
 }
 
+mmlVector<2> Transform::GetWorldAxisX( void )
+{
+	//return GetLocalAxisX() * GetWorldRotation();
+	const static mmlVector<2> xAxis(1.0f, 0.0f);
+	return xAxis;
+}
+
+mmlVector<2> Transform::GetWorldAxisY( void )
+{
+	//return GetLocalAxisY() * GetWorldRotation();
+	const static mmlVector<2> yAxis(0.0f, 1.0f);
+	return yAxis;
+}
+
 void Transform::ApplyLocalTranslation(float x, float y)
 {
 	m_position[0] += x;
@@ -121,12 +147,23 @@ void Transform::ApplyLocalTranslation(const mmlVector<2> &translation)
 	m_position += translation;
 }
 
-void Transform::ApplyLocalRotation(float angle)
+void Transform::ApplyWorldTranslation(float x, float y)
+{
+	ApplyWorldTranslation(mmlVector<2>(x, y));
+}
+
+void Transform::ApplyWorldTranslation(const mmlVector<2> &translation)
+{
+	const mmlVector<2> worldTrans = translation * GetWorldRotation();
+	ApplyLocalTranslation(worldTrans);
+}
+
+void Transform::ApplyRotation(float angle)
 {
 	m_rotation *= GetRotationMatrix(angle);
 }
 
-void Transform::ApplyLocalRotation(const mmlVector<2> &around, float angle)
+void Transform::ApplyRotation(const mmlVector<2> &around, float angle)
 {
 	mmlMatrix<2,2> rot = GetRotationMatrix(angle);
 	m_rotation *= rot;

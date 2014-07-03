@@ -34,14 +34,27 @@ public:
 	void SetLocalPosition(const mmlVector<2> &position);
 
 	mmlVector<2> GetWorldPosition( void ) const;
+	// SetWorldPosition(float x, float y);
+	// SetWorldPosition(const mmlVector<2> &position);
 
 	const mmlVector<2> &GetLocalAxisX( void ) const;
 	const mmlVector<2> &GetLocalAxisY( void	) const;
+	static mmlVector<2> GetWorldAxisX( void );
+	static mmlVector<2> GetWorldAxisY( void );
+
+	// LookAtLocal(float x, float y);
+	// LookAtLocal(const mmlVector<2> &point);
+	// LookAtWorld(float x, float y);
+	// LookAtWorld(const mmlVector<2> &point);
 
 	void ApplyLocalTranslation(float x, float y);
 	void ApplyLocalTranslation(const mmlVector<2> &translation);
-	void ApplyLocalRotation(float angle);
-	void ApplyLocalRotation(const mmlVector<2> &around, float angle);
+
+	void ApplyWorldTranslation(float x, float y);
+	void ApplyWorldTranslation(const mmlVector<2> &translation);
+
+	void ApplyRotation(float angle);
+	void ApplyRotation(const mmlVector<2> &around, float angle);
 };
 
 #endif // TRANSFORM_H

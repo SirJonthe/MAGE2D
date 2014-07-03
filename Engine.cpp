@@ -86,7 +86,7 @@ void Engine::DrawObjects( void )
 		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible()) {
 			//const mmlMatrix<3,3> t = object->GetItem()->GetTransform().GetWorldTransform() * viewTransform;
 			const mmlMatrix<2,2> r = object->GetItem()->GetTransform().GetWorldRotation() * rotation;
-			const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position) * r;
+			const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position) * r; // multiply by r because we need to put position in 3,3 matrix
 			/*GLfloat m[16] = {
 				t[0][0], t[0][1], 0.0f, 0.0f,
 				t[1][0], t[1][1], 0.0f, 0.0f,

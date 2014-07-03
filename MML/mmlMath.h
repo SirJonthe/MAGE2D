@@ -86,4 +86,43 @@ inline int mmlX86TruncCast(double x)
 	return (int)b.i;
 }
 
+inline bool mmlIsNAN(float x)
+{
+	union bits32
+	{
+		int		i;
+		float	f;
+		bits32(float x) : f(x) {}
+	};
+	static const bits32 nan = 0.0f / 0.0f;
+	const bits32 f = x;
+	return f.i == nan.i;
+}
+
+inline bool mmlIsInf(float x)
+{
+	union bits32
+	{
+		int		i;
+		float	f;
+		bits32(float x) : f(x) {}
+	};
+	static const bits32 inf = 1.0f / 0.0f;
+	const bits32 f = x;
+	return f.i == inf.i;
+}
+
+inline bool mmlIsInfNeg(float x)
+{
+	union bits32
+	{
+		int		i;
+		float	f;
+		bits32(float x) : f(x) {}
+	};
+	static const bits32 ninf = -1.0f / 0.0f;
+	const bits32 f = x;
+	return f.i == ninf.i;
+}
+
 #endif

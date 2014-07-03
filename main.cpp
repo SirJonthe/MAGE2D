@@ -53,22 +53,24 @@ int main(int argc, char **argv)
 void Controllable::OnUpdate( void )
 {
 	if (GetEngine()->IsDown(SDLK_UP)) {
-		GetTransform().ApplyLocalTranslation(0.0f, -1.0f);
+		GetTransform().ApplyWorldTranslation(0.0f, -1.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_DOWN)) {
-		GetTransform().ApplyLocalTranslation(0.0f, 1.0f);
+		GetTransform().ApplyWorldTranslation(0.0f, 1.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_LEFT)) {
-		GetTransform().ApplyLocalTranslation(-1.0f, 0.0f);
+		GetTransform().ApplyWorldTranslation(-1.0f, 0.0f);
+		//GetTransform().SetAxisXDirection(1.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_RIGHT)) {
-		GetTransform().ApplyLocalTranslation(1.0f, 0.0f);
+		GetTransform().ApplyWorldTranslation(1.0f, 0.0f);
+		//GetTransform().SetAxisXDirection(-1.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_a)) {
-		GetTransform().ApplyLocalRotation(-GetEngine()->GetDeltaTime());
+		GetTransform().ApplyRotation(-GetEngine()->GetDeltaTime());
 	}
 	if (GetEngine()->IsDown(SDLK_s)) {
-		GetTransform().ApplyLocalRotation(GetEngine()->GetDeltaTime());
+		GetTransform().ApplyRotation(GetEngine()->GetDeltaTime());
 	}
 	if (GetEngine()->IsDown(SDLK_ESCAPE)) {
 		GetEngine()->EndGame();
