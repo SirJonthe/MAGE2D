@@ -63,8 +63,11 @@ void Transform::SetParentTransform(const Transform *parent, bool preserve)
 		} else {
 			// GetWorldRotation() = parent->GetWorldRotation() * X;
 			// X = new local rotation (m_rotation)
-			m_position += (parent->GetWorldPosition() - GetWorldPosition());
-			m_rotation = parent->GetWorldRotation() * mmlInv(GetWorldRotation());
+			//	inv(parent->GetWorldRotation()) * parent->GetWorldRotation() = I
+			//	inv(parent->GetWorldRotation()) * GetWorldRotation() = inv(parent->GetWorldRotation()) * parent->GetWorldRotation() * X
+			//	inv(parent->GetWorldRotation()) * parent->GetWorldRotation() * X = X
+			SetWorldPosition(parent->GetWorldPosition() + m_position);
+			m_rotation = mmlInv(parent->GetWorldRotation()) * GetWorldRotation();
 		}
 	}
 	m_parent = parent;
@@ -112,6 +115,16 @@ mmlVector<2> Transform::GetWorldPosition( void ) const
 	return m_position + GetParentWorldPosition();
 }
 
+void Transform::SetWorldPosition(float x, float y)
+{
+	SetWorldPosition(mmlVector<2>(x, y));
+}
+
+void Transform::SetWorldPosition(const mmlVector<2> &position)
+{
+	m_position += (position - GetWorldPosition());
+}
+
 const mmlVector<2> &Transform::GetLocalAxisX( void ) const
 {
 	return m_rotation[0];
@@ -124,14 +137,12 @@ const mmlVector<2> &Transform::GetLocalAxisY( void ) const
 
 mmlVector<2> Transform::GetWorldAxisX( void )
 {
-	//return GetLocalAxisX() * GetWorldRotation();
 	const static mmlVector<2> xAxis(1.0f, 0.0f);
 	return xAxis;
 }
 
 mmlVector<2> Transform::GetWorldAxisY( void )
 {
-	//return GetLocalAxisY() * GetWorldRotation();
 	const static mmlVector<2> yAxis(0.0f, 1.0f);
 	return yAxis;
 }
@@ -171,3 +182,18 @@ void Transform::ApplyRotation(const mmlVector<2> &around, float angle)
 	m_position *= rot;
 	m_position += around;
 }
+
+mmlVector<2> Transform::TransformLocalPoint(const mmlVector<2> &point) const
+{
+	return (point * m_rotation) + m_position;
+}
+
+mmlVector<2> Transform::TransformLocalPoint(float x, float y) const
+{
+	return TransformLocalPoint(mmlVector<2>(x, y));
+}
+
+/*mmlVector<2> Transform::TransformWorldPoint(const mmlVector<2> &point) const
+{
+	return (point * GetWorldRotation()) + GetWorldPosition();
+}*/

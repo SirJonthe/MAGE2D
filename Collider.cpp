@@ -9,13 +9,6 @@ bool PointPlane(mmlVector<2> a, mmlVector<2> bpoint, mmlVector<2> bnormal)
 	return dot <= 0.0f;
 }
 
-bool PointPoint(mmlVector<2> a, mmlVector<2> b)
-{
-	a.Floor();
-	b.Floor();
-	return a[0] == b[0] && a[1] == b[1];
-}
-
 bool PointBox(mmlVector<2> a, mmlVector<2> bmin, mmlVector<2> bmax)
 {
 	return a[0] >= bmin[0] && a[0] < bmax[0] && a[1] >= bmin[1] && a[1] < bmax[1];
@@ -23,14 +16,32 @@ bool PointBox(mmlVector<2> a, mmlVector<2> bmin, mmlVector<2> bmax)
 
 bool PointCircle(mmlVector<2> a, mmlVector<2> b, float bradius)
 {
-	return mmlDist(a, b) > bradius;
+	return mmlDist(a, b) < bradius;
 }
 
 bool BoxBox(mmlVector<2> amin, mmlVector<2> amax, mmlVector<2> bmin, mmlVector<2> bmax)
 {
-	mmlVector<2> min = mmlMax2(amin, bmin);
-	mmlVector<2> max = mmlMin2(amax, bmax);
+	mmlVector<2> min;
+	mmlVector<2> max;
+	min[0] = mmlMax2(amin[0], bmin[0]);
+	min[1] = mmlMax2(amin[1], bmin[1]);
+	max[0] = mmlMin2(amax[0], bmax[0]);
+	max[1] = mmlMin2(amax[1], bmax[1]);
 	return min[0] <= max[0] && min[1] <= max[1];
+}
+
+bool BoxCircle(mmlVector<2> amin, mmlVector<2> amax, mmlVector<2> bcenter, float bradius)
+{
+	return
+		PointBox(bcenter, amin, amax);
+		// check all line segments of box for intersection with circle
+}
+
+bool CircleCircle(mmlVector<2> acenter, float aradius, mmlVector<2> bcenter, float bradius)
+{
+	const float radius = aradius + bradius;
+	const float dist = mmlDist(acenter, bcenter);
+	return dist < radius;
 }
 
 bool RayLine(mmlVector<2> r1, mmlVector<2> r2, mmlVector<2> b1, mmlVector<2> b2)
@@ -81,78 +92,75 @@ bool LineLine(mmlVector<2> a1, mmlVector<2> a2, mmlVector<2> b1, mmlVector<2> b2
 		(dr1 >= 1.0f - RoundErr && dr1 <= 1.0f + RoundErr && dr2 >= 1.0f - RoundErr && dr2 <= 1.0f - RoundErr);
 }
 
-Transform &Collider::GetTransform( void )
-{
-	return m_transform;
-}
+Collider::Collider( void ) : m_transform(), m_momentum(0.0f, 0.0f, 0.0f), m_angularMomentum(0.0f), m_mass(-1.0f), m_friction(0.5f), m_isResting(false), m_hasRigidBody(false)
+{}
 
 const Transform &Collider::GetTransform( void ) const
 {
 	return m_transform;
 }
 
-/*PointCollider::PointCollider( void ) : m_point(0.0f, 0.0f) {}
-
-PointCollider::PointCollider(float x, float y) : m_point(x, y) {}
-
-PointCollider::PointCollider(mmlVector<2> point) : m_point(point) {}
-
-PointCollider::PointCollider(const PointCollider &collider) : m_point(collider.m_point) {}
-
-PointCollider &PointCollider::operator=(const PointCollider &collider)
+const mmlVector<2> Collider::GetMomentum( void ) const
 {
-	m_point = collider.m_point;
-	return *this;
+	return m_momentum;
 }
 
-mmlVector<2> PointCollider::GetPoint( void ) const
+float Collider::GetAngularMomentum( void ) const
 {
-	return m_point;
+	return m_angularMomentum;
 }
 
-void PointCollider::SetPoint(float x, float y)
+float Collider::GetMass( void ) const
 {
-	m_point[0] = x;
-	m_point[1] = y;
+	return m_mass;
 }
 
-void PointCollider::SetPoint(mmlVector<2> point)
+void Collider::SetMass(float mass)
 {
-	m_point = point;
+	m_mass = mmlMax2(0.0f, mass);
 }
 
-float PointCollider::GetX( void ) const
+void Collider::SetImmovable( void )
 {
-	return m_point[0];
+	m_mass = -1.0f;
 }
 
-float PointCollider::GetY( void ) const
+bool Collider::IsImmovable( void )
 {
-	return m_point[1];
+	return m_mass < 0.0f;
 }
 
-void PointCollider::SetX(float x)
+float Collider::GetFriction( void ) const
 {
-	m_point[0] = x;
+	return m_friction;
 }
 
-void PointCollider::SetY(float y)
+void Collider::SetFriction(float friction)
 {
-	m_point[1] = y;
+	m_friction = mmlClamp(0.0f, friction, 1.0f);
 }
 
-bool PointCollider::Collides(const Collider &collider)
+bool Collider::IsResting( void ) const
 {
-	if (collider.GetInstanceType() == PointCollider::GetClassType()) {
-		return PointPoint(m_point, dynamic_cast<const PointCollider*>(&collider)->GetPoint());
-	} else if (collider.GetInstanceType() == AABBCollider::GetClassType()) {
-		const AABBCollider *box = dynamic_cast<const AABBCollider*>(&collider);
-		return PointBox(m_point, box->GetMinimumBounds(), box->GetMaximumBounds());
-	}
-	return false;
+	return m_isResting;
 }
 
-bool PointCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
+bool Collider::HasRigidBody( void ) const
+{
+	return m_hasRigidBody;
+}
+
+void Collider::EnableRigidBody( void )
+{
+	m_hasRigidBody = true;
+}
+
+void Collider::DisableRigidBody( void )
+{
+	m_hasRigidBody = false;
+}
+
+/*bool PointCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
 {
 	if (!direction.IsNormalized()) { direction.NormalizeFast(); }
 	mmlVector<2> p = m_point - origin;
@@ -179,143 +187,106 @@ bool PointCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 	return PointPlane(m_point, point, normal);
 }*/
 
-AABBCollider::BoxPoints AABBCollider::GetBoxPoints( void ) const
+BoxCollider::BoxPoints BoxCollider::GetBoxPoints( void ) const
 {
 	BoxPoints b = { { m_box.min, mmlVector<2>(m_box.max[0], m_box.min[1]), m_box.max, mmlVector<2>(m_box.min[0], m_box.max[1]) } };
 	return b;
 }
 
-AABBCollider::AABBCollider( void )
+bool BoxCollider::CollidesWith(const BoxCollider &b) const
 {
-	m_box.min[0] = 0.0f;
-	m_box.min[1] = 0.0f;
-	m_box.max[0] = 0.0f;
-	m_box.max[1] = 0.0f;
+	const mmlVector<2> amin = m_transform.TransformPoint(GetMinimumExtents());
+	const mmlVector<2> amax = m_transform.TransformPoint(GetMaximumExtents());
+	const mmlVector<2> bmin = b.GetTransform().TransformPoint(b.GetMinimumExtents());
+	const mmlVector<2> bmax = b.GetTransform().TransformPoint(b.GetMaximumExtents());
+	return BoxBox(amin, amax, bmin, bmax);
 }
 
-AABBCollider::AABBCollider(float minx, float miny, float maxx, float maxy)
+bool BoxCollider::CollidesWith(const CircleCollider &c) const
 {
-	m_box.min[0] = minx;
-	m_box.min[1] = miny;
-	m_box.max[0] = maxx;
-	m_box.max[1] = maxy;
+	const mmlVector<2> amin = m_transform.TransformPoint(GetMinimumExtents());
+	const mmlVector<2> amax = m_transform.TransformPoint(GetMaximumExtents());
+	const mmlVector<2> bcenter = c.GetTransform.TransformPoint(mmlVector<2>(0.0f, 0.0f));
+	return BoxCircle(amin, amax, bcenter, c.GetRadius());
 }
 
-AABBCollider::AABBCollider(float minx, float miny, mmlVector<2> max)
+BoxCollider::BoxCollider( void ) : m_dimensions(0.0f, 0.0f)
 {
-	m_box.min[0] = minx;
-	m_box.min[1] = miny;
-	m_box.max = max;
 }
 
-AABBCollider::AABBCollider(mmlVector<2> min, mmlVector<2> max)
+BoxCollider::BoxCollider(const mmlVector<2> &dimensions) : m_dimensions()
 {
-	m_box.min = min;
-	m_box.max = max;
+	SetDimensions(dimensions);
 }
 
-AABBCollider::AABBCollider(mmlVector<2> min, float maxx, float maxy)
+BoxCollider::BoxCollider(float width, float height) : m_dimensions()
 {
-	m_box.min = min;
-	m_box.max[0] = maxx;
-	m_box.max[1] = maxy;
+	SetDimensions(width, height);
 }
 
-AABBCollider::AABBCollider(Box aabb) : m_box(aabb) {}
-
-AABBCollider::AABBCollider(const AABBCollider &collider) : m_box(collider.m_box) {}
-
-AABBCollider &AABBCollider::operator =(const AABBCollider &collider)
+BoxCollider::BoxCollider(const BoxCollider &collider) : m_dimensions(collider.m_dimensions)
 {
-	m_box.min = collider.m_box.min;
-	m_box.max = collider.m_box.max;
+}
+
+BoxCollider &BoxCollider::operator =(const BoxCollider &collider)
+{
+	m_dimensions = collider.m_dimensions;
 	return *this;
 }
 
-mmlVector<2> AABBCollider::GetMinimumBounds( void ) const
+const mmlVector<2> &BoxCollider::GetDimensions( void ) const
 {
-	return m_box.min;
+	return m_dimensions;
 }
 
-mmlVector<2> AABBCollider::GetMaximumBounds( void ) const
+void BoxCollider::SetDimensions(const mmlVector<2> &dimensions)
 {
-	return m_box.max;
+	SetWidth(dimensions[0]);
+	SetHeight(dimensions[1]);
 }
 
-void AABBCollider::SetMinimumBounds(float x, float y)
+void BoxCollider::SetDimensions(float width, float height)
 {
-	m_box.min[0] = x;
-	m_box.max[1] = y;
+	SetWidth(width);
+	SetHeight(height);
 }
 
-void AABBCollider::SetMinimumBounds(mmlVector<2> min)
+float BoxCollider::GetWidth( void ) const
 {
-	m_box.min = min;
+	return m_dimensions[0];
 }
 
-void AABBCollider::SetMaximumBounds(float x, float y)
+float BoxCollider::GetHeight( void ) const
 {
-	m_box.max[0] = x;
-	m_box.max[1] = y;
+	return m_dimensions[1];
 }
 
-void AABBCollider::SetMaximumBounds(mmlVector<2> max)
+void BoxCollider::SetWidth(float width)
 {
-	m_box.max = max;
+	m_dimensions[0] = mmlMax2(-width, width);
 }
 
-float AABBCollider::GetMinimumX( void ) const
+void BoxCollider::SetHeight(float height)
 {
-	return m_box.min[0];
+	m_dimensions[1] = mmlMax2(-height, height);
 }
 
-float AABBCollider::GetMinimumY( void ) const
+mmlVector<2> BoxCollider::GetMinimumExtents( void ) const
 {
-	return m_box.min[1];
+	return m_dimensions * -0.5f;
 }
 
-float AABBCollider::GetMaximumX( void ) const
+mmlVector<2> BoxCollider::GetMaximumExtents( void ) const
 {
-	return m_box.max[0];
+	return m_dimensions * 0.5f;
 }
 
-float AABBCollider::GetMaximumY( void ) const
+bool BoxCollider::Collides(const Collider &collider)
 {
-	return m_box.max[1];
+	return collider.CollidesWith(*this);
 }
 
-void AABBCollider::SetMinimumX(float x)
-{
-	m_box.min[0] = x;
-}
-
-void AABBCollider::SetMinimumY(float y)
-{
-	m_box.min[1] = y;
-}
-
-void AABBCollider::SetMaximumX(float x)
-{
-	m_box.max[0] = x;
-}
-
-void AABBCollider::SetMaximumY(float y)
-{
-	m_box.max[1] = y;
-}
-
-bool AABBCollider::Collides(const Collider &collider)
-{
-	/*if (collider.GetInstanceType() == PointCollider::GetClassType()) {
-		return PointBox(dynamic_cast<const PointCollider*>(&collider)->GetPoint(), m_box.min, m_box.max);
-	} else*/ if (collider.GetInstanceType() == AABBCollider::GetClassType()) {
-		const AABBCollider *box = dynamic_cast<const AABBCollider*>(&collider);
-		return BoxBox(m_box.min, m_box.max, box->GetMinimumBounds(), box->GetMaximumBounds());
-	}
-	return false;
-}
-
-bool AABBCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
+/*bool BoxCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
 {
 	if (!direction.IsNormalized()) { direction.NormalizeFast(); }
 
@@ -328,7 +299,7 @@ bool AABBCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
 	return false;
 }
 
-bool AABBCollider::CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex)
+bool BoxCollider::CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex)
 {
 	// I don't know
 
@@ -344,7 +315,7 @@ bool AABBCollider::CollidesCone(mmlVector<2> origin, mmlVector<2> direction, flo
 	return false;
 }
 
-bool AABBCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
+bool BoxCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 {
 	// point intersection tests
 	if (!normal.IsNormalized()) { normal.NormalizeFast(); }
@@ -352,17 +323,40 @@ bool AABBCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 	return
 		PointPlane(b.p[0], point, normal) || PointPlane(b.p[1], point, normal) ||
 		PointPlane(b.p[2], point, normal) || PointPlane(b.p[3], point, normal);
-}
+}*/
 
-Box AABBCollider::GetBoundingBox( void ) const
+Box BoxCollider::GetBoundingBox( void ) const
 {
-	return m_box;
+	Box b;
+	b.min = GetMinimumExtents();
+	b.max = GetMaximumExtents();
+	return b;
 }
 
-Circle AABBCollider::GetBoundingCircle( void ) const
+Circle BoxCollider::GetBoundingCircle( void ) const
 {
 	Circle c;
-	c.center = (m_box.min - m_box.min) * 0.5f;
-	c.radius = (c.center - m_box.max).Len();
+	c.center = (GetMaximumExtents() - GetMinimumExtents()) * 0.5f;
+	c.radius = (c.center - GetMaximumExtents()).Len();
 	return c;
+}
+
+bool CircleCollider::CollidesWith(const BoxCollider &b) const
+{
+	mmlVector<2> acenter = m_transform.TransformPoint(0.0f, 0.0f);
+	mmlVector<2> bmin = b.GetTransform().TransformPoint(b.GetMinimumExtents());
+	mmlVector<2> bmax = b.GetTransform().TransformPoint(b.GetMaximumExtents());
+	return BoxCircle(bmin, bmax, acenter, m_radius);
+}
+
+bool CircleCollider::CollidesWith(const CircleCollider &c) const
+{
+	mmlVector<2> acenter = m_transform.TransformPoint(0.0f, 0.0f);
+	mmlVector<2> bcenter = c.GetTransform().TransformPoint(0.0f, 0.0f);
+	return CircleCircle(acenter, m_radius, bcenter, c.GetRadius());
+}
+
+bool CircleCollider::Collides(const Collider &collider) const
+{
+	return collider.CollidesWith(*this);
 }

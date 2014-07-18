@@ -6,6 +6,7 @@
 #include "MTL/mtlString.h"
 #include "MTL/mtlType.h"
 #include "Collider.h"
+#include "Graphics.h"
 
 class Engine;
 
@@ -15,7 +16,8 @@ class Object : public mtlBase
 private:
 	GraphicsInstance			m_graphics;
 	mtlString					m_name;
-	Transform					m_transform;
+	Transform					m_transform; // transform is reverted to an interpolated value between this and next should next be rejected by solver
+	Transform					m_nextTransform; // Get* returns this, Set* modifies this
 	bool						m_destroy;
 	bool						m_collisions;
 	bool						m_visible;

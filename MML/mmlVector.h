@@ -132,6 +132,10 @@ public:
 		for (int j = 0; j < n; ++j) e[j] *= r;
 		return *this;
 	}
+	mmlVector<n> &operator/=(float r)
+	{
+		return *this *= (1.0f / r);
+	}
 	mmlVector<n> &operator/=(const mmlVector<n> &r)
 	{
 		for (int j = 0; j < n; ++j) e[j] /= r.e[j];
@@ -272,6 +276,7 @@ template < int n > inline mmlVector<n> operator-(mmlVector<n> l, const mmlVector
 template < int n > inline mmlVector<n> operator*(mmlVector<n> l, const mmlVector<n> &r) { return (l*=r); }
 template < int n > inline mmlVector<n> operator*(mmlVector<n> l, float r) { return (l*=r); }
 template < int n > inline mmlVector<n> operator*(float l, mmlVector<n> r) { return (r*=l); }
+template < int n > inline mmlVector<n> operator/(mmlVector<n> l, float r) { return (l/=r); }
 template < int n > inline mmlVector<n> operator/(mmlVector<n> l, const mmlVector<n> &r) { return (l/=r); }
 template < int n > inline mmlVector<n> operator-(mmlVector<n> v) {
 	for (int j = 0; j < n; ++j) { v[j] = -v[j]; }

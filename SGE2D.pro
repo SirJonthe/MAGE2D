@@ -13,10 +13,10 @@ SOURCES += main.cpp \
     MTL/mtlParser.cpp \
     MTL/mtlDirectory.cpp \
     Tools.cpp \
-    Collider.cpp \
     GUI.cpp \
     Graphics.cpp \
-    Transform.cpp
+    Transform.cpp \
+    Collider.cpp
 
 HEADERS += \
     Timer.h \
@@ -42,13 +42,13 @@ HEADERS += \
     MTL/mtlArray.h \
     Tools.h \
     Graphics.h \
-    Collider.h \
     GUI.h \
     MTL/mtlPointer.h \
     MTL/mtlType.h \
     MTL/mtlStringMap.h \
     Platform.h \
-    Transform.h
+    Transform.h \
+    Collider.h
 
 OTHER_FILES += \
     TODO.txt

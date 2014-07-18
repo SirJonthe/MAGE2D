@@ -34,8 +34,8 @@ public:
 	void SetLocalPosition(const mmlVector<2> &position);
 
 	mmlVector<2> GetWorldPosition( void ) const;
-	// SetWorldPosition(float x, float y);
-	// SetWorldPosition(const mmlVector<2> &position);
+	void SetWorldPosition(float x, float y);
+	void SetWorldPosition(const mmlVector<2> &position);
 
 	const mmlVector<2> &GetLocalAxisX( void ) const;
 	const mmlVector<2> &GetLocalAxisY( void	) const;
@@ -55,6 +55,11 @@ public:
 
 	void ApplyRotation(float angle);
 	void ApplyRotation(const mmlVector<2> &around, float angle);
+
+	mmlVector<2> TransformLocalPoint(const mmlVector<2> &point) const;
+	mmlVector<2> TransformLocalPoint(float x, float y) const;
+	//mmlVector<2> TransformWorldPoint(const mmlVector<2> &point) const;
+	//mmlVector<2> TransformWorldPoint(float x, float y) const;
 };
 
 #endif // TRANSFORM_H

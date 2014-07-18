@@ -1,11 +1,9 @@
 --------
 --TODO--
 --------
-Debug transforms
-	Fundamentally broken
-	GetWorld* gives wrong result
-	SetWorld* blows stack
-	Can't do collisions/physics otherwise
+Transforms
+	positions must be affected by parent transforms, but not its own transform
+		how to I reverse these effects (for SetWorld* and SetParent)?
 Collisions
 	Per pixel
 	Box
@@ -14,6 +12,8 @@ Collisions
 Physics?
 	Roll my own?
 		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
+	Remember:
+		Physics act on transforms' World locations (not local locations)
 More randomizer functions in engine
 	Own random function
 	Non linear randomizer

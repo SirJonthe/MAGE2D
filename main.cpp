@@ -16,6 +16,12 @@ public:
 	Controllable( void );
 };
 
+class Anchor : public mtlInherit<Object>
+{
+protected:
+	void OnUpdate( void );
+};
+
 class FollowCamera : public mtlInherit<Object>
 {
 private:
@@ -29,6 +35,7 @@ public:
 };
 
 ENGINE_REGISTER_OBJECT_TYPE(Controllable);
+ENGINE_REGISTER_OBJECT_TYPE(Anchor);
 ENGINE_REGISTER_OBJECT_TYPE(FollowCamera);
 
 void PrintString(const mtlChars &ch);
@@ -66,12 +73,6 @@ void Controllable::OnUpdate( void )
 		GetTransform().ApplyWorldTranslation(1.0f, 0.0f);
 		//GetTransform().SetAxisXDirection(-1.0f);
 	}
-	if (GetEngine()->IsDown(SDLK_a)) {
-		GetTransform().ApplyRotation(-GetEngine()->GetDeltaTime());
-	}
-	if (GetEngine()->IsDown(SDLK_s)) {
-		GetTransform().ApplyRotation(GetEngine()->GetDeltaTime());
-	}
 	if (GetEngine()->IsDown(SDLK_ESCAPE)) {
 		GetEngine()->EndGame();
 	}
@@ -92,6 +93,14 @@ void Controllable::OnGUI( void )
 	}
 	GUI::Text("}");
 	GUI::NewLine();
+	if (GetTransform().GetParentTransform() == NULL) {
+		GUI::SetColor(1.0f, 0.0f, 0.0f);
+		GUI::Text("Detached");
+	} else {
+		GUI::SetColor(0.0f, 1.0f, 0.0);
+		GUI::Text("Attached");
+	}
+	GUI::NewLine();
 }
 
 void Controllable::OnDraw( void )
@@ -102,6 +111,28 @@ void Controllable::OnDraw( void )
 	glVertex2f(0.0f, 0.0f);
 	glVertex2f(20.0f, 0.0f);
 	glEnd();
+}
+
+void Anchor::OnUpdate( void )
+{
+	if (GetEngine()->IsDown(SDLK_a)) {
+		GetTransform().ApplyRotation(-GetEngine()->GetDeltaTime());
+	}
+	if (GetEngine()->IsDown(SDLK_s)) {
+		GetTransform().ApplyRotation(GetEngine()->GetDeltaTime());
+	}
+	if (GetEngine()->IsPressed(SDLK_SPACE)) {
+		mtlList<Object*> list;
+		GetEngine()->FilterByName(GetEngine()->GetObjects(), list, "object_controllable");
+		mtlNode<Object*> *node = list.GetFirst();
+		if (node != NULL) {
+			if (node->GetItem()->GetTransform().GetParentTransform() == NULL) {
+				node->GetItem()->GetTransform().SetParentTransform(&GetTransform());
+			} else {
+				node->GetItem()->GetTransform().SetParentTransform(NULL);
+			}
+		}
+	}
 }
 
 Controllable::Controllable( void )
@@ -236,6 +267,9 @@ void Unit_Controllable(Engine &engine)
 	b->GetGraphics().SetRed(0.2f);
 	b->GetGraphics().SetGreen(0.2f);
 	b->GetGraphics().SetBlue(0.2f);
+
+	Object *d = engine.AddObject("Anchor");
+	a->GetTransform().SetParentTransform(&d->GetTransform(), false);
 
 	engine.RunGame();
 }
