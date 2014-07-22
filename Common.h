@@ -20,6 +20,12 @@ struct Rect
 	mmlVector<2> GetCenterVector( void ) const { return mmlVector<2>(float(x) + float(w)/2.0f, float(y) + float(h)/2.0f); }
 };
 
+struct Ray
+{
+	mmlVector<2> origin;
+	mmlVector<2> direction;
+};
+
 struct Box
 {
 	mmlVector<2> min, max;

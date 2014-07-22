@@ -11,9 +11,86 @@
 // All shapes are centered around 0,0
 // Transformed by m_transform
 // Might want to do lazy evaluation since otherwise I will recalculate world space a lot
+// Collider transform will probably need to be object transform (i.e. remove object transform, replace by collider transform)
 
-class CollisionSolver
+class CollisionInfo
 {
+private:
+	Collider				*m_collider1;
+	Collider				*m_collider2;
+	mtlList< mmlVector<2> > m_contact;
+	bool					m_collision;
+};
+
+class Collider;
+
+class ColliderQuadTree
+{
+private:
+	struct ChildNode
+	{
+		ColliderQuadTree q[4];
+		// [0|1]
+		// [2|3]
+	};
+
+private:
+	ColliderQuadTree	*m_root; // is never ever NULL
+	ColliderQuadTree	*m_parent;
+	ChildNode			*m_children; // stop adding children when a quad only contains one object
+	mtlList<Collider*>	m_colliders; // all of the colliders contained in this tree
+	int					m_depth; // used as bit shift to partition space (starts at 0, max 31)
+	int					m_subquad;
+	// all of these values are actually stored in m_root
+	int					m_maxDepth; // calculated as: maxDepth - level
+	int					m_spaceWidth;
+	int					m_spaceHeight;
+
+private:
+	ColliderQuadTree(ColliderQuadTree *parent, int subquad);
+
+public:
+	ColliderQuadTree(int width, int height, int maxDepth);
+	~ColliderQuadTree( void ); // recursive destruction
+
+	ColliderQuadTree	*GetChild(int i) { return !IsLastLevel() ? ((i>-1&&i<4) ? m_children->q[i] : NULL) : NULL; }
+	bool				IsLastLevel( void ) const { return m_children == NULL; }
+
+	mtlNode<Collider*>	*GetCollider( void ) { return m_colliders.GetFirst(); }
+	int					GetColliderCount( void ) const { return m_colliders.GetSize(); }
+
+	ColliderQuadTree	*GetRoot( void ) const { return m_root; }
+	ColliderQuadTree	*GetParent( void ) const { return m_parent; }
+	bool				IsRoot( void ) const { return this == m_root; }
+
+	int		GetCurrentDepth( void ) const { return m_depth; }
+	int		GetSubquad( void ) const { return m_subquad; }
+	int		GetSubquadX( void ) const { return m_subquad & 1; }
+	int		GetSubquadY( void ) const { return (m_subquad & 2) >> 1; }
+	int		GetSpaceWidth( void ) const { return m_root->m_spaceWidth >> m_depth; }
+	int		GetSpaceHeight( void ) const { return m_root->m_spaceHeight >> m_depth; }
+	int		GetMaxDepth( void ) const { return m_root->m_maxDepth; }
+
+	mtlNode<Collider*>	*AddCollider(Collider *collider);
+	void				RemoveCollider(Collider *collider);
+	void				RemoveCollider(mtlNode<Collider*> *collider);
+	mtlNode<Collider*>	*FindCollider(Collider *collider);
+
+	void	Destroy( void );
+	void	ResizeTree(int width, int height, int maxDepth); // sets values, refreshes tree and all contents
+	void	RefreshTree( void ); // recursively calls refresh tree, updates contents of m_colliders based on collider shape, width & height of tree, and max depth (also destroys all sub trees greater than max depth)
+
+	// returns the deepest node with potential collisions
+	// calculates the exit ray (returns that in ray)
+	// returns NULL if there is no risk for collision at all along the ray
+	// iteratively use TraceRay and check for collisions until collision is found, or until return value is NULL
+	ColliderQuadTree *TraceRay(Ray &ray);
+};
+
+class ColliderCollisionSolver
+{
+private:
+	ColliderQuadTree m_tree;
 	// stores spatial data in acceleration structure
 	// checks for collisions and prevents colliders from intersecting
 	// stores collision data in list
@@ -31,16 +108,18 @@ class RangeCollider; // 2d cone, with origin and distance (neg distance is infin
 
 class Collider : public mtlBase
 {
-	friend class CollisionSolver;
+	friend class ColliderCollisionSolver;
 
 protected:
-	Transform		m_transform; // position will be center of mass
-	mmlVector<2>	m_momentum;
-	float			m_angularMomentum;
-	float			m_mass;
-	float			m_friction;
-	bool			m_isResting;
-	bool			m_hasRigidBody; // when 'false' then solver only resolves collisions
+	Transform				m_transform; // position will be center of mass
+	mmlVector<2>			m_momentum;
+	float					m_angularMomentum;
+	float					m_mass;
+	float					m_friction;
+	bool					m_isResting;
+	bool					m_hasRigidBody; // when 'false' then solver only resolves collisions
+	ColliderQuadTree		*m_quadTree;
+	ColliderCollisionSolver	*m_collisionSolver;
 
 protected:
 	virtual bool CollidesWith(const BoxCollider&) const = 0;
@@ -52,13 +131,14 @@ protected:
 
 public:
 	Collider( void );
-	virtual ~Collider( void ) {}
+	virtual ~Collider( void ) {} // remove item from collision solver, collision solver removes item from quad tree
 
-	virtual void Collides(const Collider&) const = 0;
+	virtual bool Collides(const Collider&) const = 0;
 	virtual Box GetBoundingBox( void ) const = 0;
 	virtual Circle GetBoundingCircle( void ) const = 0;
 
 	const Transform &GetTransform( void ) const;
+	Transform &GetTransform( void );
 
 	// do not set these directly (use Newtonian interface)
 	const mmlVector<2> &GetMomentum( void ) const;

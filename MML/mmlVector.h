@@ -353,7 +353,7 @@ mmlVector<n> mmlLerp(const mmlVector<n> &u, const mmlVector<n> &v, const mmlVect
 }
 
 //
-// Bilerp
+// mmlBilerp
 //
 template < int n >
 mmlVector<n> mmlBilerp(const mmlVector<n> &xy00, const mmlVector<n> &xy10, const mmlVector<n> &xy01, const mmlVector<n> &xy11, float x, float y)
@@ -481,6 +481,17 @@ inline bool mmlRefract(const mmlVector<3> &incident, const mmlVector<3> &surface
 	}
 	outRefraction = n * incident - (n + sqrt(1.0f - sin)) * surfaceNormal;
 	return true;
+}
+
+//
+// mmlTangent
+//
+inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
+{
+	mmlVector<2> tan;
+	tan[0] = normal[1];
+	tan[1] = normal[0];
+	return tan;
 }
 
 #endif
