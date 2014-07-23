@@ -176,17 +176,7 @@ void Engine::UpdateTimer( void )
 
 bool Engine::Collide(const Object *a, const Object *b) const
 {
-	/*Box ab = ToBox(a->GetCollisionBox());
-	Box bb = ToBox(b->GetCollisionBox());
-
-	Box overlap;
-	overlap.a.x = mmlMax2(ab.a.x, bb.a.x);
-	overlap.a.y = mmlMax2(ab.a.y, bb.a.y);
-	overlap.b.x = mmlMin2(ab.b.x, bb.b.x);
-	overlap.b.y = mmlMin2(ab.b.y, bb.b.y);
-
-	return (overlap.a.x < overlap.b.x && overlap.a.y < overlap.b.y && GetPixelOverlap(a, b, overlap));*/
-	return false;
+	return a->m_collider.GetShared()->Collides(*b->m_collider.GetShared());
 }
 
 bool Engine::PointInBox(Point p, Engine::Box b) const
@@ -725,12 +715,12 @@ Point Engine::GetMouseMovement( void ) const
 
 void Engine::SetMousePosition(int x, int y)
 {
-	SDL_WarpMouse((Uint16)x, (Uint16)y);
+	SDL_WarpMouse((Uint16)x, (Uint16)y); // have to do additional computations, I don't want SetMousePosition to affect relative mouse movement
 }
 
 void Engine::SetMousePosition(Point p)
 {
-	SDL_WarpMouse((Uint16)p.x, (Uint16)p.y);
+	SetMousePosition(p.x, p.y);
 }
 
 bool Engine::IsDown(SDLKey key) const

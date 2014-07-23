@@ -13,6 +13,16 @@
 // Might want to do lazy evaluation since otherwise I will recalculate world space a lot
 // Collider transform will probably need to be object transform (i.e. remove object transform, replace by collider transform)
 
+class Collider;
+class BoxCollider; // a box that is always axis aligned even after world transform
+class CircleCollider;
+/*class PlaneCollider; // detects collisions for shapes past the plane (not just intersecting)
+class PolygonCollider; // arbitrarily shaped polygon
+class RayCollider; // a ray with origin and distance (neg distance is infinite)
+class RangeCollider; // 2d cone, with origin and distance (neg distance is infinite)
+*/
+class ColliderTreeQuad;
+
 class CollisionInfo
 {
 private:
@@ -22,46 +32,39 @@ private:
 	bool					m_collision;
 };
 
-class Collider;
-
-class ColliderQuadTree
+class ColliderTree
 {
 private:
-	struct ChildNode
-	{
-		ColliderQuadTree q[4];
-		// [0|1]
-		// [2|3]
-	};
-
-private:
-	ColliderQuadTree	*m_root; // is never ever NULL
-	ColliderQuadTree	*m_parent;
-	ChildNode			*m_children; // stop adding children when a quad only contains one object
+	ColliderTree		*m_root; // is never ever NULL
+	ColliderTree		*m_parent;
+	ColliderTreeQuad	*m_children; // stop adding children when a quad only contains one object
 	mtlList<Collider*>	m_colliders; // all of the colliders contained in this tree
 	int					m_depth; // used as bit shift to partition space (starts at 0, max 31)
 	int					m_subquad;
+
 	// all of these values are actually stored in m_root
 	int					m_maxDepth; // calculated as: maxDepth - level
 	int					m_spaceWidth;
 	int					m_spaceHeight;
 
 private:
-	ColliderQuadTree(ColliderQuadTree *parent, int subquad);
+	ColliderTree(ColliderTree *parent, int subquad);
 
 public:
-	ColliderQuadTree(int width, int height, int maxDepth);
-	~ColliderQuadTree( void ); // recursive destruction
+	ColliderTree(int width, int height, int maxDepth);
+	~ColliderTree( void ); // recursive destruction
 
-	ColliderQuadTree	*GetChild(int i) { return !IsLastLevel() ? ((i>-1&&i<4) ? m_children->q[i] : NULL) : NULL; }
-	bool				IsLastLevel( void ) const { return m_children == NULL; }
+	ColliderTree	*GetChild(int i);
+	ColliderTree	*GetChild(int x, int y);
+	bool			IsLastLevel( void ) const { return m_children == NULL; }
 
 	mtlNode<Collider*>	*GetCollider( void ) { return m_colliders.GetFirst(); }
 	int					GetColliderCount( void ) const { return m_colliders.GetSize(); }
+	bool				IsEmpty( void ) const { return m_colliders.GetSize() == 0; }
 
-	ColliderQuadTree	*GetRoot( void ) const { return m_root; }
-	ColliderQuadTree	*GetParent( void ) const { return m_parent; }
-	bool				IsRoot( void ) const { return this == m_root; }
+	ColliderTree	*GetRoot( void ) const { return m_root; }
+	ColliderTree	*GetParent( void ) const { return m_parent; }
+	bool			IsRoot( void ) const { return this == m_root; }
 
 	int		GetCurrentDepth( void ) const { return m_depth; }
 	int		GetSubquad( void ) const { return m_subquad; }
@@ -84,42 +87,44 @@ public:
 	// calculates the exit ray (returns that in ray)
 	// returns NULL if there is no risk for collision at all along the ray
 	// iteratively use TraceRay and check for collisions until collision is found, or until return value is NULL
-	ColliderQuadTree *TraceRay(Ray &ray);
+	ColliderTree *TraceRay(Ray &ray);
 };
 
-class ColliderCollisionSolver
+struct ColliderTreeQuad
+{
+	ColliderTree q[4];
+	// [0|1]
+	// [2|3]
+
+	ColliderTreeQuad(ColliderTree *parent);
+};
+
+class CollisionSolver
 {
 private:
-	ColliderQuadTree m_tree;
+	ColliderTree m_tree;
 	// stores spatial data in acceleration structure
 	// checks for collisions and prevents colliders from intersecting
 	// stores collision data in list
 	// iterates over collision list and applies transforms to collision pairs to model physical behavior
 	// feedback from physics solver is fed into collision solver during next update
+public:
+	CollisionSolver(int width, int height, int maxDepth);
 };
-
-class BoxCollider; // a box that is always axis aligned even after world transform
-class CircleCollider;
-/*class PlaneCollider; // detects collisions for shapes past the plane (not just intersecting)
-class PolygonCollider; // arbitrarily shaped polygon
-class RayCollider; // a ray with origin and distance (neg distance is infinite)
-class RangeCollider; // 2d cone, with origin and distance (neg distance is infinite)
-*/
 
 class Collider : public mtlBase
 {
-	friend class ColliderCollisionSolver;
+	friend class CollisionSolver;
 
 protected:
-	Transform				m_transform; // position will be center of mass
-	mmlVector<2>			m_momentum;
-	float					m_angularMomentum;
-	float					m_mass;
-	float					m_friction;
-	bool					m_isResting;
-	bool					m_hasRigidBody; // when 'false' then solver only resolves collisions
-	ColliderQuadTree		*m_quadTree;
-	ColliderCollisionSolver	*m_collisionSolver;
+	Transform			m_transform; // position will be center of mass
+	mmlVector<2>		m_momentum;
+	float				m_angularMomentum;
+	float				m_mass;
+	float				m_friction;
+	bool				m_isResting;
+	bool				m_hasRigidBody; // when 'false' then solver only resolves collisions
+	CollisionSolver		*m_collisionSolver;
 
 protected:
 	virtual bool CollidesWith(const BoxCollider&) const = 0;
@@ -166,9 +171,9 @@ class BoxCollider : public mtlInherit<Collider>
 private:
 	mmlVector<2> m_dimensions;
 
-private:
+/*private:
 	struct BoxPoints { mmlVector<2> p[4]; };
-	BoxPoints GetBoxPoints( void ) const;
+	BoxPoints GetBoxPoints( void ) const;*/
 
 protected:
 	virtual bool CollidesWith(const BoxCollider &b) const;
@@ -228,6 +233,10 @@ public:
 	Box GetBoundingBox( void ) const;
 	Circle GetBoundingCircle( void ) const;
 };
+
+/*class PlaneCollider : public mtlInherit<Collider>
+{
+};*/
 
 /*class RayCollider : public mtlInherit<Collider>
 {

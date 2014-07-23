@@ -193,7 +193,12 @@ mmlVector<2> Transform::TransformLocalPoint(float x, float y) const
 	return TransformLocalPoint(mmlVector<2>(x, y));
 }
 
-/*mmlVector<2> Transform::TransformWorldPoint(const mmlVector<2> &point) const
+mmlVector<2> Transform::TransformWorldPoint(const mmlVector<2> &point) const
 {
 	return (point * GetWorldRotation()) + GetWorldPosition();
-}*/
+}
+
+mmlVector<2> Transform::TransformWorldPoint(float x, float y) const
+{
+	return TransformWorldPoint(x, y);
+}

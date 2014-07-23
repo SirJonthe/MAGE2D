@@ -10,6 +10,7 @@
 #include "Sound.h"
 #include "Common.h"
 #include "Graphics.h"
+#include "Collider.h"
 
 class Object;
 
@@ -68,9 +69,9 @@ private:
 private:
 	mtlList<Object*>				m_objects;
 	Object							*m_camera;
-	//mtlList<SDL_Event>				m_events;
 	Timer							m_timer;
 	float							m_deltaSeconds;
+	//CollisionSolver					m_collisionSolver;
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;
@@ -79,7 +80,6 @@ private:
 	unsigned char					m_keyState[SDLK_LAST];
 	unsigned char					m_mouseButtonState[MouseButton::Last];
 private:
-	//void							GenerateEventList( void );
 	void							UpdateInputBuffers( void );
 	void							UpdateObjects( void );
 	void							CollideObjects( void );
@@ -113,7 +113,6 @@ public:
 	void						KillProgram( void );
 	void						SetUpdateFrequency(float updatesPerSecond);
 	float						GetDeltaTime( void ) const;
-	//const mtlList<SDL_Event>	&GetEventList( void ) const;
 	int							GetRandomInt( void ) const;
 	int							GetRandomInt(int max) const;
 	int							GetRandomInt(int min, int max) const;
@@ -165,6 +164,16 @@ public:
 #define ENGINE_REGISTER_OBJECT_TYPE(ObjectTypeName) \
 	Object *Create_##ObjectTypeName( void ) { return new ObjectTypeName; } \
 	static bool ObjectTypeName##_Registered = Engine::RegisterType(#ObjectTypeName, Create_##ObjectTypeName)
+
+#define OBJECT_DECL(ObjectName) \
+	class ObjectName; \
+	ENGINE_REGISTER_OBJECT_TYPE(ObjectName); \
+	class ObjectName : public mtlInherit<Object>
+
+#define OBJECT_DECL_INHERIT(ObjectName, ObjectInheritance) \
+	class ObjectName; \
+	ENGINE_REGISTER_OBJECT_TYPE(ObjectName); \
+	class ObjectName : public mtlInherit<ObjectInheritance>
 
 template < typename type_t >
 void Engine::FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out)

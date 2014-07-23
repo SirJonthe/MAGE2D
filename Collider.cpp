@@ -41,16 +41,26 @@ bool BoxBox(mmlVector<2> amin, mmlVector<2> amax, mmlVector<2> bmin, mmlVector<2
 	return min[0] <= max[0] && min[1] <= max[1];
 }
 
+bool LineCircle(const mmlVector<2> &l1, const mmlVector<2> &l2, const mmlVector<2> &cpos, float crad)
+{
+	const mmlVector<2> lineVector = l2 - l1;
+	const mmlVector<2> circleLineVector = cpos - l1;
+	const float projectedDistance = mmlClamp(0.0f, mmlDot(circleLineVector, mmlNormalize(lineVector)), lineVector.Len());
+	const mmlVector<2> closest = lineVector * projectedDistance;
+	const float circleLineDistance = mmlDist(cpos, closest);
+	return circleLineDistance < crad;
+}
+
 bool BoxCircle(mmlVector<2> amin, mmlVector<2> amax, mmlVector<2> bcenter, float bradius)
 {
 	mmlVector<2> box[4];
 	GetBoxPoints(amin, amax, box);
 	return
 		PointBox(bcenter, amin, amax) ||
-		LineCircle(box[0], bcenter, bradius) ||
-		LineCircle(box[1], bcenter, bradius) ||
-		LineCircle(box[2], bcenter, bradius) ||
-		LineCircle(box[3], bcenter, bradius);
+		LineCircle(box[0], box[1], bcenter, bradius) ||
+		LineCircle(box[1], box[2], bcenter, bradius) ||
+		LineCircle(box[2], box[3], bcenter, bradius) ||
+		LineCircle(box[3], box[0], bcenter, bradius);
 }
 
 bool CircleCircle(mmlVector<2> acenter, float aradius, mmlVector<2> bcenter, float bradius)
@@ -110,16 +120,6 @@ bool LineLine(mmlVector<2> a1, mmlVector<2> a2, mmlVector<2> b1, mmlVector<2> b2
 		(dr1 >= 1.0f - RoundErr && dr1 <= 1.0f + RoundErr && dr2 >= 1.0f - RoundErr && dr2 <= 1.0f - RoundErr);
 }
 
-bool LineCircle(const mmlVector<2> &l1, const mmlVector<2> &l2, const mmlVector<2> &cpos, float crad)
-{
-	const mmlVector<2> lineVector = l2 - l1;
-	const mmlVector<2> circleLineVector = cpos - l1;
-	const float projectedDistance = mmlClamp(0.0f, mmlDot(circleLineVector, mmlNormalize(lineVector)), mmlLen(lineVector));
-	const mmlVector<2> closest = planeVector * projectedDistance;
-	const float circleLineDistance = mmlDist(cpos, closest);
-	return circleLineDistance < crad;
-}
-
 bool CirclePlane(const mmlVector<2> &apos, float arad, const mmlVector<2> &bpos, const mmlVector<2> &bnor)
 {
 	if (PointPlane(apos, bpos, bnor)) { return true; } // 50/50 culling
@@ -133,26 +133,30 @@ bool CirclePlane(const mmlVector<2> &apos, float arad, const mmlVector<2> &bpos,
 	return circlePlaneDistance < arad;
 }
 
-ColliderQuadTree::ColliderQuadTree(ColliderQuadTree *parent, int subquad) : m_root(parent->m_root), m_parent(parent), m_children(NULL), m_colliders(), m_depth(parent->m_depth+1), m_subquad(subquad), m_maxDepth(m_root->m_maxDepth), m_spaceWidth(m_root->m_spaceWidth), m_spaceHeight(m_root->m_spaceHeight)
+ColliderTree::ColliderTree(ColliderTree *parent, int subquad) : m_root(parent->m_root), m_parent(parent), m_children(NULL), m_colliders(), m_depth(parent->m_depth+1), m_subquad(subquad), m_maxDepth(m_root->m_maxDepth), m_spaceWidth(m_root->m_spaceWidth), m_spaceHeight(m_root->m_spaceHeight)
 {
 	RefreshTree();
 }
 
-ColliderQuadTree::ColliderQuadTree(int width, int height, int maxDepth) : m_root(this), m_parent(NULL), m_children(NULL), m_colliders(), m_depth(0), m_maxDepth(mmlClamp(0, maxDepth, 31)), m_spaceWidth(width), m_spaceHeight(height)
+ColliderTree::ColliderTree(int width, int height, int maxDepth) : m_root(this), m_parent(NULL), m_children(NULL), m_colliders(), m_depth(0), m_maxDepth(mmlClamp(0, maxDepth, 31)), m_spaceWidth(width), m_spaceHeight(height)
 {}
 
-ColliderQuadTree::~ColliderQuadTree( void )
+ColliderTree::~ColliderTree( void )
 {
 	delete m_children;
 }
 
-Point ColliderQuadTree::GetSubquadCoord( void ) const
+ColliderTree *ColliderTree::GetChild(int i)
 {
-	Point p = { m_subquad & 1, (m_subquad & 2) >> 1 };
-	return p;
+	return !IsLastLevel() ? ((i>-1&&i<4) ? &m_children->q[i] : NULL) : NULL;
 }
 
-mtlNode<Collider*> *ColliderQuadTree::AddCollider(Collider *collider)
+ColliderTree *ColliderTree::GetChild(int x, int y)
+{
+	return !IsLastLevel() ? ((x>-1&&x<2&&y>-1&&y<2) ? &m_children->q[x+(y<<1)] : NULL) : NULL;
+}
+
+mtlNode<Collider*> *ColliderTree::AddCollider(Collider *collider)
 {
 	if (!IsRoot()) {
 		return m_root->AddCollider(collider);
@@ -161,7 +165,7 @@ mtlNode<Collider*> *ColliderQuadTree::AddCollider(Collider *collider)
 	return m_colliders.GetLast();
 }
 
-void ColliderQuadTree::RemoveCollider(Collider *collider)
+void ColliderTree::RemoveCollider(Collider *collider)
 {
 	if (!IsRoot()) {
 		m_root->RemoveCollider(collider);
@@ -177,7 +181,7 @@ void ColliderQuadTree::RemoveCollider(Collider *collider)
 	}
 }
 
-void ColliderQuadTree::RemoveCollider(mtlNode<Collider*> *collider)
+void ColliderTree::RemoveCollider(mtlNode<Collider*> *collider)
 {
 	if (!IsRoot()) {
 		m_root->RemoveCollider(collider);
@@ -186,7 +190,7 @@ void ColliderQuadTree::RemoveCollider(mtlNode<Collider*> *collider)
 	}
 }
 
-mtlNode<Collider*> *ColliderQuadTree::FindCollider(Collider *collider)
+mtlNode<Collider*> *ColliderTree::FindCollider(Collider *collider)
 {
 	mtlNode<Collider*> *c = m_colliders.GetFirst();
 	while (c != NULL) {
@@ -198,14 +202,14 @@ mtlNode<Collider*> *ColliderQuadTree::FindCollider(Collider *collider)
 	return NULL;
 }
 
-void ColliderQuadTree::Destroy( void )
+void ColliderTree::Destroy( void )
 {
 	delete m_children;
 	m_children = NULL;
 	m_colliders.RemoveAll();
 }
 
-void ColliderQuadTree::ResizeTree(int width, int height, int maxDepth)
+void ColliderTree::ResizeTree(int width, int height, int maxDepth)
 {
 	if (!IsRoot()) {
 		m_root->ResizeTree(width, height, maxDepth);
@@ -217,7 +221,7 @@ void ColliderQuadTree::ResizeTree(int width, int height, int maxDepth)
 	}
 }
 
-void ColliderQuadTree::RefreshTree( void )
+void ColliderTree::RefreshTree( void )
 {
 	delete m_children;
 	m_children = NULL;
@@ -230,8 +234,8 @@ void ColliderQuadTree::RefreshTree( void )
 		const int x = GetSubquadX() * w;
 		const int y = GetSubquadY() * h;
 
-		BoxCollider box(float(w), float(h));
-		box.GetTransform().SetPosition(float(x), float(y));
+		BoxCollider box = BoxCollider(float(w), float(h));
+		box.GetTransform().SetLocalPosition(float(x), float(y));
 
 		mtlNode<Collider*> *collider = m_parent->GetCollider();
 		while (collider != NULL) {
@@ -243,10 +247,22 @@ void ColliderQuadTree::RefreshTree( void )
 	}
 
 	if (GetColliderCount() > 1 && GetCurrentDepth() < GetMaxDepth() && GetSpaceWidth() > 1 && GetSpaceHeight() > 1) {
-		m_children = new ChildNode;
+		m_children = new ColliderTreeQuad(this);
 		for (int i = 0; i < 4; ++i) {
 			m_children->q[i].RefreshTree();
 		}
+	}
+}
+
+ColliderTree *ColliderTree::TraceRay(Ray &ray)
+{
+	return NULL;
+}
+
+ColliderTreeQuad::ColliderTreeQuad(ColliderTree *parent)
+{
+	for (int i = 0; i < 4; ++i) {
+		q[i] =
 	}
 }
 
@@ -263,7 +279,7 @@ Transform &Collider::GetTransform( void )
 	return m_transform;
 }
 
-const mmlVector<2> Collider::GetMomentum( void ) const
+const mmlVector<2> &Collider::GetMomentum( void ) const
 {
 	return m_momentum;
 }
@@ -350,26 +366,26 @@ bool PointCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 	return PointPlane(m_point, point, normal);
 }*/
 
-BoxCollider::BoxPoints BoxCollider::GetBoxPoints( void ) const
+/*BoxCollider::BoxPoints BoxCollider::GetBoxPoints( void ) const
 {
 	BoxPoints b = { { m_box.min, mmlVector<2>(m_box.max[0], m_box.min[1]), m_box.max, mmlVector<2>(m_box.min[0], m_box.max[1]) } };
 	return b;
-}
+}*/
 
 bool BoxCollider::CollidesWith(const BoxCollider &b) const
 {
-	const mmlVector<2> amin = m_transform.TransformPoint(GetMinimumExtents());
+	const mmlVector<2> amin = m_transform.TransformWorldPoint(GetMinimumExtents());
 	const mmlVector<2> amax = -amin;
-	const mmlVector<2> bmin = b.GetTransform().TransformPoint(b.GetMinimumExtents());
+	const mmlVector<2> bmin = b.GetTransform().TransformWorldPoint(b.GetMinimumExtents());
 	const mmlVector<2> bmax = -bmin;
 	return BoxBox(amin, amax, bmin, bmax);
 }
 
 bool BoxCollider::CollidesWith(const CircleCollider &c) const
 {
-	const mmlVector<2> amin = m_transform.TransformPoint(GetMinimumExtents());
+	const mmlVector<2> amin = m_transform.TransformWorldPoint(GetMinimumExtents());
 	const mmlVector<2> amax = -amin;
-	const mmlVector<2> bcenter = c.GetTransform.TransformPoint(mmlVector<2>(0.0f, 0.0f));
+	const mmlVector<2> bcenter = c.GetTransform().TransformWorldPoint(0.0f, 0.0f);
 	return BoxCircle(amin, amax, bcenter, c.GetRadius());
 }
 
@@ -506,16 +522,16 @@ Circle BoxCollider::GetBoundingCircle( void ) const
 
 bool CircleCollider::CollidesWith(const BoxCollider &b) const
 {
-	mmlVector<2> acenter = m_transform.TransformPoint(0.0f, 0.0f);
-	mmlVector<2> bmin = b.GetTransform().TransformPoint(b.GetMinimumExtents());
+	mmlVector<2> acenter = m_transform.TransformWorldPoint(0.0f, 0.0f);
+	mmlVector<2> bmin = b.GetTransform().TransformWorldPoint(b.GetMinimumExtents());
 	mmlVector<2> bmax = -bmin;
 	return BoxCircle(bmin, bmax, acenter, m_radius);
 }
 
 bool CircleCollider::CollidesWith(const CircleCollider &c) const
 {
-	mmlVector<2> acenter = m_transform.TransformPoint(0.0f, 0.0f);
-	mmlVector<2> bcenter = c.GetTransform().TransformPoint(0.0f, 0.0f);
+	mmlVector<2> acenter = m_transform.TransformWorldPoint(0.0f, 0.0f);
+	mmlVector<2> bcenter = c.GetTransform().TransformWorldPoint(0.0f, 0.0f);
 	return CircleCircle(acenter, m_radius, bcenter, c.GetRadius());
 }
 

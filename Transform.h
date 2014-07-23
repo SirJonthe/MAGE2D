@@ -58,8 +58,8 @@ public:
 
 	mmlVector<2> TransformLocalPoint(const mmlVector<2> &point) const;
 	mmlVector<2> TransformLocalPoint(float x, float y) const;
-	//mmlVector<2> TransformWorldPoint(const mmlVector<2> &point) const;
-	//mmlVector<2> TransformWorldPoint(float x, float y) const;
+	mmlVector<2> TransformWorldPoint(const mmlVector<2> &point) const;
+	mmlVector<2> TransformWorldPoint(float x, float y) const;
 };
 
 #endif // TRANSFORM_H
