@@ -266,6 +266,12 @@ public:
 		e[i] = e[j];
 		e[j] = t;
 	}
+	void Abs( void )
+	{
+		for (int j = 0; j < n; ++j) {
+			e[j] = fabs(e[j]);
+		}
+	}
 };
 
 //
@@ -492,6 +498,16 @@ inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
 	tan[0] = normal[1];
 	tan[1] = normal[0];
 	return tan;
+}
+
+//
+// mmlAbs
+//
+template < int n >
+inline mmlVector<n> mmlAbs(mmlVector<n> v)
+{
+	v.Abs();
+	return v;
 }
 
 #endif

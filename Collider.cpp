@@ -133,6 +133,9 @@ bool CirclePlane(const mmlVector<2> &apos, float arad, const mmlVector<2> &bpos,
 	return circlePlaneDistance < arad;
 }
 
+ColliderTree::ColliderTree( void ) : m_root(NULL), m_parent(NULL), m_children(NULL), m_colliders(), m_depth(0), m_subquad(0), m_maxDepth(0), m_spaceWidth(0), m_spaceHeight(0)
+{}
+
 ColliderTree::ColliderTree(ColliderTree *parent, int subquad) : m_root(parent->m_root), m_parent(parent), m_children(NULL), m_colliders(), m_depth(parent->m_depth+1), m_subquad(subquad), m_maxDepth(m_root->m_maxDepth), m_spaceWidth(m_root->m_spaceWidth), m_spaceHeight(m_root->m_spaceHeight)
 {
 	RefreshTree();
@@ -262,11 +265,19 @@ ColliderTree *ColliderTree::TraceRay(Ray &ray)
 ColliderTreeQuad::ColliderTreeQuad(ColliderTree *parent)
 {
 	for (int i = 0; i < 4; ++i) {
-		q[i] =
+		q[i] = ColliderTree(parent, i);
 	}
 }
 
-Collider::Collider( void ) : m_transform(), m_momentum(0.0f, 0.0f, 0.0f), m_angularMomentum(0.0f), m_mass(-1.0f), m_friction(0.5f), m_isResting(false), m_hasRigidBody(false)
+float Collider::GetInverseMass( void ) const
+{
+	if (m_mass <= 0.0f) {
+		return 0.0f;
+	}
+	return 1.0f / m_mass;
+}
+
+Collider::Collider( void ) : m_transform(), m_prevTransform(), m_momentum(0.0f, 0.0f, 0.0f), m_angularMomentum(0.0f), m_mass(-1.0f), m_friction(0.5f), m_isResting(false), m_hasRigidBody(false)
 {}
 
 const Transform &Collider::GetTransform( void ) const
@@ -374,18 +385,18 @@ bool PointCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 
 bool BoxCollider::CollidesWith(const BoxCollider &b) const
 {
-	const mmlVector<2> amin = m_transform.TransformWorldPoint(GetMinimumExtents());
-	const mmlVector<2> amax = -amin;
-	const mmlVector<2> bmin = b.GetTransform().TransformWorldPoint(b.GetMinimumExtents());
-	const mmlVector<2> bmax = -bmin;
+	const mmlVector<2> amin = GetWorldMinExtents();
+	const mmlVector<2> amax = GetWorldMaxExtents();
+	const mmlVector<2> bmin = b.GetWorldMinExtents();
+	const mmlVector<2> bmax = b.GetWorldMaxExtents();
 	return BoxBox(amin, amax, bmin, bmax);
 }
 
 bool BoxCollider::CollidesWith(const CircleCollider &c) const
 {
-	const mmlVector<2> amin = m_transform.TransformWorldPoint(GetMinimumExtents());
-	const mmlVector<2> amax = -amin;
-	const mmlVector<2> bcenter = c.GetTransform().TransformWorldPoint(0.0f, 0.0f);
+	const mmlVector<2> amin = GetWorldMinExtents();
+	const mmlVector<2> amax = GetWorldMaxExtents();
+	const mmlVector<2> bcenter = c.GetTransform().GetWorldPosition();
 	return BoxCircle(amin, amax, bcenter, c.GetRadius());
 }
 
@@ -401,16 +412,6 @@ BoxCollider::BoxCollider(const mmlVector<2> &dimensions) : m_dimensions()
 BoxCollider::BoxCollider(float width, float height) : m_dimensions()
 {
 	SetDimensions(width, height);
-}
-
-BoxCollider::BoxCollider(const BoxCollider &collider) : m_dimensions(collider.m_dimensions)
-{
-}
-
-BoxCollider &BoxCollider::operator =(const BoxCollider &collider)
-{
-	m_dimensions = collider.m_dimensions;
-	return *this;
 }
 
 const mmlVector<2> &BoxCollider::GetDimensions( void ) const
@@ -450,17 +451,7 @@ void BoxCollider::SetHeight(float height)
 	m_dimensions[1] = mmlMax2(-height, height);
 }
 
-mmlVector<2> BoxCollider::GetMinimumExtents( void ) const
-{
-	return m_dimensions * -0.5f;
-}
-
-mmlVector<2> BoxCollider::GetMaximumExtents( void ) const
-{
-	return m_dimensions * 0.5f;
-}
-
-bool BoxCollider::Collides(const Collider &collider)
+bool BoxCollider::Collides(const Collider &collider) const
 {
 	return collider.CollidesWith(*this);
 }
@@ -504,35 +495,36 @@ bool BoxCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 		PointPlane(b.p[2], point, normal) || PointPlane(b.p[3], point, normal);
 }*/
 
-Box BoxCollider::GetBoundingBox( void ) const
-{
-	Box b;
-	b.min = GetMinimumExtents();
-	b.max = GetMaximumExtents();
-	return b;
-}
-
-Circle BoxCollider::GetBoundingCircle( void ) const
-{
-	Circle c;
-	c.center = (GetMaximumExtents() - GetMinimumExtents()) * 0.5f;
-	c.radius = (c.center - GetMaximumExtents()).Len();
-	return c;
-}
-
 bool CircleCollider::CollidesWith(const BoxCollider &b) const
 {
-	mmlVector<2> acenter = m_transform.TransformWorldPoint(0.0f, 0.0f);
-	mmlVector<2> bmin = b.GetTransform().TransformWorldPoint(b.GetMinimumExtents());
-	mmlVector<2> bmax = -bmin;
+	mmlVector<2> acenter = m_transform.GetWorldPosition();
+	mmlVector<2> bmin = b.GetWorldMinExtents();
+	mmlVector<2> bmax = b.GetWorldMaxExtents();
 	return BoxCircle(bmin, bmax, acenter, m_radius);
 }
 
 bool CircleCollider::CollidesWith(const CircleCollider &c) const
 {
-	mmlVector<2> acenter = m_transform.TransformWorldPoint(0.0f, 0.0f);
-	mmlVector<2> bcenter = c.GetTransform().TransformWorldPoint(0.0f, 0.0f);
+	mmlVector<2> acenter = m_transform.GetWorldPosition();
+	mmlVector<2> bcenter = c.GetTransform().GetWorldPosition();
 	return CircleCircle(acenter, m_radius, bcenter, c.GetRadius());
+}
+
+CircleCollider::CircleCollider( void ) : m_radius(0.0f)
+{}
+
+CircleCollider::CircleCollider(float radius) : m_radius(radius)
+{}
+
+
+float CircleCollider::GetRadius( void ) const
+{
+	return m_radius;
+}
+
+void CircleCollider::SetRadiuds(float radius)
+{
+	m_radius = fabs(radius);
 }
 
 bool CircleCollider::Collides(const Collider &collider) const

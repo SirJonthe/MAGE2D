@@ -146,6 +146,19 @@ public:
 		ident.SetIdentity();
 		return ident;
 	}
+	//
+	// ScaleMatrix
+	//
+	static mmlMatrix<rows, columns> ScaleMatrix(float scale)
+	{
+		mmlMatrix<rows,columns> m;
+		for (int p_row = 0; p_row < rows; ++p_row) {
+			for (int p_column = 0; p_column < columns; ++p_column) {
+				m.e[p_row][p_column] = (float)(p_row == p_column) * scale;
+			}
+		}
+		return m;
+	}
 };
 
 //

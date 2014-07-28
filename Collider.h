@@ -14,14 +14,32 @@
 // Collider transform will probably need to be object transform (i.e. remove object transform, replace by collider transform)
 
 class Collider;
-class BoxCollider; // a box that is always axis aligned even after world transform
+class BoxCollider; // a box that is always axis aligned even after world transform (means that non-square boxes change shape when transformed)
 class CircleCollider;
-/*class PlaneCollider; // detects collisions for shapes past the plane (not just intersecting)
-class PolygonCollider; // arbitrarily shaped polygon
-class RayCollider; // a ray with origin and distance (neg distance is infinite)
-class RangeCollider; // 2d cone, with origin and distance (neg distance is infinite)
-*/
+//class PolygonCollider; // arbitrarily shaped polygon
+//class LineSegmentCollider; // ??? (set max extents does not make sense for this)
 class ColliderTreeQuad;
+
+struct Ray
+{
+	mmlVector<2>	origin;
+	mmlVector<2>	direction;
+	float			length;
+};
+
+struct Range
+{
+	mmlVector<2>	origin;
+	mmlVector<2>	direction;
+	float			length;
+	float			apex;
+};
+
+struct Plane
+{
+	mmlVector<2> point;
+	mmlVector<2> normal;
+};
 
 class CollisionInfo
 {
@@ -32,14 +50,24 @@ private:
 	bool					m_collision;
 };
 
+class RayCollisionInfo
+{
+private:
+	Collider	*m_collider;
+	Ray			m_reflection;
+	bool		m_collision;
+};
+
 class ColliderTree
 {
+	friend class ColliderTreeQuad;
+
 private:
 	ColliderTree		*m_root; // is never ever NULL
 	ColliderTree		*m_parent;
 	ColliderTreeQuad	*m_children; // stop adding children when a quad only contains one object
 	mtlList<Collider*>	m_colliders; // all of the colliders contained in this tree
-	int					m_depth; // used as bit shift to partition space (starts at 0, max 31)
+	int					m_depth; // used as bit shift to partition space (starts at 0, max 31, but optimum is probably 3-5 depending on size)
 	int					m_subquad;
 
 	// all of these values are actually stored in m_root
@@ -48,7 +76,10 @@ private:
 	int					m_spaceHeight;
 
 private:
+	ColliderTree( void );
 	ColliderTree(ColliderTree *parent, int subquad);
+	ColliderTree(const ColliderTree&) {}
+	ColliderTree &operator=(const ColliderTree&) { return *this; }
 
 public:
 	ColliderTree(int width, int height, int maxDepth);
@@ -96,7 +127,7 @@ struct ColliderTreeQuad
 	// [0|1]
 	// [2|3]
 
-	ColliderTreeQuad(ColliderTree *parent);
+	explicit ColliderTreeQuad(ColliderTree *parent);
 };
 
 class CollisionSolver
@@ -115,32 +146,37 @@ public:
 class Collider : public mtlBase
 {
 	friend class CollisionSolver;
+	friend class BoxCollider;
+	friend class CircleCollider;
+	//friend class PolygonCollider;
+	//friend class LineSegmentCollider;
 
 protected:
 	Transform			m_transform; // position will be center of mass
+	Transform			m_prevTransform;
 	mmlVector<2>		m_momentum;
 	float				m_angularMomentum;
 	float				m_mass;
-	float				m_friction;
+	float				m_friction; // 0 - 1
+	float				m_bounce; // 0 - 1 (an object with 1 exits collision with same speed as entering)
 	bool				m_isResting;
 	bool				m_hasRigidBody; // when 'false' then solver only resolves collisions
 	CollisionSolver		*m_collisionSolver;
 
 protected:
-	virtual bool CollidesWith(const BoxCollider&) const = 0;
-	virtual bool CollidesWith(const CircleCollider&) const = 0;
-	/*virtual bool CollidesWith(const RayCollider&) const = 0;
-	virtual bool CollidesWith(const RangeCollider&) const = 0;
-	virtual bool CollidesWith(const PlaneCollider&) const = 0;
-	virtual bool CollidesWith(const PolygonCollider&) const = 0;*/
+	virtual bool CollidesWith(const BoxCollider&) const { return false; }
+	virtual bool CollidesWith(const CircleCollider&) const { return false; }
+	//virtual bool CollidesWith(const PolygonCollider&) const { return false; }
+	//virtual bool CollidesWith(const LineSegmentCollider&) const { return false; }
+
+	mmlVector<2> GetWorldMaxExtents( void ) const { return m_transform.TransformWorldPoint(GetMaxExtents()); }
+	mmlVector<2> GetWorldMinExtents( void ) const { return m_transform.TransformWorldPoint(GetMinExtents()); }
+
+	float GetInverseMass( void ) const;
 
 public:
 	Collider( void );
 	virtual ~Collider( void ) {} // remove item from collision solver, collision solver removes item from quad tree
-
-	virtual bool Collides(const Collider&) const = 0;
-	virtual Box GetBoundingBox( void ) const = 0;
-	virtual Circle GetBoundingCircle( void ) const = 0;
 
 	const Transform &GetTransform( void ) const;
 	Transform &GetTransform( void );
@@ -163,32 +199,33 @@ public:
 	void EnableRigidBody( void );
 	void DisableRigidBody( void );
 
+	void SetMaxExtents(float width, float height) { SetMaxExtents(mmlVector<2>(width, height)); }
+	mmlVector<2> GetMinExtents( void ) const { return -GetMaxExtents(); }
+
 	// various ApplyForce functions
+
+	virtual bool Collides(const Collider&) const { return false; }
+	virtual mmlVector<2> GetMaxExtents( void ) const { return mmlVector<2>(0.0f, 0.0f); }
+	virtual void SetMaxExtents(const mmlVector<2> &dimensions) {}
 };
+
+typedef Collider EmptyCollider;
 
 class BoxCollider : public mtlInherit<Collider>
 {
 private:
 	mmlVector<2> m_dimensions;
 
-/*private:
-	struct BoxPoints { mmlVector<2> p[4]; };
-	BoxPoints GetBoxPoints( void ) const;*/
-
 protected:
-	virtual bool CollidesWith(const BoxCollider &b) const;
-	virtual bool CollidesWith(const CircleCollider &c) const;
-	/*virtual bool CollidesWith(const RayCollider &r) const;
-	virtual bool CollidesWith(const RangeCollider &r) const;
-	virtual bool CollidesWith(const PlaneCollider &p) const;
-	virtual bool CollidesWith(const PolygonCollider &p) const;*/
+	bool CollidesWith(const BoxCollider &b) const;
+	bool CollidesWith(const CircleCollider &c) const;
+	//bool CollidesWith(const PolygonCollider &p) const;
+	//bool CollidesWith(const LineSegmentCollider &l) const;
 
 public:
 	BoxCollider( void );
 	explicit BoxCollider(const mmlVector<2> &dimensions);
 	BoxCollider(float width, float height);
-	BoxCollider(const BoxCollider &collider);
-	BoxCollider &operator=(const BoxCollider &collider);
 
 	const mmlVector<2> &GetDimensions( void ) const;
 	void SetDimensions(const mmlVector<2> &dimensions);
@@ -199,12 +236,9 @@ public:
 	void SetWidth(float width);
 	void SetHeight(float height);
 
-	mmlVector<2> GetMinimumExtents( void ) const;
-	mmlVector<2> GetMaximumExtents( void ) const;
-
-	bool Collides(const Collider &collider);
-	Box GetBoundingBox( void ) const;
-	Circle GetBoundingCircle( void ) const;
+	bool Collides(const Collider &collider) const;
+	mmlVector<2> GetMaxExtents( void ) const { return m_dimensions / 2.0f; }
+	void SetMaxExtents(const mmlVector<2> &dimensions) { m_dimensions = mmlAbs(dimensions); }
 };
 
 class CircleCollider : public mtlInherit<Collider>
@@ -213,61 +247,46 @@ private:
 	float m_radius;
 
 protected:
-	virtual bool CollidesWith(const BoxCollider &b) const;
-	virtual bool CollidesWith(const CircleCollider &c) const;
-	/*virtual bool CollidesWith(const RayCollider &r) const;
-	virtual bool CollidesWith(const RangeCollider &r) const;
-	virtual bool CollidesWith(const PlaneCollider &p) const;
-	virtual bool CollidesWith(const PolygonCollider &p) const;*/
+	bool CollidesWith(const BoxCollider &b) const;
+	bool CollidesWith(const CircleCollider &c) const;
+	//bool CollidesWith(const PolygonCollider &p) const;
+	//bool CollidesWith(const LineSegmentCollider &l) const;
+
 public:
 	CircleCollider( void );
 	explicit CircleCollider(float radius);
-	CircleCollider(const Circle &circle);
-	CircleCollider(const CircleCollider &collider);
-	CircleCollider &operator=(const CircleCollider &collider);
 
 	float GetRadius( void ) const;
 	void SetRadiuds(float radius);
 
 	bool Collides(const Collider &collider) const;
-	Box GetBoundingBox( void ) const;
-	Circle GetBoundingCircle( void ) const;
+	mmlVector<2> GetMaxExtents( void ) const { return mmlVector<2>(m_radius, m_radius); }
+	void SetMaxExtents(const mmlVector<2> &dimensions) { m_radius = mmlMin2(fabs(dimensions[0]), fabs(dimensions[1])); }
 };
-
-/*class PlaneCollider : public mtlInherit<Collider>
-{
-};*/
-
-/*class RayCollider : public mtlInherit<Collider>
-{
-private:
-	mmlVector<2>	m_direction;
-	float			m_range;
-
-public:
-	float GetRange( void ) const { return m_range; }
-	void SetRange(float range) { m_range = mmlMax2(0.0f, range); }
-	void SetInfiniteRange( void ) { m_range = -1.0f; }
-	bool IsInfiniteRange( void ) const { return m_range < 0.0f; }
-};*/
-
-/*class RangeCollider : public mtlInherit<RayCollider>
-{
-private:
-	float m_apex;
-};*/
-
-/*class PlaneCollider : public mtlInherit<Collider>
-{
-private:
-	// use transform's position
-	mmlVector<2> m_normal;
-};*/
 
 /*class PolygonCollider : public mtlInherit<Collider>
 {
 private:
 	mtlArray< mmlVector<2> > m_polygon; // circles around [n-1, 0]
+
+protected:
+	bool CollidesWith(const BoxCollider &b) const;
+	bool CollidesWith(const CircleCollider &c) const;
+	bool CollidesWith(const PolygonCollider &p) const;
+	//bool CollidesWith(const LineSegmentCollider &l) const;
+};*/
+
+/*class LineSegmentCollider : public mtlInherit<Collider>
+{
+private:
+	// position = m_p1
+	mmlVector<2> m_p2;
+
+protected:
+	bool CollidesWith(const BoxCollider &b) const;
+	bool CollidesWith(const CircleCollider &c) const;
+	bool CollidesWith(const PolygonCollider &p) const;
+	bool CollidesWith(const LineSegmentCollider &l) const;
 };*/
 
 #endif // COLLIDER_H

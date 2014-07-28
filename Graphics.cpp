@@ -153,16 +153,6 @@ bool GraphicsInstance::IsGood( void ) const
 	return !m_graphics.IsNull() ? m_graphics.GetAsset()->IsGood() : 0;
 }
 
-Transform &GraphicsInstance::GetTransform( void )
-{
-	return m_transform;
-}
-
-const Transform &GraphicsInstance::GetTransform( void ) const
-{
-	return m_transform;
-}
-
 const mmlVector<4> &GraphicsInstance::GetTint( void ) const
 {
 	return m_tint;

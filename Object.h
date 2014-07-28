@@ -16,8 +16,8 @@ class Object : public mtlBase
 private:
 	GraphicsInstance			m_graphics;
 	mtlString					m_name;
-	Transform					m_transform; // transform is reverted to an interpolated value between this and next should next be rejected by solver
-	Transform					m_nextTransform; // Get* returns this, Set* modifies this
+	//Transform					m_transform; // transform is reverted to an interpolated value between this and next should next be rejected by solver
+	//Transform					m_nextTransform; // Get* returns this, Set* modifies this
 	bool						m_destroy;
 	bool						m_collisions;
 	bool						m_visible;
@@ -62,7 +62,7 @@ public:
 	void					DestroyCollider( void );
 	const Collider			*GetCollider( void ) const;
 	Collider				*GetCollider( void );
-	void					SetCollider(mtlShared<Collider> &collider);
+	//void					SetCollider(mtlShared<Collider> &collider);
 	template < typename collider_t >
 	void					LoadCollider( void );
 
@@ -110,13 +110,17 @@ object_t *Object::GetAsType( void )
 template < typename collider_t >
 void Object::LoadCollider( void )
 {
+	Transform transform = m_collider.GetShared()->GetTransform();
 	m_collider.New<collider_t>();
+	m_collider.GetShared()->GetTransform() = transform;
+	if (m_graphics.IsGood()) {
+		m_collider.GetShared()->SetMaxExtents((float)m_graphics.GetGraphicsWidth(), (float)m_graphics.GetGraphicsHeight());
+	}
 }
 
 template < typename graphics_t >
 bool Object::LoadGraphics(const mtlChars &file)
 {
-	m_graphics.GetTransform().SetParentTransform(&m_transform, false);
 	m_graphics = mtlAsset<Graphics>::Load<graphics_t>(file);
 	return m_graphics.GetGraphics().GetAsset() != NULL;
 }

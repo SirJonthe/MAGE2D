@@ -25,14 +25,18 @@
 void Engine::UpdateInputBuffers( void )
 {
 	SDL_PumpEvents();
-	Uint8 *keys = SDL_GetKeyState(NULL);
-	for (int i = 0; i < SDLK_LAST; ++i) {
-		m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 3;
-	}
-	m_prevMousePosition = m_mousePosition;
-	Uint8 mouse = SDL_GetMouseState(&m_mousePosition.x, &m_mousePosition.y);
-	for (int i = 0; i < MouseButton::Last; ++i) {
-		m_mouseButtonState[i] = ((m_mouseButtonState[i] << 1) | ((mouse >> i) & 1)) & 3;
+	if (SDL_PeepEvents(NULL, 0, SDL_PEEKEVENT, SDL_QUITMASK)) {
+		EndGame();
+	} else {
+		Uint8 *keys = SDL_GetKeyState(NULL);
+		for (int i = 0; i < SDLK_LAST; ++i) {
+			m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 3;
+		}
+		m_prevMousePosition = m_mousePosition;
+		Uint8 mouse = SDL_GetMouseState(&m_mousePosition.x, &m_mousePosition.y);
+		for (int i = 0; i < MouseButton::Last; ++i) {
+			m_mouseButtonState[i] = ((m_mouseButtonState[i] << 1) | ((mouse >> i) & 1)) & 3;
+		}
 	}
 }
 

@@ -202,3 +202,8 @@ mmlVector<2> Transform::TransformWorldPoint(float x, float y) const
 {
 	return TransformWorldPoint(x, y);
 }
+
+void Transform::Scale(float scaleFactor)
+{
+	m_rotation *= mmlMatrix<2,2>::ScaleMatrix(scaleFactor);
+}

@@ -51,16 +51,15 @@ class GraphicsInstance
 {
 private:
 	mtlAsset<Graphics>	m_graphics;
-	Transform			m_transform;
 	mmlVector<4>		m_tint;
 	Timer				m_timer;
 	float				m_time;
 private:
 	void Unbind( void ) const;
 public:
-	GraphicsInstance( void ) : m_graphics(), m_transform(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
-	GraphicsInstance(const GraphicsInstance &instance) : m_graphics(instance.m_graphics), m_transform(instance.m_transform), m_tint(instance.m_tint), m_timer(instance.m_timer), m_time(instance.m_time) {}
-	GraphicsInstance(const mtlAsset<Graphics> &graphics) : m_graphics(graphics), m_transform(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
+	GraphicsInstance( void ) : m_graphics(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
+	GraphicsInstance(const GraphicsInstance &instance) : m_graphics(instance.m_graphics), m_tint(instance.m_tint), m_timer(instance.m_timer), m_time(instance.m_time) {}
+	GraphicsInstance(const mtlAsset<Graphics> &graphics) : m_graphics(graphics), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
 	GraphicsInstance &operator=(const GraphicsInstance &instance);
 	GraphicsInstance &operator=(const mtlAsset<Graphics> &graphics);
 
@@ -73,9 +72,6 @@ public:
 	int							GetGraphicsHeight( void ) const;
 	int							GetGraphicsArea( void ) const;
 	bool						IsGood( void ) const;
-
-	Transform		&GetTransform( void );
-	const Transform	&GetTransform( void ) const;
 
 	const mmlVector<4>	&GetTint( void ) const;
 	void				SetTint(const mmlVector<4> &tint);

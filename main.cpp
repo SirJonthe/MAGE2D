@@ -12,6 +12,7 @@ protected:
 	void OnUpdate( void );
 	void OnGUI( void );
 	void OnDraw( void );
+	void OnCollision(Object &collider);
 public:
 	Controllable( void );
 };
@@ -34,9 +35,16 @@ public:
 	FollowCamera( void );
 };
 
+class NPC : public mtlInherit<Object>
+{
+protected:
+	void OnDraw( void );
+};
+
 ENGINE_REGISTER_OBJECT_TYPE(Controllable);
 ENGINE_REGISTER_OBJECT_TYPE(Anchor);
 ENGINE_REGISTER_OBJECT_TYPE(FollowCamera);
+ENGINE_REGISTER_OBJECT_TYPE(NPC);
 
 void PrintString(const mtlChars &ch);
 
@@ -106,11 +114,35 @@ void Controllable::OnGUI( void )
 void Controllable::OnDraw( void )
 {
 	Object::OnDraw();
-	glColor3f(0.0f, 1.0f, 0.0f);
+	/*glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINES);
 	glVertex2f(0.0f, 0.0f);
 	glVertex2f(20.0f, 0.0f);
+	glEnd();*/
+
+	float xoff = GetCollider()->GetMaxExtents()[0];
+	float yoff = GetCollider()->GetMaxExtents()[1];
+
+	glColor3f(0.0f, 1.0f, 0.0f);
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(-xoff, -yoff);
+	glVertex2f( xoff, -yoff);
+	glVertex2f( xoff,  yoff);
+	glVertex2f(-xoff,  yoff);
 	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex2f(-xoff,  yoff);
+	glVertex2f( xoff, -yoff);
+	glVertex2f(-xoff, -yoff);
+	glVertex2f( xoff,  yoff);
+	glEnd();
+}
+
+void Controllable::OnCollision(Object &collider)
+{
+	GUI::SetColor(1.0f, 0.0f, 0.0f);
+	GUI::Text("OUCH!");
 }
 
 void Anchor::OnUpdate( void )
@@ -162,11 +194,35 @@ void FollowCamera::OnGUI( void )
 	mmlVector<2> p = GetTransform().GetLocalPosition();
 	GUI::Text("Camera=");
 	GUI::Text(p[0]); GUI::Text(";"); GUI::Text(p[1]);
+	GUI::NewLine();
 }
 
 FollowCamera::FollowCamera( void ) : m_follow(NULL)
 {
 	SetName("object_camera");
+}
+
+void NPC::OnDraw( void )
+{
+	Object::OnDraw();
+
+	float xoff = GetCollider()->GetMaxExtents()[0];
+	float yoff = GetCollider()->GetMaxExtents()[1];
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(-xoff, -yoff);
+	glVertex2f( xoff, -yoff);
+	glVertex2f( xoff,  yoff);
+	glVertex2f(-xoff,  yoff);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex2f(-xoff,  yoff);
+	glVertex2f( xoff, -yoff);
+	glVertex2f(-xoff, -yoff);
+	glVertex2f( xoff,  yoff);
+	glEnd();
 }
 
 void PrintString(const mtlChars &ch)
@@ -253,12 +309,15 @@ void Unit_Controllable(Engine &engine)
 	//a->GetTransform().SetParentTransform(&d->GetTransform());
 	engine.SetCamera(c);
 	//engine.SetCamera(camera);
+	a->SetName("Player");
 	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
+	a->LoadCollider<BoxCollider>();
+	std::cout << "collider a: " << a->GetCollider()->GetMaxExtents()[0] << "; " << a->GetCollider()->GetMaxExtents()[0] << std::endl;
 
-	Object *b = engine.AddObject<Object>();
+	Object *b = engine.AddObject<NPC>();
 	b->SetName("NPC");
 	if (b == NULL || !b->LoadGraphics<Image>("test.bmp")) {
 		std::cout << "\tfailed to load" << std::endl;
@@ -267,9 +326,11 @@ void Unit_Controllable(Engine &engine)
 	b->GetGraphics().SetRed(0.2f);
 	b->GetGraphics().SetGreen(0.2f);
 	b->GetGraphics().SetBlue(0.2f);
+	b->LoadCollider<BoxCollider>();
+	std::cout << "collider b: " << b->GetCollider()->GetMaxExtents()[0] << "; " << b->GetCollider()->GetMaxExtents()[0] << std::endl;
 
-	Object *d = engine.AddObject("Anchor");
-	a->GetTransform().SetParentTransform(&d->GetTransform(), false);
+	/*Object *d = engine.AddObject("Anchor");
+	a->GetTransform().SetParentTransform(&d->GetTransform(), false);*/
 
 	engine.RunGame();
 }
@@ -282,8 +343,8 @@ void Unit_StringMap( void )
 	Graphics *b = map.CreateEntry<Image>("~/.local/share/game/another_image.bmp");
 	Graphics *c = map.CreateEntry<Image>("~/.local/share/game/a_third_image.bmp");
 
-	if (a != map.GetEntry("~/.local/share/game/image.bmp")) { std::cout << "failed" << std::endl; return; }
-	if (b != map.GetEntry("~/.local/share/game/another_image.bmp")) { std::cout << "failed" << std::endl; return; }
-	if (c != map.GetEntry("~/.local/share/game/a_third_image.bmp")) { std::cout << "failed" << std::endl; return; }
+	if (a != map.GetEntry("~/.local/share/game/image.bmp")) { std::cout << "failed (a)" << std::endl; return; }
+	if (b != map.GetEntry("~/.local/share/game/another_image.bmp")) { std::cout << "failed (b)" << std::endl; return; }
+	if (c != map.GetEntry("~/.local/share/game/a_third_image.bmp")) { std::cout << "failed (c)" << std::endl; return; }
 	std::cout << "success" << std::endl;
 }

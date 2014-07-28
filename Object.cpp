@@ -10,9 +10,9 @@ unsigned long long int GetObjectNumber( void )
 }
 
 Object::Object( void ) :
-	m_graphics(), m_name(), m_transform(),
+	m_graphics(), m_name(),
 	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
-	m_collider(),
+	m_collider(mtlShared<Collider>::Create<EmptyCollider>()),
 	m_objectFlags(0x0000000000000001), m_collisionMask(0xffffffffffffffff), m_objectNumber(GetObjectNumber()),
 	m_engine(NULL)
 {
@@ -93,7 +93,7 @@ void Object::ClearAllCollisionMasks( void )
 
 void Object::DestroyCollider( void )
 {
-	m_collider.Delete();
+	LoadCollider<EmptyCollider>();
 }
 
 const Collider *Object::GetCollider( void ) const
@@ -106,19 +106,19 @@ Collider *Object::GetCollider( void )
 	return m_collider.GetShared();
 }
 
-void Object::SetCollider(mtlShared<Collider> &collider)
+/*void Object::SetCollider(mtlShared<Collider> &collider)
 {
 	m_collider = collider;
-}
+}*/
 
 Transform &Object::GetTransform( void )
 {
-	return m_transform;
+	return m_collider.GetShared()->GetTransform();
 }
 
 const Transform &Object::GetTransform( void ) const
 {
-	return m_transform;
+	return m_collider.GetShared()->GetTransform();
 }
 
 bool Object::GetObjectFlag(unsigned int bit) const
@@ -186,13 +186,11 @@ GraphicsInstance &Object::GetGraphics( void )
 void Object::SetGraphics(const mtlAsset<Graphics> &graphics)
 {
 	m_graphics = graphics;
-	m_graphics.GetTransform().SetParentTransform(&m_transform);
 }
 
 void Object::SetGraphics(const GraphicsInstance &graphics)
 {
 	m_graphics = graphics;
-	m_graphics.GetTransform().SetParentTransform(&m_transform);
 }
 
 const Engine *Object::GetEngine( void ) const

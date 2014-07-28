@@ -11,11 +11,19 @@ private:
 	mmlMatrix<2,2>	m_rotation;
 	mmlVector<2>	m_position;
 	mtlString		m_name;
+
 private:
 	mmlMatrix<2,2> GetParentWorldRotation( void ) const;
 	mmlVector<2> GetParentWorldPosition( void ) const;
 	static mmlMatrix<2,2> GetRotationMatrix(float angle);
+
 public:
+	enum Space
+	{
+		Local,
+		World
+	};
+
 	Transform( void );
 	Transform(const Transform &transform);
 	Transform &operator=(const Transform &transform);
@@ -60,6 +68,8 @@ public:
 	mmlVector<2> TransformLocalPoint(float x, float y) const;
 	mmlVector<2> TransformWorldPoint(const mmlVector<2> &point) const;
 	mmlVector<2> TransformWorldPoint(float x, float y) const;
+
+	void Scale(float scaleFactor);
 };
 
 #endif // TRANSFORM_H
