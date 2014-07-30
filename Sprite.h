@@ -19,11 +19,9 @@ private:
 		int frameWidth; // init to -1 (calculate m_frameCount based on this if not -1)
 		int frameCount; // init to -1 (calculate m_frameWidth based on this if not -1)
 		float framesPerSecond;
-		int offset_x;
-		int offset_y;
 		int loopBack;
 		bool isLooping;
-		Metadata( void ) : file(), frameWidth(-1), frameCount(-1), framesPerSecond(0.0f), offset_x(0), offset_y(0), loopBack(0), isLooping(true) {}
+		Metadata( void ) : file(), frameWidth(-1), frameCount(-1), framesPerSecond(0.0f), loopBack(0), isLooping(true) {}
 	};
 private:
 	mtlAsset<Graphics>	m_sheet;

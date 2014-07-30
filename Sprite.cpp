@@ -52,8 +52,6 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 			out.framesPerSecond = defaultOut.framesPerSecond;
 			out.frameWidth = defaultOut.frameWidth;
 			out.loopBack = defaultOut.loopBack;
-			out.offset_x = defaultOut.offset_x;
-			out.offset_y = defaultOut.offset_y;
 		} else if (param.Compare("image_file")) {
 			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize()-1] != '\"') {
 				SetError("Malformed string value");
@@ -92,16 +90,6 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 				return false;
 			}
 			out.framesPerSecond = 1.0f / float(i);
-		} else if (param.Compare("offset_x")) {
-			if (!val.ToInt(out.offset_x)) {
-				SetError("offset_x must be integer");
-				return false;
-			}
-		} else if (param.Compare("offset_y")) {
-			if (!val.ToInt(out.offset_y)) {
-				SetError("offset_y must be integer");
-				return false;
-			}
 		} else if (param.Compare("is_looping")) {
 			if (!val.ToBool(out.isLooping)) {
 				SetError("is_looping must be boolean");
@@ -218,19 +206,21 @@ bool Sprite::Load(const mtlDirectory &file)
 
 		mtlArray< mmlVector<2> > vtx;
 		vtx.Create(6);
-		vtx[0][0] = out.offset_x;
-		vtx[0][1] = out.offset_y;
-		vtx[1][0] = float(GetWidth()) + out.offset_x;
-		vtx[1][1] = out.offset_y;
-		vtx[2][0] = out.offset_x;
-		vtx[2][1] = float(GetHeight()) + out.offset_y;
+		float w = float(GetWidth()) * 0.5f;
+		float h = float(GetHeight()) * 0.5f;
+		vtx[0][0] = -w;
+		vtx[0][1] = -h;
+		vtx[1][0] = w;
+		vtx[1][1] = -h;
+		vtx[2][0] = -w;
+		vtx[2][1] = h;
 
-		vtx[3][0] = float(GetWidth()) + out.offset_x;
-		vtx[3][1] = out.offset_y;
-		vtx[4][0] = float(GetWidth()) + out.offset_x;
-		vtx[4][1] = float(GetHeight()) + out.offset_y;
-		vtx[5][0] = out.offset_x;
-		vtx[5][1] = float(GetHeight()) + out.offset_y;
+		vtx[3][0] = w;
+		vtx[3][1] = -h;
+		vtx[4][0] = w;
+		vtx[4][1] = h;
+		vtx[5][0] = -w;
+		vtx[5][1] = h;
 		LoadVertexArray(vtx);
 
 		mtlArray< mmlVector<2> > uv;
@@ -273,8 +263,9 @@ void Sprite::Destroy( void )
 void Sprite::Draw(float time) const
 {
 	if (!m_sheet.IsNull()) {
-		//DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
-		DrawGraphics(0, 0, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
+		DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
+
+		//DrawGraphics(0, 0, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
 	}
 }
 

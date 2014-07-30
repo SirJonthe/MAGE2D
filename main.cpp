@@ -120,8 +120,8 @@ void Controllable::OnDraw( void )
 	glVertex2f(20.0f, 0.0f);
 	glEnd();*/
 
-	float xoff = GetCollider()->GetMaxExtents()[0];
-	float yoff = GetCollider()->GetMaxExtents()[1];
+	float xoff = GetCollider()->GetHalfExtents()[0];
+	float yoff = GetCollider()->GetHalfExtents()[1];
 
 	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_LINE_LOOP);
@@ -206,8 +206,8 @@ void NPC::OnDraw( void )
 {
 	Object::OnDraw();
 
-	float xoff = GetCollider()->GetMaxExtents()[0];
-	float yoff = GetCollider()->GetMaxExtents()[1];
+	float xoff = GetCollider()->GetHalfExtents()[0];
+	float yoff = GetCollider()->GetHalfExtents()[1];
 
 	glColor3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_LINE_LOOP);
@@ -309,13 +309,11 @@ void Unit_Controllable(Engine &engine)
 	//a->GetTransform().SetParentTransform(&d->GetTransform());
 	engine.SetCamera(c);
 	//engine.SetCamera(camera);
-	a->SetName("Player");
 	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
 	a->LoadCollider<BoxCollider>();
-	std::cout << "collider a: " << a->GetCollider()->GetMaxExtents()[0] << "; " << a->GetCollider()->GetMaxExtents()[0] << std::endl;
 
 	Object *b = engine.AddObject<NPC>();
 	b->SetName("NPC");
@@ -327,10 +325,9 @@ void Unit_Controllable(Engine &engine)
 	b->GetGraphics().SetGreen(0.2f);
 	b->GetGraphics().SetBlue(0.2f);
 	b->LoadCollider<BoxCollider>();
-	std::cout << "collider b: " << b->GetCollider()->GetMaxExtents()[0] << "; " << b->GetCollider()->GetMaxExtents()[0] << std::endl;
 
-	/*Object *d = engine.AddObject("Anchor");
-	a->GetTransform().SetParentTransform(&d->GetTransform(), false);*/
+	Object *d = engine.AddObject("Anchor");
+	a->GetTransform().SetParentTransform(&d->GetTransform(), false);
 
 	engine.RunGame();
 }

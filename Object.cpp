@@ -69,7 +69,7 @@ bool Object::GetCollisionMask(unsigned int bit) const
 	return (bool)((m_collisionMask>>bit) & 1);
 }
 
-unsigned long long Object::GetCollisionMasks(unsigned int mask) const
+unsigned long long Object::GetCollisionMasks(unsigned long long mask) const
 {
 	return m_collisionMask & mask;
 }
@@ -126,7 +126,7 @@ bool Object::GetObjectFlag(unsigned int bit) const
 	return (bool)((m_objectFlags>>bit) & 1);
 }
 
-unsigned long long Object::GetObjectFlags(unsigned int mask) const
+unsigned long long Object::GetObjectFlags(unsigned long long mask) const
 {
 	return m_objectFlags & mask;
 }

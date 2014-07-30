@@ -16,6 +16,10 @@ private:
 	mmlMatrix<2,2> GetParentWorldRotation( void ) const;
 	mmlVector<2> GetParentWorldPosition( void ) const;
 	static mmlMatrix<2,2> GetRotationMatrix(float angle);
+	// functions for concatenating transform into a single matrix
+	//mmlMatrix<3,3> GetLocalTransformMatrix( void ) const;
+	//mmlMatrix<3,3> GetWorldTransformMatrix( void ) const;
+	//mmlMatrix<3,3> GetParentWorldTransformMatrix( void ) const;
 
 public:
 	enum Space
@@ -47,8 +51,11 @@ public:
 
 	const mmlVector<2> &GetLocalAxisX( void ) const;
 	const mmlVector<2> &GetLocalAxisY( void	) const;
-	static mmlVector<2> GetWorldAxisX( void );
-	static mmlVector<2> GetWorldAxisY( void );
+	mmlVector<2> GetWorldAxisX( void ) const;
+	mmlVector<2> GetWorldAxisY( void ) const;
+
+	static mmlVector<2> AbsoluteUp( void );
+	static mmlVector<2> AbsoluteRight( void );
 
 	// LookAtLocal(float x, float y);
 	// LookAtLocal(const mmlVector<2> &point);
@@ -64,6 +71,11 @@ public:
 	void ApplyRotation(float angle);
 	void ApplyRotation(const mmlVector<2> &around, float angle);
 
+	// ERROR HERE:
+	// This function fundamentally transforms points differently than
+	// GetWorldPosition does. I have to fix how GetWorldPosition works
+	// and how the position is resolved in SetParentTransform.
+	// Maybe, compose rotation+position in 3x3 matrix like in Engine.
 	mmlVector<2> TransformLocalPoint(const mmlVector<2> &point) const;
 	mmlVector<2> TransformLocalPoint(float x, float y) const;
 	mmlVector<2> TransformWorldPoint(const mmlVector<2> &point) const;

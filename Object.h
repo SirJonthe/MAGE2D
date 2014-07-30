@@ -55,7 +55,7 @@ public:
 	void					EnableCollisions( void );
 	void					ToggleCollisions( void );
 	bool					GetCollisionMask(unsigned int bit) const;
-	unsigned long long		GetCollisionMasks(unsigned int mask = 0xffffffffffffffff) const;
+	unsigned long long		GetCollisionMasks(unsigned long long mask = 0xffffffffffffffff) const;
 	void					SetCollisionMask(unsigned int bit, bool state);
 	void					SetCollisionMasks(unsigned int mask);
 	void					ClearAllCollisionMasks( void );
@@ -74,7 +74,7 @@ public:
 	template < typename object_t >
 	object_t				*GetAsType( void );
 	bool					GetObjectFlag(unsigned int bit) const;
-	unsigned long long		GetObjectFlags(unsigned int mask = 0xffffffffffffffff) const;
+	unsigned long long		GetObjectFlags(unsigned long long mask = 0xffffffffffffffff) const;
 	void					SetObjectFlag(unsigned int bit, bool state);
 	void					SetObjectFlags(unsigned int mask);
 	void					ClearAllObjectFlags( void );
@@ -114,7 +114,7 @@ void Object::LoadCollider( void )
 	m_collider.New<collider_t>();
 	m_collider.GetShared()->GetTransform() = transform;
 	if (m_graphics.IsGood()) {
-		m_collider.GetShared()->SetMaxExtents((float)m_graphics.GetGraphicsWidth(), (float)m_graphics.GetGraphicsHeight());
+		m_collider.GetShared()->SetHalfExtents((float)m_graphics.GetGraphicsWidth() * 0.5f, (float)m_graphics.GetGraphicsHeight() * 0.5f);
 	}
 }
 

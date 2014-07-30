@@ -91,8 +91,8 @@ private:
 	bool							Collide(const Object *a, const Object *b) const; // custom rendering routine to determine pixel overlap
 	bool							PointInBox(Point p, Box b) const;
 	Box								ToBox(Rect r) const;
-	bool							GetPixelOverlap(const Object *a, const Object *b, Box o) const;
 	static void						SetGameView( void );
+	static void						SetObjectView(const Transform &transform);
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
 	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
 private:

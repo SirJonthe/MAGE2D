@@ -277,7 +277,7 @@ float Collider::GetInverseMass( void ) const
 	return 1.0f / m_mass;
 }
 
-Collider::Collider( void ) : m_transform(), m_prevTransform(), m_momentum(0.0f, 0.0f, 0.0f), m_angularMomentum(0.0f), m_mass(-1.0f), m_friction(0.5f), m_isResting(false), m_hasRigidBody(false)
+Collider::Collider( void ) : m_transform(), m_prevTransform(), m_velocity(0.0f, 0.0f), m_acceleration(0.0f, 0.0f), m_angularMomentum(0.0f), m_torque(0.0f), m_mass(-1.0f), m_friction(0.5f), m_isResting(false), m_hasRigidBody(false)
 {}
 
 const Transform &Collider::GetTransform( void ) const
@@ -290,14 +290,24 @@ Transform &Collider::GetTransform( void )
 	return m_transform;
 }
 
-const mmlVector<2> &Collider::GetMomentum( void ) const
+const mmlVector<2> &Collider::GetVelocity( void ) const
 {
-	return m_momentum;
+	return m_velocity;
+}
+
+const mmlVector<2> &Collider::GetAcceleration( void ) const
+{
+	return m_acceleration;
 }
 
 float Collider::GetAngularMomentum( void ) const
 {
 	return m_angularMomentum;
+}
+
+float Collider::GetTorque( void ) const
+{
+	return m_torque;
 }
 
 float Collider::GetMass( void ) const
@@ -385,17 +395,20 @@ bool PointCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 
 bool BoxCollider::CollidesWith(const BoxCollider &b) const
 {
-	const mmlVector<2> amin = GetWorldMinExtents();
-	const mmlVector<2> amax = GetWorldMaxExtents();
-	const mmlVector<2> bmin = b.GetWorldMinExtents();
-	const mmlVector<2> bmax = b.GetWorldMaxExtents();
+	const mmlVector<2> apos = GetTransform().GetWorldPosition();
+	const mmlVector<2> amin = apos - GetHalfExtents();
+	const mmlVector<2> amax = apos + GetHalfExtents();
+	const mmlVector<2> bpos = GetTransform().GetWorldPosition();
+	const mmlVector<2> bmin = bpos - b.GetHalfExtents();
+	const mmlVector<2> bmax = bpos + b.GetHalfExtents();
 	return BoxBox(amin, amax, bmin, bmax);
 }
 
 bool BoxCollider::CollidesWith(const CircleCollider &c) const
 {
-	const mmlVector<2> amin = GetWorldMinExtents();
-	const mmlVector<2> amax = GetWorldMaxExtents();
+	const mmlVector<2> apos = GetTransform().GetWorldPosition();
+	const mmlVector<2> amin = apos - GetHalfExtents();
+	const mmlVector<2> amax = apos + GetHalfExtents();
 	const mmlVector<2> bcenter = c.GetTransform().GetWorldPosition();
 	return BoxCircle(amin, amax, bcenter, c.GetRadius());
 }
@@ -456,6 +469,16 @@ bool BoxCollider::Collides(const Collider &collider) const
 	return collider.CollidesWith(*this);
 }
 
+mmlVector<2> BoxCollider::GetHalfExtents( void ) const
+{
+	return m_dimensions / 2.0f;
+}
+
+void BoxCollider::SetHalfExtents(const mmlVector<2> &halfExtents)
+{
+	m_dimensions = mmlAbs(halfExtents) * 2.0f;
+}
+
 /*bool BoxCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
 {
 	if (!direction.IsNormalized()) { direction.NormalizeFast(); }
@@ -498,8 +521,9 @@ bool BoxCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
 bool CircleCollider::CollidesWith(const BoxCollider &b) const
 {
 	mmlVector<2> acenter = m_transform.GetWorldPosition();
-	mmlVector<2> bmin = b.GetWorldMinExtents();
-	mmlVector<2> bmax = b.GetWorldMaxExtents();
+	mmlVector<2> bpos = b.GetTransform().GetWorldPosition();
+	mmlVector<2> bmin = bpos - b.GetHalfExtents();
+	mmlVector<2> bmax = bpos + b.GetHalfExtents();
 	return BoxCircle(bmin, bmax, acenter, m_radius);
 }
 
@@ -530,4 +554,14 @@ void CircleCollider::SetRadiuds(float radius)
 bool CircleCollider::Collides(const Collider &collider) const
 {
 	return collider.CollidesWith(*this);
+}
+
+mmlVector<2> CircleCollider::GetHalfExtents( void ) const
+{
+	return mmlVector<2>(m_radius, m_radius);
+}
+
+void CircleCollider::SetHalfExtents(const mmlVector<2> &halfExtents)
+{
+	m_radius = halfExtents.Len();
 }

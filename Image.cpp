@@ -118,14 +118,24 @@ bool Image::SetSurface(SDL_Surface *image)
 
 	mtlArray< mmlVector<2> > vtx;
 	vtx.Create(4);
-	vtx[0][0] = 0.0f;
+	float w = float(m_width) * 0.5f;
+	float h = float(m_height) * 0.5f;
+	/*vtx[0][0] = 0.0f;
 	vtx[0][1] = 0.0f;
 	vtx[1][0] = float(m_width);
 	vtx[1][1] = 0.0f;
 	vtx[2][0] = 0.0f;
 	vtx[2][1] = float(m_height);
 	vtx[3][0] = float(m_width);
-	vtx[3][1] = float(m_height);
+	vtx[3][1] = float(m_height);*/
+	vtx[0][0] = -w;
+	vtx[0][1] = -h;
+	vtx[1][0] = w;
+	vtx[1][1] = -h;
+	vtx[2][0] = -w;
+	vtx[2][1] = h;
+	vtx[3][0] = w;
+	vtx[3][1] = h;
 	LoadVertexArray(vtx);
 
 	mtlArray< mmlVector<2> > uv;

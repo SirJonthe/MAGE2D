@@ -30,6 +30,12 @@ mmlMatrix<2,2> Transform::GetRotationMatrix(float angle)
 	return m;
 }
 
+/*mmlMatrix<3,3> Transform::GetLocalTransformMatrix( void ) const
+{
+	// position = (0,0) * 3x3(rot, x)
+	// solve for position x
+}*/
+
 Transform::Transform( void ) : m_parent(NULL), m_rotation(mmlMatrix<2,2>::IdentityMatrix()), m_position(0.0f, 0.0f, 0.0f), m_name()
 {}
 
@@ -135,13 +141,23 @@ const mmlVector<2> &Transform::GetLocalAxisY( void ) const
 	return m_rotation[1];
 }
 
-mmlVector<2> Transform::GetWorldAxisX( void )
+mmlVector<2> Transform::GetWorldAxisX( void ) const
+{
+	return m_rotation[0] * GetParentWorldRotation();
+}
+
+mmlVector<2> Transform::GetWorldAxisY( void ) const
+{
+	return m_rotation[1] * GetParentWorldRotation();
+}
+
+mmlVector<2> Transform::AbsoluteUp( void )
 {
 	const static mmlVector<2> xAxis(1.0f, 0.0f);
 	return xAxis;
 }
 
-mmlVector<2> Transform::GetWorldAxisY( void )
+mmlVector<2> Transform::AbsoluteRight( void )
 {
 	const static mmlVector<2> yAxis(0.0f, 1.0f);
 	return yAxis;

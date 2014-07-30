@@ -88,9 +88,11 @@ void Engine::DrawObjects( void )
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible()) {
+			//Engine::SetObjectView(object->GetItem()->GetTransform());
 			//const mmlMatrix<3,3> t = object->GetItem()->GetTransform().GetWorldTransform() * viewTransform;
 			const mmlMatrix<2,2> r = object->GetItem()->GetTransform().GetWorldRotation() * rotation;
-			const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position) * r; // multiply by r because we need to put position in 3,3 matrix
+			//const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position) * r; // multiply by r because we need to put position in 3,3 matrix
+			const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position);
 			/*GLfloat m[16] = {
 				t[0][0], t[0][1], 0.0f, 0.0f,
 				t[1][0], t[1][1], 0.0f, 0.0f,
@@ -194,38 +196,19 @@ Engine::Box Engine::ToBox(Rect r) const
 	return b;
 }
 
-bool Engine::GetPixelOverlap(const Object *a, const Object *b, Box o) const
-{
-	//a->
-	/*int ax = o.a.x - int(a->GetPosition()[0]);
-	int ay = o.a.y - int(a->GetPosition()[1]);
-	int bx = o.a.x - int(b->GetPosition()[0]);
-	int by = o.a.y - int(b->GetPosition()[1]);
-	int w = o.b.x - o.a.x;
-	int h = o.b.y - o.a.y;
-
-	const Image *ai = &a->GetCurrentImage();
-	const Image *bi = &b->GetCurrentImage();
-
-	for (int y = 0; y < h; ++y) {
-		for (int x = 0; x < w; ++x) {
-			if (ai->IsColorKey(x+ax,y+ay, a->GetOrientationX()) == false && bi->IsColorKey(x+bx,y+by, b->GetOrientationX()) == false) {
-				return true;
-			}
-		}
-	}*/
-
-	return false;
-}
-
 void Engine::SetGameView( void )
 {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	//glOrtho(-0.5, (SDL_GetVideoSurface()->w - 1) + 0.5, (SDL_GetVideoSurface()->h - 1) + 0.5, -0.5, 0.0, 1.0);
-	const GLdouble halfW = float(SDL_GetVideoSurface()->w) / 2.0;
-	const GLdouble halfH = float(SDL_GetVideoSurface()->h) / 2.0;
+	const GLdouble halfW = GLdouble(SDL_GetVideoSurface()->w) / 2.0;
+	const GLdouble halfH = GLdouble(SDL_GetVideoSurface()->h) / 2.0;
 	glOrtho(-halfW - 0.5, halfW + 0.5, halfH + 0.5, -halfH - 0.5, 0.0, 1.0);
+}
+
+void Engine::SetObjectView(const Transform &transform)
+{
+
 }
 
 mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )

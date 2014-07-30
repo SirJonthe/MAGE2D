@@ -32,7 +32,7 @@ struct Range
 	mmlVector<2>	origin;
 	mmlVector<2>	direction;
 	float			length;
-	float			apex;
+	float			apexRadians;
 };
 
 struct Plane
@@ -154,8 +154,10 @@ class Collider : public mtlBase
 protected:
 	Transform			m_transform; // position will be center of mass
 	Transform			m_prevTransform;
-	mmlVector<2>		m_momentum;
-	float				m_angularMomentum;
+	mmlVector<2>		m_velocity; // rate of change in position
+	mmlVector<2>		m_acceleration; // rate of change in velocity
+	float				m_angularMomentum; // rate of change in rotation???
+	float				m_torque; // rate of change in angular momentum
 	float				m_mass;
 	float				m_friction; // 0 - 1
 	float				m_bounce; // 0 - 1 (an object with 1 exits collision with same speed as entering)
@@ -169,9 +171,6 @@ protected:
 	//virtual bool CollidesWith(const PolygonCollider&) const { return false; }
 	//virtual bool CollidesWith(const LineSegmentCollider&) const { return false; }
 
-	mmlVector<2> GetWorldMaxExtents( void ) const { return m_transform.TransformWorldPoint(GetMaxExtents()); }
-	mmlVector<2> GetWorldMinExtents( void ) const { return m_transform.TransformWorldPoint(GetMinExtents()); }
-
 	float GetInverseMass( void ) const;
 
 public:
@@ -182,8 +181,10 @@ public:
 	Transform &GetTransform( void );
 
 	// do not set these directly (use Newtonian interface)
-	const mmlVector<2> &GetMomentum( void ) const;
+	const mmlVector<2> &GetVelocity( void ) const;
+	const mmlVector<2> &GetAcceleration( void ) const;
 	float GetAngularMomentum( void ) const;
+	float GetTorque( void ) const;
 
 	float GetMass( void ) const;
 	void SetMass(float mass);
@@ -199,14 +200,16 @@ public:
 	void EnableRigidBody( void );
 	void DisableRigidBody( void );
 
-	void SetMaxExtents(float width, float height) { SetMaxExtents(mmlVector<2>(width, height)); }
-	mmlVector<2> GetMinExtents( void ) const { return -GetMaxExtents(); }
-
 	// various ApplyForce functions
 
 	virtual bool Collides(const Collider&) const { return false; }
-	virtual mmlVector<2> GetMaxExtents( void ) const { return mmlVector<2>(0.0f, 0.0f); }
-	virtual void SetMaxExtents(const mmlVector<2> &dimensions) {}
+	virtual bool Collides(const Ray&) const { return false; }
+	virtual bool Collides(const Range&) const { return false; }
+	virtual bool Collides(const Plane&) const { return false; }
+
+	virtual mmlVector<2> GetHalfExtents( void ) const { return mmlVector<2>(0.0f, 0.0f); }
+	virtual void SetHalfExtents(const mmlVector<2> &halfExtents) {}
+	void SetHalfExtents(float halfW, float halfH) { SetHalfExtents(mmlVector<2>(halfW, halfH)); }
 };
 
 typedef Collider EmptyCollider;
@@ -237,8 +240,12 @@ public:
 	void SetHeight(float height);
 
 	bool Collides(const Collider &collider) const;
-	mmlVector<2> GetMaxExtents( void ) const { return m_dimensions / 2.0f; }
-	void SetMaxExtents(const mmlVector<2> &dimensions) { m_dimensions = mmlAbs(dimensions); }
+	//bool Collides(const Ray&) const;
+	//bool Collides(const Range&) const;
+	//bool Collides(const Plane&) const;
+
+	mmlVector<2> GetHalfExtents( void ) const;
+	void SetHalfExtents(const mmlVector<2> &halfExtents);
 };
 
 class CircleCollider : public mtlInherit<Collider>
@@ -260,8 +267,12 @@ public:
 	void SetRadiuds(float radius);
 
 	bool Collides(const Collider &collider) const;
-	mmlVector<2> GetMaxExtents( void ) const { return mmlVector<2>(m_radius, m_radius); }
-	void SetMaxExtents(const mmlVector<2> &dimensions) { m_radius = mmlMin2(fabs(dimensions[0]), fabs(dimensions[1])); }
+	//bool Collides(const Ray&) const;
+	//bool Collides(const Range&) const;
+	//bool Collides(const Plane&) const;
+
+	mmlVector<2> GetHalfExtents( void ) const;
+	void SetHalfExtents(const mmlVector<2> &halfExtents);
 };
 
 /*class PolygonCollider : public mtlInherit<Collider>
@@ -274,6 +285,12 @@ protected:
 	bool CollidesWith(const CircleCollider &c) const;
 	bool CollidesWith(const PolygonCollider &p) const;
 	//bool CollidesWith(const LineSegmentCollider &l) const;
+
+public:
+	bool Collides(const Collider&) const;
+	bool Collides(const Ray&) const;
+	bool Collides(const Range&) const;
+	bool Collides(const Plane&) const;
 };*/
 
 /*class LineSegmentCollider : public mtlInherit<Collider>
@@ -287,6 +304,12 @@ protected:
 	bool CollidesWith(const CircleCollider &c) const;
 	bool CollidesWith(const PolygonCollider &p) const;
 	bool CollidesWith(const LineSegmentCollider &l) const;
+
+public:
+	bool Collides(const Collider&) const;
+	bool Collides(const Ray&) const;
+	bool Collides(const Range&) const;
+	bool Collides(const Plane&) const;
 };*/
 
 #endif // COLLIDER_H
