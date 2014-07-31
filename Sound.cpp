@@ -15,11 +15,11 @@ Sound::~Sound( void )
 	Free();
 }
 
-bool Sound::Load(const mtlChars &file)
+bool Sound::Load(const mtlDirectory &file)
 {
-	std::cout << "Sound::Load: " << file.GetChars() << std::endl;
+	std::cout << "Sound::Load: " << file.GetDirectory().GetChars() << std::endl;
 	Free();
-	m_chunk = Mix_LoadWAV(file.GetChars());
+	m_chunk = Mix_LoadWAV(file.GetDirectory().GetChars());
 	if (!IsGood()) {
 		std::cout << "\tfailed: " << Mix_GetError() << std::endl;
 	}

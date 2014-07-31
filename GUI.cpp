@@ -474,27 +474,6 @@ void GUI::Text(float number, float u, float v, int scale)
 	Text(text, u, v, scale);
 }
 
-/*void GUI::Text(bool boolean, int scale)
-{
-	mtlString text;
-	text.FromBool(boolean);
-	Text(text, scale);
-}
-
-void GUI::Text(bool boolean, int x, int y, int scale)
-{
-	mtlString text;
-	text.FromBool(boolean);
-	Text(text, x, y, scale);
-}
-
-void GUI::Text(bool boolean, float u, float v, int scale)
-{
-	mtlString text;
-	text.FromBool(boolean);
-	Text(text, u, v, scale);
-}*/
-
 void GUI::Box(Rect rect)
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -553,4 +532,14 @@ Point GUI::GetTextSize(const mtlChars &text, int scale)
 	p.x *= scale;
 	p.y *= scale;
 	return p;
+}
+
+int GUI::GetCharPixelWidth(int scale)
+{
+	return char_px_width * scale;
+}
+
+int GUI::GetCharPixelHeight(int scale)
+{
+	return char_px_height * scale;
 }

@@ -71,7 +71,10 @@ private:
 	Object							*m_camera;
 	Timer							m_timer;
 	float							m_deltaSeconds;
+	unsigned int					m_rseed_z;
+	unsigned int					m_rseed_w;
 	//CollisionSolver					m_collisionSolver;
+	//GUI::Manager					m_guiManager;
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;
@@ -88,11 +91,10 @@ private:
 	void							FinalizeObjects( void );
 	void							DestroyObjects( void );
 	void							UpdateTimer( void );
-	bool							Collide(const Object *a, const Object *b) const; // custom rendering routine to determine pixel overlap
-	bool							PointInBox(Point p, Box b) const;
-	Box								ToBox(Rect r) const;
+
 	static void						SetGameView( void );
 	static void						SetObjectView(const Transform &transform);
+
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
 	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
 private:
@@ -101,45 +103,60 @@ private:
 public:
 								Engine( void );
 								~Engine( void );
+
 	bool						Init(int argc, char **argv);
-	void						AddObject(Object *object);
-	Object						*GetCamera( void );
-	const Object				*GetCamera( void ) const;
-	void						SetCamera(Object *camera);
-	void						DestroyAllObjects( void );
-	void						SetWindowCaption(const mtlChars &caption);
-	int							RunGame( void );
-	void						EndGame( void );
-	void						KillProgram( void );
-	void						SetUpdateFrequency(float updatesPerSecond);
-	float						GetDeltaTime( void ) const;
-	int							GetRandomInt( void ) const;
-	int							GetRandomInt(int max) const;
-	int							GetRandomInt(int min, int max) const;
-	float						GetRandomFloat( void ) const;
+
 	const mtlList<Object*>		&GetObjects( void ) const;
+
 	static void					FilterByName(const mtlList<Object*> &in, mtlList<Object*> &out, const mtlChars &name);
 	template < typename type_t >
 	static void					FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out);
 	static void					FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id);
 	static void					FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
 	static void					FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
-	static void					FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, mmlVector<2> direction);
-	static void					FilterByCone(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float range);
-	static void					FilterByBox(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> min, mmlVector<2> max);
-	static void					FilterBySphere(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float radius);
-	static void					FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> point, mmlVector<2> normal);
-	bool						PlayMusic(const mtlChars &file);
-	void						StopMusic( void );
-	void						UpdateVideo( void ) const;
+	static void					FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, const Ray &ray);
+	static void					FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range);
+	static void					FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane);
+
+	void						AddObject(Object *object);
 	template < typename type_t >
 	Object						*AddObject( void );
 	Object						*AddObject( void );
 	Object						*AddObject(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
-	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)()); // don't call this manually
-	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types); // requires recursive in-order tree traversal to build tree
+
+	void						DestroyAllObjects( void );
+
+	Object						*GetCamera( void );
+	const Object				*GetCamera( void ) const;
+	void						SetCamera(Object *camera);
+
+	void						SetWindowCaption(const mtlChars &caption);
+
+	int							RunGame( void );
+	void						EndGame( void );
+	void						KillProgram( void );
+
+	void						SetUpdateFrequency(float updatesPerSecond);
+	float						GetDeltaTime( void ) const;
+
+	void						SetRandomizerSeeds(unsigned int z, unsigned int w);
+	unsigned int				GetRandomUint( void );
+	unsigned int				GetRandomUint(unsigned int min, unsigned int max);
+	int							GetRandomInt( void );
+	int							GetRandomInt(int min, int max);
+	float						GetRandomUniform( void );
+
+	bool						PlayMusic(const mtlChars &file);
+	void						StopMusic( void );
+
+	static void					UpdateVideo( void );
+	static int					GetVideoWidth( void );
+	static int					GetVideoHeight( void );
+
 	template < typename graphics_t >
 	static mtlAsset<Graphics>	LoadGraphics(const mtlChars &file);
+	static mtlAsset<Sound>		LoadSound(const mtlChars &file);
+
 	static void					PrintError(GLenum error);
 	static void					PrintError( void );
 
@@ -159,6 +176,9 @@ public:
 	bool						IsPressed(MouseButton::Button button) const;
 	bool						IsHeld(MouseButton::Button button) const;
 	bool						IsReleased(MouseButton::Button button) const;
+
+	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)()); // don't call this manually
+	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types); // requires recursive in-order tree traversal to build tree
 };
 
 #define ENGINE_REGISTER_OBJECT_TYPE(ObjectTypeName) \

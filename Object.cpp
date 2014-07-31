@@ -69,7 +69,7 @@ bool Object::GetCollisionMask(unsigned int bit) const
 	return (bool)((m_collisionMask>>bit) & 1);
 }
 
-unsigned long long Object::GetCollisionMasks(unsigned long long mask) const
+flags_t Object::GetCollisionMasks(flags_t mask) const
 {
 	return m_collisionMask & mask;
 }
@@ -81,7 +81,7 @@ void Object::SetCollisionMask(unsigned int bit, bool state)
 	m_collisionMask |= mask;
 }
 
-void Object::SetCollisionMasks(unsigned int mask)
+void Object::SetCollisionMasks(flags_t mask)
 {
 	m_collisionMask |= mask;
 }
@@ -106,11 +106,6 @@ Collider *Object::GetCollider( void )
 	return m_collider.GetShared();
 }
 
-/*void Object::SetCollider(mtlShared<Collider> &collider)
-{
-	m_collider = collider;
-}*/
-
 Transform &Object::GetTransform( void )
 {
 	return m_collider.GetShared()->GetTransform();
@@ -126,7 +121,7 @@ bool Object::GetObjectFlag(unsigned int bit) const
 	return (bool)((m_objectFlags>>bit) & 1);
 }
 
-unsigned long long Object::GetObjectFlags(unsigned long long mask) const
+flags_t Object::GetObjectFlags(flags_t mask) const
 {
 	return m_objectFlags & mask;
 }
@@ -138,7 +133,7 @@ void Object::SetObjectFlag(unsigned int bit, bool state)
 	m_objectFlags |= mask;
 }
 
-void Object::SetObjectFlags(unsigned int mask)
+void Object::SetObjectFlags(flags_t mask)
 {
 	m_objectFlags |= mask;
 }

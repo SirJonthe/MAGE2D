@@ -23,8 +23,8 @@ private:
 	bool						m_visible;
 	bool						m_frozen;			// used by the debugger object to freeze game state
 	mtlShared<Collider>			m_collider;
-	unsigned long long			m_objectFlags;		// what is the object?
-	unsigned long long			m_collisionMask;	// what can the object collide with?
+	flags_t						m_objectFlags;		// what is the object?
+	flags_t						m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
 	Engine						*m_engine;
 protected:
@@ -55,9 +55,9 @@ public:
 	void					EnableCollisions( void );
 	void					ToggleCollisions( void );
 	bool					GetCollisionMask(unsigned int bit) const;
-	unsigned long long		GetCollisionMasks(unsigned long long mask = 0xffffffffffffffff) const;
+	flags_t					GetCollisionMasks(flags_t mask = 0xffffffffffffffff) const;
 	void					SetCollisionMask(unsigned int bit, bool state);
-	void					SetCollisionMasks(unsigned int mask);
+	void					SetCollisionMasks(flags_t mask);
 	void					ClearAllCollisionMasks( void );
 	void					DestroyCollider( void );
 	const Collider			*GetCollider( void ) const;
@@ -74,9 +74,9 @@ public:
 	template < typename object_t >
 	object_t				*GetAsType( void );
 	bool					GetObjectFlag(unsigned int bit) const;
-	unsigned long long		GetObjectFlags(unsigned long long mask = 0xffffffffffffffff) const;
+	flags_t					GetObjectFlags(flags_t mask = 0xffffffffffffffff) const;
 	void					SetObjectFlag(unsigned int bit, bool state);
-	void					SetObjectFlags(unsigned int mask);
+	void					SetObjectFlags(flags_t mask);
 	void					ClearAllObjectFlags( void );
 
 	bool					IsVisible( void ) const;

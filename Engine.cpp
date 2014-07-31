@@ -61,7 +61,7 @@ void Engine::CollideObjects( void )
 				if (nextObject->GetItem()->IsTicking() && nextObject->GetItem()->IsCollidable()) {
 					unsigned int abCollision = object->GetItem()->GetCollisionMasks() & nextObject->GetItem()->GetObjectFlags();
 					unsigned int baCollision = nextObject->GetItem()->GetObjectFlags() & object->GetItem()->GetCollisionMasks();
-					if ((abCollision > 0 || baCollision > 0) && Collide(object->GetItem(), nextObject->GetItem())) {
+					if ((abCollision > 0 || baCollision > 0) && object->GetItem()->m_collider.GetShared()->Collides(*nextObject->GetItem()->m_collider.GetShared())) {
 						if (abCollision > 0) {
 							object->GetItem()->OnCollision(*nextObject->GetItem());
 						}
@@ -180,22 +180,6 @@ void Engine::UpdateTimer( void )
 	m_deltaSeconds = m_timer.GetTimeDeltaSecondsTick();
 }
 
-bool Engine::Collide(const Object *a, const Object *b) const
-{
-	return a->m_collider.GetShared()->Collides(*b->m_collider.GetShared());
-}
-
-bool Engine::PointInBox(Point p, Engine::Box b) const
-{
-	return (p.x >= b.a.x && p.x < b.b.x && p.y >= b.a.y && p.y < b.b.y);
-}
-
-Engine::Box Engine::ToBox(Rect r) const
-{
-	Box b = { { r.x, r.y }, { r.x+r.w, r.y+r.h } };
-	return b;
-}
-
 void Engine::SetGameView( void )
 {
 	glMatrixMode(GL_PROJECTION);
@@ -236,8 +220,14 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 	}
 }
 
-Engine::Engine( void ) : m_objects(), m_camera(NULL), /*m_events(),*/ m_timer(60.0f), m_deltaSeconds(0.0f), m_quit(false), m_inLoop(false), m_music(NULL)
+Engine::Engine( void ) :
+	m_objects(), m_camera(NULL),
+	m_timer(60.0f), m_deltaSeconds(0.0f),
+	m_rseed_z(0), m_rseed_w(0),
+	m_quit(false), m_inLoop(false),
+	m_music(NULL)
 {
+	SetRandomizerSeeds(0, 0); // grabs default values
 	m_mousePosition.x = 0;
 	m_mousePosition.y = 0;
 	m_prevMousePosition.x = 0;
@@ -337,6 +327,74 @@ bool Engine::Init(int argc, char **argv)
 	return true;
 }
 
+const mtlList<Object*> &Engine::GetObjects( void ) const
+{
+	return m_objects;
+}
+
+void Engine::FilterByName(const mtlList<Object *> &in, mtlList<Object *> &out, const mtlChars &name)
+{
+	out.RemoveAll();
+	const mtlNode<Object*> *n = in.GetFirst();
+	while (n != NULL) {
+		if (n->GetItem()->GetName().Compare(name)) {
+			out.AddLast(n->GetItem());
+		}
+		n = n->GetNext();
+	}
+}
+
+void Engine::FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id)
+{
+	out.RemoveAll();
+	const mtlNode<Object*> *n = in.GetFirst();
+	while (n != NULL) {
+		if (n->GetItem()->GetInstanceType() == id) {
+			out.AddLast(n->GetItem());
+		}
+		n = n->GetNext();
+	}
+}
+
+void Engine::FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
+{
+	out.RemoveAll();
+	const mtlNode<Object*> *n = in.GetFirst();
+	while (n != NULL) {
+		if (n->GetItem()->GetObjectFlags(mask) == mask) {
+			out.AddLast(n->GetItem());
+		}
+		n = n->GetNext();
+	}
+}
+
+void Engine::FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
+{
+	out.RemoveAll();
+	const mtlNode<Object*> *n = in.GetFirst();
+	while (n != NULL) {
+		if (n->GetItem()->GetCollisionMasks(mask) == mask) {
+			out.AddLast(n->GetItem());
+		}
+		n = n->GetNext();
+	}
+}
+
+void Engine::FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, const Ray &ray)
+{
+	out.RemoveAll();
+}
+
+void Engine::FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range)
+{
+	out.RemoveAll();
+}
+
+void Engine::FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane)
+{
+	out.RemoveAll();
+}
+
 void Engine::AddObject(Object *object)
 {
 	if (object == NULL) {
@@ -351,23 +409,30 @@ void Engine::AddObject(Object *object)
 	object->OnInit();
 }
 
-Object *Engine::GetCamera( void )
+Object *Engine::AddObject( void )
 {
-	return m_camera;
+	return AddObject<Object>();
 }
 
-const Object *Engine::GetCamera( void ) const
+Object *Engine::AddObject(const mtlChars &typeName)
 {
-	return m_camera;
-}
-
-void Engine::SetCamera(Object *camera)
-{
-	if (camera == NULL || camera->m_engine != this) {
-		m_camera = NULL;
-	} else {
-		m_camera = camera;
+	mtlHash h(typeName);
+	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	if (b != NULL) {
+		b = b->Find(h);
 	}
+	if (b != NULL) {
+		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
+		while (n != NULL) {
+			if (n->GetItem().name.Compare(typeName)) {
+				Object *o = n->GetItem().creator_func();
+				AddObject(o);
+				return o;
+			}
+			n = n->GetNext();
+		}
+	}
+	return NULL;
 }
 
 void Engine::DestroyAllObjects( void )
@@ -386,6 +451,25 @@ void Engine::DestroyAllObjects( void )
 		}
 		m_objects.RemoveAll();
 		m_inLoop = false;
+	}
+}
+
+Object *Engine::GetCamera( void )
+{
+	return m_camera;
+}
+
+const Object *Engine::GetCamera( void ) const
+{
+	return m_camera;
+}
+
+void Engine::SetCamera(Object *camera)
+{
+	if (camera == NULL || camera->m_engine != this) {
+		m_camera = NULL;
+	} else {
+		m_camera = camera;
 	}
 }
 
@@ -460,108 +544,41 @@ float Engine::GetDeltaTime( void ) const
 	return m_deltaSeconds;
 }
 
-/*const mtlList<SDL_Event> &Engine::GetEventList( void ) const
+void Engine::SetRandomizerSeeds(unsigned int z, unsigned int w)
 {
-	return m_events;
-}*/
-
-int Engine::GetRandomInt( void ) const
-{
-	return rand();
+	// must be non-zero
+	m_rseed_z = z == 0 ? 0xfeedface : z;
+	m_rseed_w = w == 0 ? 0xdeadbeef : w;
 }
 
-int Engine::GetRandomInt(int max) const
+unsigned int Engine::GetRandomUint( void )
 {
-	return rand() % (max+1);
+	m_rseed_z = 36969 * (m_rseed_z & 65535) + (m_rseed_z >> 16);
+	m_rseed_w = 18000 * (m_rseed_w & 65535) + (m_rseed_w >> 16);
+	return (m_rseed_z << 16) + m_rseed_w;
 }
 
-int Engine::GetRandomInt(int min, int max) const
+unsigned int Engine::GetRandomUint(unsigned int min, unsigned int max)
 {
-	return GetRandomInt(max-min) + min;
+	unsigned int r = GetRandomUint();
+	return (r % (max-min+1)) + min;
 }
 
-float Engine::GetRandomFloat( void ) const
+int Engine::GetRandomInt( void )
 {
-	const float invRand = 1.0f / float(RAND_MAX);
-	return float(rand()) * invRand;
+	return (int)GetRandomUint();
 }
 
-const mtlList<Object*> &Engine::GetObjects( void ) const
+int Engine::GetRandomInt(int min, int max)
 {
-	return m_objects;
+	int r = GetRandomUint();
+	return (r % (max-min+1)) + min;
 }
 
-void Engine::FilterByName(const mtlList<Object *> &in, mtlList<Object *> &out, const mtlChars &name)
+float Engine::GetRandomUniform( void )
 {
-	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
-	while (n != NULL) {
-		if (n->GetItem()->GetName().Compare(name)) {
-			out.AddLast(n->GetItem());
-		}
-		n = n->GetNext();
-	}
-}
-
-void Engine::FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id)
-{
-	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
-	while (n != NULL) {
-		if (n->GetItem()->GetInstanceType() == id) {
-			out.AddLast(n->GetItem());
-		}
-		n = n->GetNext();
-	}
-}
-
-void Engine::FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
-{
-	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
-	while (n != NULL) {
-		if (n->GetItem()->GetObjectFlags(mask) == mask) {
-			out.AddLast(n->GetItem());
-		}
-		n = n->GetNext();
-	}
-}
-
-void Engine::FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask)
-{
-	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
-	while (n != NULL) {
-		if (n->GetItem()->GetCollisionMasks(mask) == mask) {
-			out.AddLast(n->GetItem());
-		}
-		n = n->GetNext();
-	}
-}
-
-void Engine::FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, mmlVector<2> direction)
-{
-	out.RemoveAll();
-}
-
-void Engine::FilterByCone(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float apex)
-{
-	out.RemoveAll();
-}
-
-void Engine::FilterByBox(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> min, mmlVector<2> max)
-{
-	out.RemoveAll();
-}
-
-void Engine::FilterBySphere(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> origin, float radius)
-{
-	out.RemoveAll();
-}
-
-void Engine::FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, mmlVector<2> point, mmlVector<2> normal)
-{
-	out.RemoveAll();
+	const float invRand = 1.0f / float(0xffffffff);
+	return float(GetRandomUint()) * invRand;
 }
 
 bool Engine::PlayMusic(const mtlChars &file)
@@ -585,74 +602,25 @@ void Engine::StopMusic( void )
 	}
 }
 
-void Engine::UpdateVideo( void ) const
+void Engine::UpdateVideo( void )
 {
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-Object *Engine::AddObject( void )
+int Engine::GetVideoWidth( void )
 {
-	return AddObject<Object>();
+	return SDL_GetVideoSurface()->w;
 }
 
-Object *Engine::AddObject(const mtlChars &typeName)
+int Engine::GetVideoHeight( void )
 {
-	mtlHash h(typeName);
-	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
-	if (b != NULL) {
-		b = b->Find(h);
-	}
-	if (b != NULL) {
-		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
-		while (n != NULL) {
-			if (n->GetItem().name.Compare(typeName)) {
-				Object *o = n->GetItem().creator_func();
-				AddObject(o);
-				return o;
-			}
-			n = n->GetNext();
-		}
-	}
-	return NULL;
+	return SDL_GetVideoSurface()->h;
 }
 
-bool Engine::RegisterType(const mtlChars &typeName, Object *(*creator_func)())
+mtlAsset<Sound> Engine::LoadSound(const mtlChars &file)
 {
-	mtlHash h(typeName);
-	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
-	if (b != NULL) {
-		b = b->Find(h);
-	}
-	mtlNode<Type> *n = NULL;
-	if (b != NULL) {
-		n = b->GetItem().types.GetShared()->GetFirst();
-		while (n != NULL) {
-			if (n->GetItem().name.Compare(typeName)) { // this type is already registered
-				return false;
-			}
-			n = n->GetNext();
-		}
-	}
-	if (n == NULL) {
-		if (b == NULL) {
-			TypeNode tn;
-			tn.hash = h;
-			tn.types.New();
-			b = GetTypeTree().Insert(tn);
-		}
-		Type t;
-		t.name.Copy(typeName);
-		t.creator_func = creator_func;
-		b->GetItem().types.GetShared()->AddLast(t);
-	}
-	return true;
-}
-
-void Engine::GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types)
-{
-	types.RemoveAll();
-	GetRegisteredTypes(GetTypeTree().GetRoot(), types);
+	return mtlAsset<Sound>::Load(file);
 }
 
 void Engine::PrintError(GLenum error)
@@ -758,4 +726,42 @@ bool Engine::IsHeld(MouseButton::Button button) const
 bool Engine::IsReleased(MouseButton::Button button) const
 {
 	return m_mouseButtonState[button] == InputState::Release;
+}
+
+bool Engine::RegisterType(const mtlChars &typeName, Object *(*creator_func)())
+{
+	mtlHash h(typeName);
+	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	if (b != NULL) {
+		b = b->Find(h);
+	}
+	mtlNode<Type> *n = NULL;
+	if (b != NULL) {
+		n = b->GetItem().types.GetShared()->GetFirst();
+		while (n != NULL) {
+			if (n->GetItem().name.Compare(typeName)) { // this type is already registered
+				return false;
+			}
+			n = n->GetNext();
+		}
+	}
+	if (n == NULL) {
+		if (b == NULL) {
+			TypeNode tn;
+			tn.hash = h;
+			tn.types.New();
+			b = GetTypeTree().Insert(tn);
+		}
+		Type t;
+		t.name.Copy(typeName);
+		t.creator_func = creator_func;
+		b->GetItem().types.GetShared()->AddLast(t);
+	}
+	return true;
+}
+
+void Engine::GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types)
+{
+	types.RemoveAll();
+	GetRegisteredTypes(GetTypeTree().GetRoot(), types);
 }

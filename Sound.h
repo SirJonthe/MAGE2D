@@ -13,7 +13,7 @@ public:
 	Sound( void );
 	Sound(const mtlChars &file);
 	~Sound( void );
-	bool Load(const mtlChars &file);
+	bool Load(const mtlDirectory &file);
 	void Play( void );
 	void Free( void );
 	bool IsGood( void ) const;

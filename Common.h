@@ -36,4 +36,6 @@ inline mmlVector<2> LineNormal(mmlVector<2> l1, mmlVector<2> l2)
 	return mmlVector<2>(-t[1], t[0]);
 }
 
+typedef unsigned long long int flags_t;
+
 #endif // COMMON_H
