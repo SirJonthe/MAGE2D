@@ -1,87 +1,96 @@
-#ifndef TRANSFORM_H
-#define TRANSFORM_H
+//
+//  Transform.h
+//  Transform
+//
+//  Created by Jonathan Karlsson on 8/2/14.
+//  Copyright (c) 2014 Jonathan Karlsson. All rights reserved.
+//
+
+#ifndef TRANSFORM_H_INCLUDED__
+#define TRANSFORM_H_INCLUDED__
 
 #include "MML/mmlMatrix.h"
-#include "MTL/mtlString.h"
+#include "MML/mmlVector.h"
+
+// Might be able to make this more efficient by combining position and rotation,
+// but I'd rather not break anything right now...
 
 class Transform
 {
 private:
-	const Transform	*m_parent;
 	mmlMatrix<2,2>	m_rotation;
 	mmlVector<2>	m_position;
-	mtlString		m_name;
+	const Transform	*m_parent;
 
 private:
-	mmlMatrix<2,2> GetParentWorldRotation( void ) const;
-	mmlVector<2> GetParentWorldPosition( void ) const;
-	static mmlMatrix<2,2> GetRotationMatrix(float angle);
-	// functions for concatenating transform into a single matrix
-	//mmlMatrix<3,3> GetLocalTransformMatrix( void ) const;
-	//mmlMatrix<3,3> GetWorldTransformMatrix( void ) const;
-	//mmlMatrix<3,3> GetParentWorldTransformMatrix( void ) const;
-
+	static mmlMatrix<2,2> RotationMatrix(float angle);
+	mmlMatrix<2,2> GetParentRotation( void ) const;
+	mmlVector<2> GetParentPosition( void ) const;
+	float GetParentScaleX( void ) const;
+	float GetParentScaleY( void ) const;
+	
 public:
 	enum Space
 	{
-		Local,
-		World
+		Local, // Translate(x, y, Local) = m_pos += xy
+		Global // moves according to screen space axis (down is down, left is left) (I think this requires using inverse parent transform)
 	};
-
+	
 	Transform( void );
-	Transform(const Transform &transform);
-	Transform &operator=(const Transform &transform);
+	
+	const Transform *GetParent( void ) const;
+	void SetParent(Space space, const Transform *parent);
+	
+	mmlVector<2> GetPosition(Space space) const;
+	void SetPosition(Space space, mmlVector<2> position);
+	void SetPosition(Space space, float x, float y);
+	
+	void Translate(Space space, mmlVector<2> vector);
+	void Translate(Space space, float x, float y);
+	
+	void AxisTranslate(float x, float y);
+	void AxisTranslate(mmlVector<2> vector);
+	
+	mmlMatrix<2,2> GetRotation(Space space) const;
+	void SetRotation(Space space, float angle);
+	void SetIdentity(Space space);
+	float GetAngle(Space space) const;
+	
+	void Rotate(float angle);
+	void Rotate(Space space, mmlVector<2> point, float angle); // can benefit from 'space' param
+	void Rotate(Space space, float x, float y, float angle);
+	
+	mmlVector<2> GetAxisX(Space space) const;
+	void SetAxisX(Space space, mmlVector<2> normal);
+	void FlipAxisX( void );
+	
+	mmlVector<2> GetAxisY(Space space) const;
+	void SetAxisY(Space space, mmlVector<2> normal);
+	void FlipAxisY( void );
+	
+	float GetScaleX(Space space) const;
+	void SetScaleX(Space space, float scale);
+	
+	float GetScaleY(Space space) const;
+	void SetScaleY(Space space, float scale);
+	
+	void Scale(float scale);
+	void Scale(float x, float y);
+	void Scale(mmlVector<2> scale);
+	void ScaleX(float scale);
+	void ScaleY(float scale);	
+	
+	mmlVector<2> TransformPoint(Space space, mmlVector<2> point) const;
+	mmlVector<2> TransformPoint(Space space, float x, float y) const;
+	
+	Transform GetIndependentTransform(Space space) const;
 
-	const Transform *GetParentTransform( void ) const;
-	void SetParentTransform(const Transform *parent, bool preserve = true);
+	mmlMatrix<3,3> GetTransformMatrix(Space space) const;
 
-	const mtlString &GetName( void ) const;
-	void SetName(const mtlChars &name);
-
-	const mmlMatrix<2,2> &GetLocalRotation( void ) const;
-	mmlMatrix<2,2> GetWorldRotation( void ) const;
-
-	const mmlVector<2> &GetLocalPosition( void ) const;
-	void SetLocalPosition(float x, float y);
-	void SetLocalPosition(const mmlVector<2> &position);
-
-	mmlVector<2> GetWorldPosition( void ) const;
-	void SetWorldPosition(float x, float y);
-	void SetWorldPosition(const mmlVector<2> &position);
-
-	const mmlVector<2> &GetLocalAxisX( void ) const;
-	const mmlVector<2> &GetLocalAxisY( void	) const;
-	mmlVector<2> GetWorldAxisX( void ) const;
-	mmlVector<2> GetWorldAxisY( void ) const;
-
-	static mmlVector<2> AbsoluteUp( void );
-	static mmlVector<2> AbsoluteRight( void );
-
-	// LookAtLocal(float x, float y);
-	// LookAtLocal(const mmlVector<2> &point);
-	// LookAtWorld(float x, float y);
-	// LookAtWorld(const mmlVector<2> &point);
-
-	void ApplyLocalTranslation(float x, float y);
-	void ApplyLocalTranslation(const mmlVector<2> &translation);
-
-	void ApplyWorldTranslation(float x, float y);
-	void ApplyWorldTranslation(const mmlVector<2> &translation);
-
-	void ApplyRotation(float angle);
-	void ApplyRotation(const mmlVector<2> &around, float angle);
-
-	// ERROR HERE:
-	// This function fundamentally transforms points differently than
-	// GetWorldPosition does. I have to fix how GetWorldPosition works
-	// and how the position is resolved in SetParentTransform.
-	// Maybe, compose rotation+position in 3x3 matrix like in Engine.
-	mmlVector<2> TransformLocalPoint(const mmlVector<2> &point) const;
-	mmlVector<2> TransformLocalPoint(float x, float y) const;
-	mmlVector<2> TransformWorldPoint(const mmlVector<2> &point) const;
-	mmlVector<2> TransformWorldPoint(float x, float y) const;
-
-	void Scale(float scaleFactor);
+	static mmlVector<2> Down( void );
+	static mmlVector<2> Right( void );
+	static mmlVector<2> Up( void );
+	static mmlVector<2> Left( void );
 };
 
-#endif // TRANSFORM_H
+#endif

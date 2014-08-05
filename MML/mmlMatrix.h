@@ -598,13 +598,23 @@ inline mmlMatrix<4,4> mmlViewMatrix(const mmlVector<3> &p_up, const mmlVector<3>
 }
 
 // Do not use this for perspective transform matrices
-inline mmlMatrix<4,4> mmlToOpenGLTransform(const mmlMatrix<4,4> &p_transform)
+inline mmlMatrix<4,4> mmlToOpenGLTransform3D(const mmlMatrix<4,4> &p_transform)
 {
 	return mmlMatrix<4,4>(
 		p_transform[0][0], p_transform[0][1], p_transform[0][2], 0.0f,
 		p_transform[1][0], p_transform[1][1], p_transform[1][2], 0.0f,
 		p_transform[2][0], p_transform[2][1], p_transform[2][2], 0.0f,
 		p_transform[0][3], p_transform[1][3], p_transform[2][3], 1.0f
+	);
+}
+
+inline mmlMatrix<4,4> mmlToOpenGLTransform2D(const mmlMatrix<3,3> &p_transform)
+{
+	return mmlMatrix<4,4>(
+		p_transform[0][0], p_transform[0][1], 0.0f, 0.0f,
+		p_transform[1][0], p_transform[1][1], 0.0f, 0.0f,
+		0.0f,              0.0f,              1.0f, 0.0f,
+		p_transform[0][2], p_transform[1][2], 0.0f, 1.0f
 	);
 }
 

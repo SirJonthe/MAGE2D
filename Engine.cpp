@@ -81,36 +81,21 @@ void Engine::DrawObjects( void )
 {
 	Engine::SetGameView();
 
-	//const mmlMatrix<3,3> viewTransform = (m_camera != NULL) ? (mmlInv(m_camera->GetTransform().GetWorldTransform())) : (mmlMatrix<3,3>::IdentityMatrix());
-	const mmlMatrix<2,2> rotation = m_camera != NULL ? mmlInv(m_camera->GetTransform().GetWorldRotation()) : mmlMatrix<2,2>::IdentityMatrix();
-	const mmlVector<2> position = m_camera != NULL ? -m_camera->GetTransform().GetWorldPosition() : mmlVector<2>(0.0f, 0.0f);
+	mmlMatrix<3,3> cameraView = m_camera != NULL ? mmlInv(m_camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
 
 	mtlNode<Object*> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible()) {
-			//Engine::SetObjectView(object->GetItem()->GetTransform());
-			//const mmlMatrix<3,3> t = object->GetItem()->GetTransform().GetWorldTransform() * viewTransform;
-			const mmlMatrix<2,2> r = object->GetItem()->GetTransform().GetWorldRotation() * rotation;
-			//const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position) * r; // multiply by r because we need to put position in 3,3 matrix
-			const mmlVector<2> p = (object->GetItem()->GetTransform().GetWorldPosition() + position);
-			/*GLfloat m[16] = {
-				t[0][0], t[0][1], 0.0f, 0.0f,
-				t[1][0], t[1][1], 0.0f, 0.0f,
-				0.0f,    0.0f,    1.0f, 0.0f,
-				t[0][2], t[1][2], 0.0f, 1.0f
-			};*/
-			/*GLfloat m[16] = {
-				t[0][0], t[1][0], 0.0f, 0.0f,
-				t[0][1], t[1][1], 0.0f, 0.0f,
-				0.0f,    0.0f,    1.0f, 0.0f,
-				t[0][2], t[1][2], 0.0f, 1.0f
-			};*/
+
+			const mmlMatrix<3,3> objectTransform = object->GetItem()->GetTransform().GetTransformMatrix(Transform::Global);
+			const mmlMatrix<3,3> f = cameraView * objectTransform;
 			GLfloat m[16] = {
-				r[0][0], r[1][0], 0.0f, 0.0f,
-				r[0][1], r[1][1], 0.0f, 0.0f,
+				f[0][0], f[0][1], 0.0f, 0.0f,
+				f[1][0], f[1][1], 0.0f, 0.0f,
 				0.0f, 0.0f, 1.0f, 0.0f,
-				p[0], p[1], 0.0f, 1.0f
+				f[0][2], f[1][2], 0.0f, 1.0f
 			};
+
 			glMatrixMode(GL_MODELVIEW);
 			glLoadMatrixf(m);
 			glColor4f(

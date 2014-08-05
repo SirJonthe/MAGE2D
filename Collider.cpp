@@ -238,7 +238,7 @@ void ColliderTree::RefreshTree( void )
 		const int y = GetSubquadY() * h;
 
 		BoxCollider box = BoxCollider(float(w), float(h));
-		box.GetTransform().SetLocalPosition(float(x), float(y));
+		box.GetTransform().SetPosition(Transform::Local, float(x), float(y));
 
 		mtlNode<Collider*> *collider = m_parent->GetCollider();
 		while (collider != NULL) {
@@ -360,45 +360,12 @@ void Collider::DisableRigidBody( void )
 	m_hasRigidBody = false;
 }
 
-/*bool PointCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
-{
-	if (!direction.IsNormalized()) { direction.NormalizeFast(); }
-	mmlVector<2> p = m_point - origin;
-	int px = (int)floor(p[0]);
-	int py = (int)floor(p[1]);
-	float len = p.Len();
-	mmlVector<2> l = direction * len;
-	int lx = (int)floor(l[0]);
-	int ly = (int)floor(l[1]);
-	return px == lx && py == ly;
-}
-
-bool PointCollider::CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex)
-{
-	if (!direction.IsNormalized()) { direction.NormalizeFast(); }
-	mmlVector<2> p = mmlNormalize(m_point - origin);
-	float dot = mmlDot(direction, p);
-	return dot >= 1.0f - apex && dot <= 1.0f + apex;
-}
-
-bool PointCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
-{
-	if (!normal.IsNormalized()) { normal.NormalizeFast(); }
-	return PointPlane(m_point, point, normal);
-}*/
-
-/*BoxCollider::BoxPoints BoxCollider::GetBoxPoints( void ) const
-{
-	BoxPoints b = { { m_box.min, mmlVector<2>(m_box.max[0], m_box.min[1]), m_box.max, mmlVector<2>(m_box.min[0], m_box.max[1]) } };
-	return b;
-}*/
-
 bool BoxCollider::CollidesWith(const BoxCollider &b) const
 {
-	const mmlVector<2> apos = GetTransform().GetWorldPosition();
+	const mmlVector<2> apos = GetTransform().GetPosition(Transform::Global);
 	const mmlVector<2> amin = apos - GetHalfExtents();
 	const mmlVector<2> amax = apos + GetHalfExtents();
-	const mmlVector<2> bpos = GetTransform().GetWorldPosition();
+	const mmlVector<2> bpos = b.GetTransform().GetPosition(Transform::Global);
 	const mmlVector<2> bmin = bpos - b.GetHalfExtents();
 	const mmlVector<2> bmax = bpos + b.GetHalfExtents();
 	return BoxBox(amin, amax, bmin, bmax);
@@ -406,10 +373,10 @@ bool BoxCollider::CollidesWith(const BoxCollider &b) const
 
 bool BoxCollider::CollidesWith(const CircleCollider &c) const
 {
-	const mmlVector<2> apos = GetTransform().GetWorldPosition();
+	const mmlVector<2> apos = GetTransform().GetPosition(Transform::Global);
 	const mmlVector<2> amin = apos - GetHalfExtents();
 	const mmlVector<2> amax = apos + GetHalfExtents();
-	const mmlVector<2> bcenter = c.GetTransform().GetWorldPosition();
+	const mmlVector<2> bcenter = c.GetTransform().GetPosition(Transform::Global);
 	return BoxCircle(amin, amax, bcenter, c.GetRadius());
 }
 
@@ -469,6 +436,75 @@ bool BoxCollider::Collides(const Collider &collider) const
 	return collider.CollidesWith(*this);
 }
 
+bool BoxCollider::Collides(const Ray &ray) const
+{
+	mmlVector<2> rdirection = ray.direction;
+	if (!rdirection.IsNormalized()) { rdirection.NormalizeFast(); }
+
+	mmlVector<2> boxPosition = GetTransform().GetPosition(Transform::Global);
+	mmlVector<2> b[4] = {
+		boxPosition - GetHalfExtents(),
+		boxPosition + mmlVector<2>(-GetHalfExtents()[0], GetHalfExtents()[1]),
+		boxPosition + GetHalfExtents(),
+		boxPosition + mmlVector<2>(GetHalfExtents()[0], -GetHalfExtents()[1])
+	};
+	mmlVector<2> r1 = ray.origin;
+	mmlVector<2> r2 = r1 + rdirection;
+	for (int i = 0, j = 3; i < 4; j = i, ++i) {
+		if (RayLine(r1, r2, b[j], b[i])) { return true; }
+	}
+	return false;
+}
+
+bool BoxCollider::Collides(const Range &range) const
+{
+	mmlVector<2> rdirection = range.direction;
+	if (!rdirection.IsNormalized()) { rdirection.NormalizeFast(); }
+
+	mmlVector<2> boxPosition = GetTransform().GetPosition(Transform::Global);
+	mmlVector<2> b[4] = {
+		boxPosition - GetHalfExtents(),
+		boxPosition + mmlVector<2>(-GetHalfExtents()[0], GetHalfExtents()[1]),
+		boxPosition + GetHalfExtents(),
+		boxPosition + mmlVector<2>(GetHalfExtents()[0], -GetHalfExtents()[1])
+	};
+
+	for (int i = 0; i < 4; ++i) {
+		mmlVector<2> pointToOriginNormal = mmlNormalize(range.origin - b[i]);
+		float range = mmlDot(pointToOriginNormal, rdirection);
+		if (range) {
+			return true;
+		}
+	}
+
+	mmlVector<2> r1 = range.origin;
+	mmlVector<2> r2 = r1 + rdirection;
+	for (int i = 0, j = 3; i < 4; j = i, ++i) {
+		if (RayLine(r1, r2, b[i], b[i])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool BoxCollider::Collides(const Plane &plane) const
+{
+	// point intersection tests
+	mmlVector<2> pnormal = plane.normal;
+	if (!pnormal.IsNormalized()) { pnormal.NormalizeFast(); }
+	mmlVector<2> boxPosition = GetTransform().GetPosition(Transform::Global);
+	mmlVector<2> b[4] = {
+		boxPosition - GetHalfExtents(),
+		boxPosition + mmlVector<2>(-GetHalfExtents()[0], GetHalfExtents()[1]),
+		boxPosition + GetHalfExtents(),
+		boxPosition + mmlVector<2>(GetHalfExtents()[0], -GetHalfExtents()[1])
+	};
+	return
+		PointPlane(b[0], plane.point, pnormal) || PointPlane(b[1], plane.point, pnormal) ||
+		PointPlane(b[2], plane.point, pnormal) || PointPlane(b[3], plane.point, pnormal);
+}
+
 mmlVector<2> BoxCollider::GetHalfExtents( void ) const
 {
 	return m_dimensions / 2.0f;
@@ -479,49 +515,10 @@ void BoxCollider::SetHalfExtents(const mmlVector<2> &halfExtents)
 	m_dimensions = mmlAbs(halfExtents) * 2.0f;
 }
 
-/*bool BoxCollider::CollidesRay(mmlVector<2> origin, mmlVector<2> direction)
-{
-	if (!direction.IsNormalized()) { direction.NormalizeFast(); }
-
-	BoxPoints b = GetBoxPoints();
-	mmlVector<2> r1 = origin;
-	mmlVector<2> r2 = r1 + direction;
-	for (int i = 0, j = 3; i < 4; j = i, ++i) {
-		if (RayLine(r1, r2, b.p[j], b.p[i])) { return true; }
-	}
-	return false;
-}
-
-bool BoxCollider::CollidesCone(mmlVector<2> origin, mmlVector<2> direction, float apex)
-{
-	// I don't know
-
-	// check all points to see if they are within cone
-	// if one or more points are inside
-		// return true
-	// if no point is inside cone
-		// check all box lines if they are intersecting with the cone lines (only need to check one of the lines, since if only one line is intersected then a point is inside the code, however, when we get here we have already determined that there are no points inside cone)
-		// if intersection
-			// return true
-	// return false
-
-	return false;
-}
-
-bool BoxCollider::CollidesPlane(mmlVector<2> point, mmlVector<2> normal)
-{
-	// point intersection tests
-	if (!normal.IsNormalized()) { normal.NormalizeFast(); }
-	BoxPoints b = GetBoxPoints();
-	return
-		PointPlane(b.p[0], point, normal) || PointPlane(b.p[1], point, normal) ||
-		PointPlane(b.p[2], point, normal) || PointPlane(b.p[3], point, normal);
-}*/
-
 bool CircleCollider::CollidesWith(const BoxCollider &b) const
 {
-	mmlVector<2> acenter = m_transform.GetWorldPosition();
-	mmlVector<2> bpos = b.GetTransform().GetWorldPosition();
+	mmlVector<2> acenter = m_transform.GetPosition(Transform::Global);
+	mmlVector<2> bpos = b.GetTransform().GetPosition(Transform::Global);
 	mmlVector<2> bmin = bpos - b.GetHalfExtents();
 	mmlVector<2> bmax = bpos + b.GetHalfExtents();
 	return BoxCircle(bmin, bmax, acenter, m_radius);
@@ -529,8 +526,8 @@ bool CircleCollider::CollidesWith(const BoxCollider &b) const
 
 bool CircleCollider::CollidesWith(const CircleCollider &c) const
 {
-	mmlVector<2> acenter = m_transform.GetWorldPosition();
-	mmlVector<2> bcenter = c.GetTransform().GetWorldPosition();
+	mmlVector<2> acenter = m_transform.GetPosition(Transform::Global);
+	mmlVector<2> bcenter = c.GetTransform().GetPosition(Transform::Global);
 	return CircleCircle(acenter, m_radius, bcenter, c.GetRadius());
 }
 

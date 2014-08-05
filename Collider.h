@@ -17,7 +17,6 @@ class Collider;
 class BoxCollider; // a box that is always axis aligned even after world transform (means that non-square boxes change shape when transformed)
 class CircleCollider;
 //class PolygonCollider; // arbitrarily shaped polygon
-//class LineSegmentCollider; // ??? (set max extents does not make sense for this)
 class ColliderTreeQuad;
 
 struct Ray
@@ -149,7 +148,6 @@ class Collider : public mtlBase
 	friend class BoxCollider;
 	friend class CircleCollider;
 	//friend class PolygonCollider;
-	//friend class LineSegmentCollider;
 
 protected:
 	Transform			m_transform; // position will be center of mass
@@ -169,7 +167,6 @@ protected:
 	virtual bool CollidesWith(const BoxCollider&) const { return false; }
 	virtual bool CollidesWith(const CircleCollider&) const { return false; }
 	//virtual bool CollidesWith(const PolygonCollider&) const { return false; }
-	//virtual bool CollidesWith(const LineSegmentCollider&) const { return false; }
 
 	float GetInverseMass( void ) const;
 
@@ -223,7 +220,6 @@ protected:
 	bool CollidesWith(const BoxCollider &b) const;
 	bool CollidesWith(const CircleCollider &c) const;
 	//bool CollidesWith(const PolygonCollider &p) const;
-	//bool CollidesWith(const LineSegmentCollider &l) const;
 
 public:
 	BoxCollider( void );
@@ -240,9 +236,9 @@ public:
 	void SetHeight(float height);
 
 	bool Collides(const Collider &collider) const;
-	//bool Collides(const Ray&) const;
-	//bool Collides(const Range&) const;
-	//bool Collides(const Plane&) const;
+	bool Collides(const Ray &ray) const;
+	bool Collides(const Range &range) const;
+	bool Collides(const Plane &plane) const;
 
 	mmlVector<2> GetHalfExtents( void ) const;
 	void SetHalfExtents(const mmlVector<2> &halfExtents);
@@ -257,7 +253,6 @@ protected:
 	bool CollidesWith(const BoxCollider &b) const;
 	bool CollidesWith(const CircleCollider &c) const;
 	//bool CollidesWith(const PolygonCollider &p) const;
-	//bool CollidesWith(const LineSegmentCollider &l) const;
 
 public:
 	CircleCollider( void );
@@ -284,26 +279,6 @@ protected:
 	bool CollidesWith(const BoxCollider &b) const;
 	bool CollidesWith(const CircleCollider &c) const;
 	bool CollidesWith(const PolygonCollider &p) const;
-	//bool CollidesWith(const LineSegmentCollider &l) const;
-
-public:
-	bool Collides(const Collider&) const;
-	bool Collides(const Ray&) const;
-	bool Collides(const Range&) const;
-	bool Collides(const Plane&) const;
-};*/
-
-/*class LineSegmentCollider : public mtlInherit<Collider>
-{
-private:
-	// position = m_p1
-	mmlVector<2> m_p2;
-
-protected:
-	bool CollidesWith(const BoxCollider &b) const;
-	bool CollidesWith(const CircleCollider &c) const;
-	bool CollidesWith(const PolygonCollider &p) const;
-	bool CollidesWith(const LineSegmentCollider &l) const;
 
 public:
 	bool Collides(const Collider&) const;

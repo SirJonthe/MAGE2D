@@ -21,6 +21,7 @@ class Anchor : public mtlInherit<Object>
 {
 protected:
 	void OnUpdate( void );
+	void OnDraw( void );
 };
 
 class FollowCamera : public mtlInherit<Object>
@@ -68,18 +69,22 @@ int main(int argc, char **argv)
 void Controllable::OnUpdate( void )
 {
 	if (GetEngine()->IsDown(SDLK_UP)) {
-		GetTransform().ApplyWorldTranslation(0.0f, -1.0f);
+		GetTransform().AxisTranslate(0.0f, -1.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_DOWN)) {
-		GetTransform().ApplyWorldTranslation(0.0f, 1.0f);
+		GetTransform().AxisTranslate(0.0f, 1.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_LEFT)) {
-		GetTransform().ApplyWorldTranslation(-1.0f, 0.0f);
-		//GetTransform().SetAxisXDirection(1.0f);
+		GetTransform().AxisTranslate(-1.0f, 0.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_RIGHT)) {
-		GetTransform().ApplyWorldTranslation(1.0f, 0.0f);
-		//GetTransform().SetAxisXDirection(-1.0f);
+		GetTransform().AxisTranslate(1.0f, 0.0f);
+	}
+	if (GetEngine()->IsDown(SDLK_a)) {
+		GetTransform().Rotate(-0.01f);
+	}
+	if (GetEngine()->IsDown(SDLK_s)) {
+		GetTransform().Rotate(0.01f);
 	}
 	if (GetEngine()->IsDown(SDLK_ESCAPE)) {
 		GetEngine()->EndGame();
@@ -88,7 +93,7 @@ void Controllable::OnUpdate( void )
 
 void Controllable::OnGUI( void )
 {
-	mmlMatrix<2,2> r = GetTransform().GetLocalRotation();
+	mmlMatrix<2,2> r = GetTransform().GetRotation(Transform::Local);
 	GUI::Text("Object={");
 	GUI::NewLine();
 	for (int i = 0; i < 2; ++i) {
@@ -101,7 +106,7 @@ void Controllable::OnGUI( void )
 	}
 	GUI::Text("}");
 	GUI::NewLine();
-	if (GetTransform().GetParentTransform() == NULL) {
+	if (GetTransform().GetParent() == NULL) {
 		GUI::SetColor(1.0f, 0.0f, 0.0f);
 		GUI::Text("Detached");
 	} else {
@@ -148,23 +153,30 @@ void Controllable::OnCollision(Object &collider)
 void Anchor::OnUpdate( void )
 {
 	if (GetEngine()->IsDown(SDLK_a)) {
-		GetTransform().ApplyRotation(-GetEngine()->GetDeltaTime());
+		GetTransform().Rotate(-GetEngine()->GetDeltaTime());
 	}
 	if (GetEngine()->IsDown(SDLK_s)) {
-		GetTransform().ApplyRotation(GetEngine()->GetDeltaTime());
+		GetTransform().Rotate(GetEngine()->GetDeltaTime());
 	}
 	if (GetEngine()->IsPressed(SDLK_SPACE)) {
 		mtlList<Object*> list;
 		GetEngine()->FilterByName(GetEngine()->GetObjects(), list, "object_controllable");
 		mtlNode<Object*> *node = list.GetFirst();
 		if (node != NULL) {
-			if (node->GetItem()->GetTransform().GetParentTransform() == NULL) {
-				node->GetItem()->GetTransform().SetParentTransform(&GetTransform());
+			if (node->GetItem()->GetTransform().GetParent() == NULL) {
+				node->GetItem()->GetTransform().SetParent(Transform::Global, &GetTransform());
 			} else {
-				node->GetItem()->GetTransform().SetParentTransform(NULL);
+				node->GetItem()->GetTransform().SetParent(Transform::Global, NULL);
 			}
 		}
 	}
+}
+
+void Anchor::OnDraw( void )
+{
+	Rect r = { 0,0,10,10 };
+	GUI::SetColor(1.0f, 0.0f, 1.0f);
+	GUI::Box(r);
 }
 
 Controllable::Controllable( void )
@@ -184,14 +196,14 @@ void FollowCamera::OnInit( void )
 void FollowCamera::OnUpdate( void )
 {
 	if (m_follow != NULL) {
-		GetTransform().SetLocalPosition(m_follow->GetTransform().GetLocalPosition());
+		GetTransform().SetPosition(Transform::Local, m_follow->GetTransform().GetPosition(Transform::Local));
 	}
 }
 
 void FollowCamera::OnGUI( void )
 {
 	GUI::SetColor(1.0f, 1.0f, 0.0f);
-	mmlVector<2> p = GetTransform().GetLocalPosition();
+	mmlVector<2> p = GetTransform().GetPosition(Transform::Local);
 	GUI::Text("Camera=");
 	GUI::Text(p[0]); GUI::Text(";"); GUI::Text(p[1]);
 	GUI::NewLine();
@@ -301,14 +313,9 @@ void Unit_RegisteredObjects( void )
 void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
-	//Object *camera = engine.AddObject("Object");
 	Object *a = engine.AddObject("Controllable");
 	Object *c = engine.AddObject("FollowCamera");
-	//Object *d = engine.AddObject<Object>();
-	//d->GetTransform().SetLocalPosition(5, 5);
-	//a->GetTransform().SetParentTransform(&d->GetTransform());
 	engine.SetCamera(c);
-	//engine.SetCamera(camera);
 	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
@@ -327,7 +334,7 @@ void Unit_Controllable(Engine &engine)
 	b->LoadCollider<BoxCollider>();
 
 	Object *d = engine.AddObject("Anchor");
-	a->GetTransform().SetParentTransform(&d->GetTransform(), false);
+	a->GetTransform().SetParent(Transform::Local, &d->GetTransform());
 
 	engine.RunGame();
 }

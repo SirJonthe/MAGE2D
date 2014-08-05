@@ -5,7 +5,6 @@ Transforms
 	positions must be affected by parent transforms, but not its own transform
 		how to I reverse these effects (for SetWorld* and SetParent)?
 Collisions
-	Per pixel
 	Box
 	Polygon
 	Circle
@@ -15,11 +14,7 @@ Physics?
 	Remember:
 		Physics act on transforms' World locations (not local locations)
 More randomizer functions in engine
-	Own random function
 	Non linear randomizer
-More sophisticated way of handling events
-	Object registers a callback for the events that it is interested in handling
-	Alternatively, compose all separate events into a large state that can be checked in O(1) time instead of O(n)
 According to asset manager: "/home/jonathan/Code/SGE2D/Debug/test.bmp" is not same as relative file "test.bmp"
 	Fix so that the engine detects absolute and relative files so that there is no risk of loading something twice
 Define a safe way to reference objects inside engine
@@ -70,6 +65,8 @@ Engine filtering of object list
 --DEBUG--
 ---------
 Transforms
+	SetParent(0xffffffff, true)
+		The position calculation is wrong since it takes no account for rotation
 
 -------------
 --WHEN DONE--
@@ -84,10 +81,7 @@ Compiler warnings
 --------
 --BUGS--
 --------
-Transform
-	ApplyWorldTranslation
-	ApplyLocalRotation?
-		Transform: SetAxisXDirection and SetAxisYDirection might need to flip both components
+Valgrind is warning about a 4 byte overwrite in Object::Draw and Image does not render properly (must be something about triangle strip rendering)
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?
 	Not finding other entries because only first entry is stored?

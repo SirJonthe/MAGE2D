@@ -1,225 +1,360 @@
-#include "Transform.h"
+//
+//  Transform.cpp
+//  Transform
+//
+//  Created by Jonathan Karlsson on 8/2/14.
+//  Copyright (c) 2014 Jonathan Karlsson. All rights reserved.
+//
 
-mmlMatrix<2,2> Transform::GetParentWorldRotation( void ) const
+#include "Transform.h"
+#include <cstdlib>
+
+mmlMatrix<2,2> Transform::RotationMatrix(float angle)
+{
+	const float Sin = sin(angle);
+	const float Cos = cos(angle);
+
+	mmlMatrix<2,2> r;
+	r[0][0] = Cos; r[0][1] = -Sin;
+	r[1][0] = Sin; r[1][1] = Cos;
+	
+	return r;
+}
+
+mmlMatrix<2,2> Transform::GetParentRotation( void ) const
 {
 	if (m_parent != NULL) {
-		return m_parent->GetWorldRotation();
+		return m_parent->m_rotation * m_parent->GetParentRotation();
 	}
 	return mmlMatrix<2,2>::IdentityMatrix();
 }
 
-mmlVector<2> Transform::GetParentWorldPosition( void ) const
+mmlVector<2> Transform::GetParentPosition( void ) const
 {
-	mmlVector<2> p;
 	if (m_parent != NULL) {
-		p = m_parent->GetWorldPosition();
-	} else {
-		p[0] = 0.0f;
-		p[1] = 0.0f;
+		return m_parent->GetPosition(Global);
 	}
-	return p;
+	return mmlVector<2>(0.0f, 0.0f);
 }
 
-mmlMatrix<2,2> Transform::GetRotationMatrix(float angle)
+float Transform::GetParentScaleX( void ) const
 {
-	const float SIN = sin(angle);
-	const float COS = cos(angle);
-	mmlMatrix<2,2> m;
-	m[0][0] = COS; m[0][1] = -SIN;
-	m[1][0] = SIN; m[1][1] = COS;
-	return m;
+	if (m_parent != NULL) {
+		return m_parent->GetScaleX(Global);
+	}
+	return 1.0f;
 }
 
-/*mmlMatrix<3,3> Transform::GetLocalTransformMatrix( void ) const
+float Transform::GetParentScaleY( void ) const
 {
-	// position = (0,0) * 3x3(rot, x)
-	// solve for position x
-}*/
+	if (m_parent != NULL) {
+		return m_parent->GetScaleY(Global);
+	}
+	return 1.0f;
+}
 
-Transform::Transform( void ) : m_parent(NULL), m_rotation(mmlMatrix<2,2>::IdentityMatrix()), m_position(0.0f, 0.0f, 0.0f), m_name()
+Transform::Transform( void ) : m_position(0.0f, 0.0f), m_rotation(mmlMatrix<2,2>::IdentityMatrix()), m_parent(NULL)
 {}
 
-Transform::Transform(const Transform &transform) : m_parent(transform.m_parent), m_rotation(transform.m_rotation), m_position(transform.m_position)
-{
-	m_name.Copy(transform.m_name);
-}
-
-Transform &Transform::operator =(const Transform &transform)
-{
-	if (&transform != this) {
-		m_parent = transform.m_parent;
-		m_rotation = transform.m_rotation;
-		m_position = transform.m_position;
-		m_name.Copy(transform.m_name);
-	}
-	return *this;
-}
-
-const Transform *Transform::GetParentTransform( void ) const
+const Transform *Transform::GetParent( void ) const
 {
 	return m_parent;
 }
 
-void Transform::SetParentTransform(const Transform *parent, bool preserve)
+void Transform::SetParent(Transform::Space space, const Transform *parent)
 {
-	if (preserve) {
+	if (m_parent == parent) { return; }
+	
+	if (space == Global) {
 		if (parent == NULL) {
-			m_position = GetWorldPosition();
-			m_rotation = GetWorldRotation();
+			m_position = GetPosition(Global);
+			m_rotation = GetRotation(Global);
 		} else {
 			// GetWorldRotation() = parent->GetWorldRotation() * X;
 			// X = new local rotation (m_rotation)
 			//	inv(parent->GetWorldRotation()) * parent->GetWorldRotation() = I
 			//	inv(parent->GetWorldRotation()) * GetWorldRotation() = inv(parent->GetWorldRotation()) * parent->GetWorldRotation() * X
 			//	inv(parent->GetWorldRotation()) * parent->GetWorldRotation() * X = X
-			SetWorldPosition(parent->GetWorldPosition() + m_position);
-			m_rotation = mmlInv(parent->GetWorldRotation()) * GetWorldRotation();
+			mmlMatrix<2,2> parentRotation = parent->GetRotation(Global);
+			m_position = (GetPosition(Global) - parent->GetPosition(Global)) * parentRotation;
+			m_rotation = mmlInv(parentRotation) * GetRotation(Global);
 		}
+		m_parent = parent;
+	} else if (space == Local) {
+		m_parent = parent;
 	}
-	m_parent = parent;
 }
 
-const mtlString &Transform::GetName( void ) const
+mmlVector<2> Transform::GetPosition(Transform::Space space) const
 {
-	return m_name;
+	if (space == Local) {
+		return m_position;
+	} else if (space == Global) {
+		return m_position * mmlInv(GetParentRotation()) + GetParentPosition();
+	}
+	return mmlVector<2>(0.0f, 0.0f);
 }
 
-const mmlMatrix<2,2> &Transform::GetLocalRotation( void ) const
+void Transform::SetPosition(Transform::Space space, mmlVector<2> position)
 {
-	return m_rotation;
+	if (space == Local) {
+		m_position = position;
+	} else if (space == Global) {
+		mmlVector<2> vector = (position - GetPosition(Global)) * RotationMatrix(GetAngle(Global) - GetAngle(Local));
+		m_position += vector;
+	}
 }
 
-mmlMatrix<2,2> Transform::GetWorldRotation( void ) const
+void Transform::SetPosition(Transform::Space space, float x, float y)
 {
-	//return m_rotation * GetParentWorldRotation();
-	return GetParentWorldRotation() * m_rotation;
+	SetPosition(space, mmlVector<2>(x, y));
 }
 
-void Transform::SetName(const mtlChars &name)
+void Transform::Translate(Transform::Space space, mmlVector<2> vector)
 {
-	m_name.Copy(name);
+	SetPosition(space, GetPosition(space) + vector);
 }
 
-const mmlVector<2> &Transform::GetLocalPosition( void ) const
+void Transform::Translate(Transform::Space space, float x, float y)
 {
-	return m_position;
+	Translate(space, mmlVector<2>(x, y));
 }
 
-void Transform::SetLocalPosition(float x, float y)
+void Transform::AxisTranslate(float x, float y)
 {
-	m_position[0] = x;
-	m_position[1] = y;
+	m_position += GetAxisX(Local) * x + GetAxisY(Local) * y;
 }
 
-void Transform::SetLocalPosition(const mmlVector<2> &position)
+void Transform::AxisTranslate(mmlVector<2> vector)
 {
-	m_position = position;
+	AxisTranslate(vector[0], vector[1]);
 }
 
-mmlVector<2> Transform::GetWorldPosition( void ) const
+mmlMatrix<2,2> Transform::GetRotation(Transform::Space space) const
 {
-	return m_position + GetParentWorldPosition();
+	if (space == Local) {
+		return m_rotation;
+	} else if (space == Global) {
+		return m_rotation * GetParentRotation();
+	}
+	return mmlMatrix<2,2>::IdentityMatrix();
 }
 
-void Transform::SetWorldPosition(float x, float y)
+void Transform::SetRotation(Transform::Space space, float angle)
 {
-	SetWorldPosition(mmlVector<2>(x, y));
+	if (space == Local) {
+		m_rotation = RotationMatrix(angle);
+		m_rotation[0] *= GetScaleX(Local);
+		m_rotation[1] *= GetScaleY(Local);
+	} else if (space == Global) {
+		m_rotation = RotationMatrix(GetAngle(Local) + angle - GetAngle(Global));
+		m_rotation[0] *= GetScaleX(Local);
+		m_rotation[1] *= GetScaleY(Local);
+	}
 }
 
-void Transform::SetWorldPosition(const mmlVector<2> &position)
+void Transform::SetIdentity(Transform::Space space)
 {
-	m_position += (position - GetWorldPosition());
+	if (space == Local) {
+		m_rotation = mmlMatrix<2,2>::IdentityMatrix();
+	} else if (space == Global) {
+		Transform t;
+		t.SetParent(Global, m_parent);
+		m_rotation = t.m_rotation;
+	}
 }
 
-const mmlVector<2> &Transform::GetLocalAxisX( void ) const
+float Transform::GetAngle(Transform::Space space) const
 {
-	return m_rotation[0];
+	mmlMatrix<2,2> m = GetRotation(space);
+	return atan2(m[1][0], m[0][0]);
 }
 
-const mmlVector<2> &Transform::GetLocalAxisY( void ) const
+void Transform::Rotate(float angle)
 {
-	return m_rotation[1];
+	m_rotation *= RotationMatrix(angle);
 }
 
-mmlVector<2> Transform::GetWorldAxisX( void ) const
+void Transform::Rotate(Transform::Space space, mmlVector<2> point, float angle)
 {
-	return m_rotation[0] * GetParentWorldRotation();
+	if (space == Global) {
+		point = TransformPoint(Global, point);
+	}
+	mmlMatrix<2,2> r = RotationMatrix(angle);
+	m_rotation *= r;
+	m_position -= point;
+	m_position *= r;
+	m_position += point;
 }
 
-mmlVector<2> Transform::GetWorldAxisY( void ) const
+void Transform::Rotate(Transform::Space space, float x, float y, float angle)
 {
-	return m_rotation[1] * GetParentWorldRotation();
+	Rotate(space, mmlVector<2>(x, y), angle);
 }
 
-mmlVector<2> Transform::AbsoluteUp( void )
+mmlVector<2> Transform::GetAxisX(Transform::Space space) const
 {
-	const static mmlVector<2> xAxis(1.0f, 0.0f);
-	return xAxis;
+	if (space == Local) {
+		return mmlNormalize(m_rotation[0]);
+	} else if (space == Global) {
+		return mmlNormalize(GetRotation(Global)[0]);
+	}
+	return mmlVector<2>(1.0f, 0.0f);
 }
 
-mmlVector<2> Transform::AbsoluteRight( void )
+void Transform::SetAxisX(Transform::Space space, mmlVector<2> normal)
 {
-	const static mmlVector<2> yAxis(0.0f, 1.0f);
-	return yAxis;
+	if (!normal.IsNormalized()) { normal.Normalize(); }
+	Transform t;
+	t.m_rotation[0] = normal;
+	t.m_rotation[1][0] = -normal[1];
+	t.m_rotation[1][1] = normal[0];
+	m_rotation *= RotationMatrix(t.GetAngle(Local) - GetAngle(space));
 }
 
-void Transform::ApplyLocalTranslation(float x, float y)
+void Transform::FlipAxisX( void )
 {
-	m_position[0] += x;
-	m_position[1] += y;
+	m_rotation[0] = -m_rotation[0];
 }
 
-void Transform::ApplyLocalTranslation(const mmlVector<2> &translation)
+mmlVector<2> Transform::GetAxisY(Transform::Space space) const
 {
-	m_position += translation;
+	if (space == Local) {
+		return mmlNormalize(m_rotation[1]);
+	} else if (space == Global) {
+		return mmlNormalize(GetRotation(Global)[1]);
+	}
+	return mmlVector<2>(0.0f, 1.0f);
 }
 
-void Transform::ApplyWorldTranslation(float x, float y)
+void Transform::SetAxisY(Transform::Space space, mmlVector<2> normal)
 {
-	ApplyWorldTranslation(mmlVector<2>(x, y));
+	if (!normal.IsNormalized()) { normal.Normalize(); }
+	Transform t;
+	t.m_rotation[1] = normal;
+	t.m_rotation[0][0] = normal[1];
+	t.m_rotation[0][1] = -normal[0];
+	m_rotation *= RotationMatrix(t.GetAngle(Local) - GetAngle(space));
 }
 
-void Transform::ApplyWorldTranslation(const mmlVector<2> &translation)
+void Transform::FlipAxisY( void )
 {
-	const mmlVector<2> worldTrans = translation * GetWorldRotation();
-	ApplyLocalTranslation(worldTrans);
+	m_rotation[1] = -m_rotation[1];
 }
 
-void Transform::ApplyRotation(float angle)
+float Transform::GetScaleX(Transform::Space space) const
 {
-	m_rotation *= GetRotationMatrix(angle);
+	return GetRotation(space)[0].Len();
 }
 
-void Transform::ApplyRotation(const mmlVector<2> &around, float angle)
+void Transform::SetScaleX(Transform::Space space, float scale)
 {
-	mmlMatrix<2,2> rot = GetRotationMatrix(angle);
-	m_rotation *= rot;
-	m_position -= around;
-	m_position *= rot;
-	m_position += around;
+	if (space == Local) {
+		m_rotation[0] = mmlNormalize(m_rotation[0]) * scale;
+	} else if (space == Global) {
+		m_rotation[0] = mmlNormalize(m_rotation[0]) * (GetParentScaleX() / scale);
+	}
 }
 
-mmlVector<2> Transform::TransformLocalPoint(const mmlVector<2> &point) const
+float Transform::GetScaleY(Transform::Space space) const
 {
-	return (point * m_rotation) + m_position;
+	return GetRotation(space)[1].Len();
 }
 
-mmlVector<2> Transform::TransformLocalPoint(float x, float y) const
+void Transform::SetScaleY(Transform::Space space, float scale)
 {
-	return TransformLocalPoint(mmlVector<2>(x, y));
+	if (space == Local) {
+		m_rotation[1] = mmlNormalize(m_rotation[1]) * scale;
+	} else if (space == Global) {
+		m_rotation[1] = mmlNormalize(m_rotation[1]) * (GetParentScaleY() / scale);
+	}
 }
 
-mmlVector<2> Transform::TransformWorldPoint(const mmlVector<2> &point) const
+void Transform::Scale(float scale)
 {
-	return (point * GetWorldRotation()) + GetWorldPosition();
+	m_rotation[0] *= scale;
+	m_rotation[1] *= scale;
 }
 
-mmlVector<2> Transform::TransformWorldPoint(float x, float y) const
+void Transform::Scale(float x, float y)
 {
-	return TransformWorldPoint(x, y);
+	m_rotation[0] *= x;
+	m_rotation[1] *= y;
 }
 
-void Transform::Scale(float scaleFactor)
+void Transform::Scale(mmlVector<2> scale)
 {
-	m_rotation *= mmlMatrix<2,2>::ScaleMatrix(scaleFactor);
+	m_rotation[0] *= scale[0];
+	m_rotation[1] *= scale[1];
+}
+
+void Transform::ScaleX(float scale)
+{
+	m_rotation[0] *= scale;
+}
+
+void Transform::ScaleY(float scale)
+{
+	m_rotation[1] *= scale;
+}
+
+mmlVector<2> Transform::TransformPoint(Space space, mmlVector<2> point) const
+{
+	Transform t;
+	if (space == Global) { // point is in global space, transform it to local space
+		t.SetParent(Global, this);
+		t.SetPosition(Global, point);
+		return t.GetPosition(Local);
+	} else if (space == Local) { // point is in local space, transform it to global space
+		t.SetPosition(Local, point);
+		t.SetParent(Local, this);
+		return t.GetPosition(Global);
+	}
+	return t.GetPosition(Local);
+}
+
+mmlVector<2> Transform::TransformPoint(Space space, float x, float y) const
+{
+	return TransformPoint(space, mmlVector<2>(x, y));
+}
+
+Transform Transform::GetIndependentTransform(Transform::Space space) const
+{
+	Transform t;
+	t.m_position = GetPosition(space);
+	t.m_rotation = GetRotation(space);
+	return t;
+}
+
+mmlMatrix<3,3> Transform::GetTransformMatrix(Transform::Space space) const
+{
+	mmlMatrix<2,2> r = GetRotation(space);
+	mmlVector<2> p = GetPosition(space);
+	return mmlMatrix<3,3>(
+		r[0][0], r[0][1], p[0],
+		r[1][0], r[1][1], p[1],
+		0.0f, 0.0f, 1.0f
+	);
+}
+
+mmlVector<2> Transform::Down( void )
+{
+	static mmlVector<2> down = mmlVector<2>(0.0f, 1.0f);
+	return down;
+}
+
+mmlVector<2> Transform::Right( void )
+{
+	static mmlVector<2> right = mmlVector<2>(1.0f, 0.0f);
+	return right;
+}
+
+mmlVector<2> Transform::Up( void )
+{
+	return -Down();
+}
+
+mmlVector<2> Transform::Left( void )
+{
+	return -Right();
 }
