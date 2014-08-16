@@ -2,6 +2,177 @@
 
 #define RoundErr 0.001f
 
+UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
+{
+	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
+
+	UnaryCollisionInfo info;
+	info.collider = NULL;
+	info.collision = false;
+
+	mmlVector<2> r1 = r.origin;
+	mmlVector<2> r2 = (r.length >= 0.0f) ? r.origin + r.direction * r.length : r.origin + r.direction;
+
+	float rCross = Cross2D(r1, r2);
+	float lCross = Cross2D(a, b);
+	float div = 1.0f / Cross2D(r1 - r2, a - b);
+
+	mmlVector<2> point = ((a - b) * rCross - (r1 - r2) * lCross) * div;
+
+	mmlVector<2> ln1 = mmlNormalizeFast(b - a);
+	mmlVector<2> ln2 = -ln1;
+	mmlVector<2> pn1 = mmlNormalizeFast(a - point);
+	mmlVector<2> pn2 = mmlNormalizeFast(b - point);
+
+	float dl1 = mmlDot(ln1, pn1);
+	float dl2 = mmlDot(ln2, pn2);
+
+	if (dl1 >= 1.0f - RoundErr && dl1 <= 1.0f + RoundErr && dl2 >= 1.0f - RoundErr && dl2 <= 1.0f + RoundErr) {
+		if (r.length >= 0.0f) {
+			mmlVector<2> rn1 = mmlNormalizeFast(r2 - r1);
+			mmlVector<2> rn2 = -rn2;
+			mmlVector<2> prn1 = mmlNormalizeFast(r1 - point);
+			mmlVector<2> prn2 = mmlNormalizeFast(r2 - point);
+
+			float dr1 = mmlDot(rn1, prn1);
+			float dr2 = mmlDot(rn2, prn2);
+
+			info.collision = (dr1 >= 1.0f - RoundErr && dr1 <= 1.0f + RoundErr && dr2 >= 1.0f - RoundErr && dr2 <= 1.0f - RoundErr);
+		} else {
+			info.collision = true;
+		}
+	}
+
+	if (info.collision) {
+		info.contactPoints.Create(1);
+		info.contactPoints[0] = point;
+		//info.reflection.Create(1);
+		//info.reflection[0] = mmlReflect(r.direction, LineNormal(a, b));
+	}
+
+	return info;
+}
+
+UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a)
+{
+	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
+	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
+
+	UnaryCollisionInfo info;
+	info.collider = NULL;
+	info.collision = false;
+
+	mmlVector<2> normal = mmlNormalize(r.origin - a);
+	float range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
+	float halfApex = r.apexRadians / 2.0f;
+	if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
+		info.contactPoints.Create(1);
+		info.contactPoints[0] = a;
+		info.collision = true;
+	}
+
+	return info;
+}
+
+UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b)
+{
+	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
+	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
+
+	UnaryCollisionInfo info;
+	info.collider = NULL;
+	info.collision = false;
+	info.contactPoints.SetCapacity(2);
+
+	float halfApex = r.apexRadians / 2.0f;
+	mmlVector<2> normal;
+	float range;
+
+	if (r.length <= 0.0f || mmlDist(r.origin - a) <= r.length) {
+		normal = mmlNormalize(r.origin - a);
+		range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
+		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
+			info.collision = true;
+			info.contactPoints.Add(a);
+		}
+	}
+
+	if (r.length <= 0.0f || mmlDist(r.origin - b) <= r.length) {
+		normal = mmlNormalize(r.origin - b);
+		range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
+		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
+			info.collision = true;
+			info.contactPoints.Add(b);
+		}
+	}
+
+	mmlVector<2> dir1 = r.direction * mml2DRotationMatrix(halfApex);
+	mmlVector<2> dir2 = r.direction - (dir1 - r.direction);
+	Ray ray1 = { r.origin, dir1, r.length };
+	Ray ray2 = { r.origin, dir2, r.length };
+
+	RayCollisionInfo rayInfo = RayCollide(ray1, a, b);
+	if (rayInfo.collision) {
+		info.collision = true;
+		info.contactPoints.Add(info.contactPoints[0]);
+	}
+
+	rayInfo = RayCollide(ray2, a, b);
+	if (rayInfo.collision) {
+		info.collision = true;
+		info.contactPoints.Add(info.contactPoints[0]);
+	}
+
+	return info;
+}
+
+UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a)
+{
+	if (!p.normal.IsNormalized()) { p.normal.NormalizeFast(); }
+
+	UnaryCollisionInfo info;
+	info.collision = false;
+	info.collider = NULL;
+
+	if (mmlDot(p.normal, p.point - a) <= 0.0f) {
+		info.collision = true;
+		info.contactPoints.Create(1);
+		info.contactPoints[0] = a;
+	}
+
+	return info;
+}
+
+UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a, mmlVector<2> b)
+{
+	if (!p.normal.IsNormalized()) { p.normal.NormalizeFast(); }
+
+	UnaryCollisionInfo info;
+	info.collision = false;
+	info.collider = NULL;
+	info.contactPoints.SetCapacity(2);
+
+	float a_dist = mmlDot(p.normal, p.point - a);
+	float b_dist = mmlDot(p.normal, p.point - b);
+	bool a_inside = (a_dist <= 0.0f);
+	bool b_inside = (b_dist <= 0.0f);
+
+	if (a_inside != b_inside) {
+		info.contactPoints.Add(a + (b - a) * (a_dist / (a_dist - b_dist)));
+	}
+
+	if (a_inside) {
+		info.collision = true;
+		info.contactPoints.Add(a);
+	}
+	if (b_inside) {
+		info.collision = true;
+		info.contactPoints.Add(b);
+	}
+
+	return info;
+}
+
 void GetBoxPoints(mmlVector<2> min, mmlVector<2> max, mmlVector<2> (&out)[4])
 {
 	out[0] = min;
@@ -442,7 +613,7 @@ bool BoxCollider::Collides(const Ray &ray) const
 	if (!rdirection.IsNormalized()) { rdirection.NormalizeFast(); }
 
 	mmlVector<2> boxPosition = GetTransform().GetPosition(Transform::Global);
-	mmlVector<2> b[4] = {
+	mmlVector<2> b[4] = { // WRONG
 		boxPosition - GetHalfExtents(),
 		boxPosition + mmlVector<2>(-GetHalfExtents()[0], GetHalfExtents()[1]),
 		boxPosition + GetHalfExtents(),
@@ -462,7 +633,7 @@ bool BoxCollider::Collides(const Range &range) const
 	if (!rdirection.IsNormalized()) { rdirection.NormalizeFast(); }
 
 	mmlVector<2> boxPosition = GetTransform().GetPosition(Transform::Global);
-	mmlVector<2> b[4] = {
+	mmlVector<2> b[4] = { // WRONG
 		boxPosition - GetHalfExtents(),
 		boxPosition + mmlVector<2>(-GetHalfExtents()[0], GetHalfExtents()[1]),
 		boxPosition + GetHalfExtents(),
@@ -471,8 +642,9 @@ bool BoxCollider::Collides(const Range &range) const
 
 	for (int i = 0; i < 4; ++i) {
 		mmlVector<2> pointToOriginNormal = mmlNormalize(range.origin - b[i]);
-		float range = mmlDot(pointToOriginNormal, rdirection);
-		if (range) {
+		float range = (mmlDot(pointToOriginNormal, rdirection) + 1.0f) * mmlPI;
+		float halfApex = range.apexRadians;
+		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
 			return true;
 		}
 	}
@@ -494,7 +666,7 @@ bool BoxCollider::Collides(const Plane &plane) const
 	mmlVector<2> pnormal = plane.normal;
 	if (!pnormal.IsNormalized()) { pnormal.NormalizeFast(); }
 	mmlVector<2> boxPosition = GetTransform().GetPosition(Transform::Global);
-	mmlVector<2> b[4] = {
+	mmlVector<2> b[4] = { // MAKE NON-AXIS-ALIGNED?
 		boxPosition - GetHalfExtents(),
 		boxPosition + mmlVector<2>(-GetHalfExtents()[0], GetHalfExtents()[1]),
 		boxPosition + GetHalfExtents(),

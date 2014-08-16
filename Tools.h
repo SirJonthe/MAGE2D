@@ -8,7 +8,7 @@
 class KillPlane : public mtlInherit<Object>
 {
 protected:
-	void OnCollision(Object &collider);
+	void OnUpdate( void );
 public:
 	KillPlane( void ); // grab all collisions, is defined as nothing, set collision shape to plane
 };

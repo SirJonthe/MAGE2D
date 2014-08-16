@@ -250,14 +250,14 @@ void GUI::Destroy( void )
 	glDeleteTextures(1, &tId);
 }
 
-void GUI::SetGUIView( void )
+/*void GUI::SetGUIView( void )
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-0.5, (SDL_GetVideoSurface()->w - 1) + 0.5, (SDL_GetVideoSurface()->h - 1) + 0.5, -0.5, 0.0, 1.0);
-}
+}*/
 
 void GUI::SetColor(float r, float g, float b, float a)
 {
@@ -272,6 +272,26 @@ void GUI::SetColor(mmlVector<3> color)
 void GUI::SetColor(mmlVector<4> color)
 {
 	glColor4f(color[0], color[1], color[2], color[3]);
+}
+
+int GUI::U_To_X(float u)
+{
+	return int(u * (SDL_GetVideoSurface()->w - 1));
+}
+
+int GUI::V_To_Y(float v)
+{
+	return int(v * (SDL_GetVideoSurface()->h - 1));
+}
+
+float GUI::X_To_U(int x)
+{
+	return float(x) / float(SDL_GetVideoSurface()->w - 1);
+}
+
+float GUI::Y_To_V(int y)
+{
+	return float(y) / float(SDL_GetVideoSurface()->h - 1);
 }
 
 void GUI::SetCaretXY(int x, int y)
@@ -292,18 +312,18 @@ void GUI::SetCaretY(int y)
 
 void GUI::SetCaretUV(float u, float v)
 {
-	CaretX() = u * (SDL_GetVideoSurface()->w - 1);
-	CaretY() = v * (SDL_GetVideoSurface()->h - 1);
+	CaretX() = U_To_X(u);
+	CaretY() = V_To_Y(v);
 }
 
 void GUI::SetCaretU(float u)
 {
-	CaretX() = u * (SDL_GetVideoSurface()->w - 1);
+	CaretX() = U_To_X(u);
 }
 
 void GUI::SetCaretV(float v)
 {
-	CaretY() = v * (SDL_GetVideoSurface()->h - 1);
+	CaretY() = V_To_Y(v);
 }
 
 Point GUI::GetCaretXY( void )
@@ -329,22 +349,22 @@ mmlVector<2> GUI::GetCaretUV( void )
 
 float GUI::GetCaretU( void )
 {
-	return float(CaretX()) / float(SDL_GetVideoSurface()->w - 1);
+	return X_To_U(GetCaretX());
 }
 
 float GUI::GetCaretV( void )
 {
-	return float(CaretY()) / float(SDL_GetVideoSurface()->h - 1);
+	return Y_To_V(GetCaretY());
 }
 
-void GUI::NewLine( void )
+void GUI::NewLine(int scale)
 {
 	CaretX() = 0;
 	CaretY() += Newl();
-	Newl() = 0;
+	Newl() = char_px_height * mmlMax2(scale, 1);
 }
 
-void GUI::Text(const mtlChars &text, int scale)
+void GUI::Print(const mtlChars &text, int scale)
 {
 	if (text.GetSize() == 0) { return; }
 	scale = mmlMax2(1, scale);
@@ -420,58 +440,18 @@ void GUI::Text(const mtlChars &text, int scale)
 	CaretY() += int(oy);
 }
 
-void GUI::Text(const mtlChars &text, int x, int y, int scale)
-{
-	SetCaretXY(x, y);
-	Text(text, scale);
-}
-
-void GUI::Text(const mtlChars &text, float u, float v, int scale)
-{
-	SetCaretUV(u, v);
-	Text(text, scale);
-}
-
-void GUI::Text(int number, int scale)
+void GUI::Print(int number, int scale)
 {
 	mtlString text;
 	text.FromInt(number);
-	Text(text, scale);
+	Print(text, scale);
 }
 
-void GUI::Text(int number, int x, int y, int scale)
-{
-	mtlString text;
-	text.FromInt(number);
-	Text(text, x, y, scale);
-}
-
-void GUI::Text(int number, float u, float v, int scale)
-{
-	mtlString text;
-	text.FromInt(number);
-	Text(text, u, v, scale);
-}
-
-void GUI::Text(float number, int scale)
+void GUI::Print(float number, int scale)
 {
 	mtlString text;
 	text.FromFloat(number);
-	Text(text, scale);
-}
-
-void GUI::Text(float number, int x, int y, int scale)
-{
-	mtlString text;
-	text.FromFloat(number);
-	Text(text, x, y, scale);
-}
-
-void GUI::Text(float number, float u, float v, int scale)
-{
-	mtlString text;
-	text.FromFloat(number);
-	Text(text, u, v, scale);
+	Print(text, scale);
 }
 
 void GUI::Box(Rect rect)
@@ -542,4 +522,185 @@ int GUI::GetCharPixelWidth(int scale)
 int GUI::GetCharPixelHeight(int scale)
 {
 	return char_px_height * scale;
+}
+
+GUI::Manager::Manager( void ) : m_windows(), m_focus(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_textCaretX(0), m_textCaretY(0), m_newlineHeight(char_px_height)
+{}
+
+GUI::Manager::~Manager( void )
+{
+}
+
+void GUI::Manager::Destroy( void )
+{
+	m_focus.Delete();
+	m_windows.RemoveAll();
+}
+
+void GUI::Manager::SetTextColor(float r, float g, float b, float a)
+{
+	m_color[0] = r;
+	m_color[1] = g;
+	m_color[2] = b;
+	m_color[3] = a;
+}
+
+void GUI::Manager::SetTextColor(mmlVector<4> color)
+{
+	m_color = color;
+}
+
+void GUI::Manager::SetTextColor(mmlVector<3> color)
+{
+	m_color[0] = color[0];
+	m_color[1] = color[1];
+	m_color[2] = color[2];
+	m_color[3] = 1.0f;
+}
+
+void GUI::Manager::Print(const mtlChars &text, int scale)
+{
+	if (text.GetSize() == 0) { return; }
+	scale = mmlMax2(1, scale);
+	m_newlineHeight = mmlMax2(m_newlineHeight, char_px_height * scale);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvId);
+	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+	glBindBuffer(GL_ARRAY_BUFFER, vId);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+
+	glBindTexture(GL_TEXTURE_2D, tId);
+
+	float ox = 0.0f;
+	float oy = 0.0f;
+	for (int i = 0; i < text.GetSize(); ++i) {
+		char ch = text.GetChars()[i];
+		switch (ch) {
+		case '\n':
+		case '\r':
+			ox = 0.0f;
+			oy += char_px_height * scale;
+			continue;
+		case ' ':
+			ox += char_px_width * scale;
+			continue;
+		case '\t': // fix so that tabs are at fixed intervals
+			ox += char_tab_px_width * scale;
+			continue;
+		}
+
+		vert[0] = m_textCaretX + ox;
+		vert[1] = m_textCaretY + oy + char_px_height * scale;
+
+		vert[2] = m_textCaretX + ox + char_px_width * scale;
+		vert[3] = m_textCaretY + oy + char_px_height * scale;
+
+		vert[4] = m_textCaretX + ox + char_px_width * scale;
+		vert[5] = m_textCaretY + oy;
+
+		vert[6] = m_textCaretX + ox;
+		vert[7] = m_textCaretY + oy;
+
+		glBindBuffer(GL_ARRAY_BUFFER, vId);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
+
+		if (ch < first_char || ch > last_char) {
+			ch = last_char + 1;
+		}
+		int index = ch - first_char;
+		float ux = char_uv_width * (index % char_count_width);
+		float uy = (char_uv_height * (index / char_count_width));
+
+		uv[0] = ux;
+		uv[1] = uy + char_uv_height;
+
+		uv[2] = ux + char_uv_width;
+		uv[3] = uy + char_uv_height;
+
+		uv[4] = ux + char_uv_width;
+		uv[5] = uy;
+
+		uv[6] = ux;
+		uv[7] = uy;
+
+		glBindBuffer(GL_ARRAY_BUFFER, uvId);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_STATIC_DRAW);
+
+		glDrawArrays(GL_QUADS, 0, 4);
+
+		ox += char_px_width * scale;
+	}
+	m_textCaretX += int(ox);
+	m_textCaretY += int(oy);
+}
+
+void GUI::Manager::Print(int number, int scale)
+{
+	mtlString text;
+	text.FromInt(number);
+	Print(text, scale);
+}
+
+void GUI::Manager::Print(float number, int scale)
+{
+	mtlString text;
+	text.FromFloat(number);
+	Print(text, scale);
+}
+
+void GUI::Manager::PrintNewLine(int scale)
+{
+	CaretX() = 0;
+	CaretY() += Newl();
+	Newl() = char_px_height * mmlMax2(scale, 1);
+}
+
+void GUI::Manager::SetTextCaret(int x, int y)
+{
+	m_textCaretX = x;
+	m_textCaretY = y;
+}
+
+void GUI::Manager::DrawFilledBox(int x1, int y1, int x2, int y2)
+{
+	glBegin(GL_TRIANGLES);
+
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y1);
+	glVertex2i(x1, y2);
+
+	glVertex2i(x2, y1);
+	glVertex2i(x2, y2);
+	glVertex2i(x1, y2);
+
+	glEnd();
+}
+
+void GUI::Manager::DrawBox(int x1, int y1, int x2, int y2)
+{
+	glBegin(GL_LINE);
+
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y1);
+
+	glVertex2i(x2, y1);
+	glVertex2i(x2, y2);
+
+	glVertex2i(x2, y2);
+	glVertex2i(x1, y2);
+
+	glVertex2i(x1, y2);
+	glVertex2i(x1, y1);
+
+	glEnd();
+}
+
+void GUI::Manager::DrawLine(int x1, int y1, int x2, int y2)
+{
+	glBegin(GL_LINE);
+
+	glVertex2i(x1, y1);
+	glVertex2i(x2, y2);
+
+	glEnd();
 }

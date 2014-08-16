@@ -1,16 +1,12 @@
 --------
 --TODO--
 --------
-Transforms
-	positions must be affected by parent transforms, but not its own transform
-		how to I reverse these effects (for SetWorld* and SetParent)?
 Collisions
-	Box
 	Polygon
-	Circle
 Physics?
 	Roll my own?
 		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
+		http://xbox.create.msdn.com/en-US/education/catalog/tutorial/collision_2d_perpixel_transformed
 	Remember:
 		Physics act on transforms' World locations (not local locations)
 More randomizer functions in engine
@@ -19,7 +15,7 @@ According to asset manager: "/home/jonathan/Code/SGE2D/Debug/test.bmp" is not sa
 	Fix so that the engine detects absolute and relative files so that there is no risk of loading something twice
 Define a safe way to reference objects inside engine
 	mtlExclusive and mtlReference
-	mtlReference required NULL check though
+	mtlReference requires NULL check though
 
 ----------
 --DESIGN--
@@ -51,22 +47,15 @@ Sprite editor:
 ---------------
 --IN PROGRESS--
 ---------------
-Kill line
-	Game object
-	Everything moving past this line is destroyed (in its OnCollision function)
 Engine filtering of object list
 	by ray - has to operate on collider, not transform position
 	by cone - has to operate on collider, not transform position
-	by box - has to operate on collider, not transform position
-	by sphere - has to operate on collider, not transform position
 	by separating plane - has to operate on collider, not transform position
 
 ---------
 --DEBUG--
 ---------
-Transforms
-	SetParent(0xffffffff, true)
-		The position calculation is wrong since it takes no account for rotation
+Engine filtering methods
 
 -------------
 --WHEN DONE--
@@ -81,6 +70,8 @@ Compiler warnings
 --------
 --BUGS--
 --------
+Collision boxes are not transforming? Might be an endemic problem affecting all colliders.
+	BoxCollider is axis-aligned. Maybe it shouldn't be?
 Valgrind is warning about a 4 byte overwrite in Object::Draw and Image does not render properly (must be something about triangle strip rendering)
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?

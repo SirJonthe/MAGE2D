@@ -29,6 +29,7 @@ private:
 	Engine						*m_engine;
 protected:
 	virtual void	OnInit( void ) {}
+	virtual void	OnDestroy( void ) {}
 	virtual void	OnUpdate( void ) {}
 	virtual void	OnCollision(Object&) {}
 	virtual void	OnDraw( void ) { m_graphics.Draw(); }
@@ -49,13 +50,14 @@ public:
 
 	void					Destroy( void );
 	bool					IsTicking( void ) const;
+	bool					IsDestroyed( void ) const;
 
 	bool					IsCollidable( void ) const;
 	void					DisableCollisions( void );
 	void					EnableCollisions( void );
 	void					ToggleCollisions( void );
 	bool					GetCollisionMask(unsigned int bit) const;
-	flags_t					GetCollisionMasks(flags_t mask = 0xffffffffffffffff) const;
+	flags_t					GetCollisionMasks(flags_t mask = AllFlagsOn) const;
 	void					SetCollisionMask(unsigned int bit, bool state);
 	void					SetCollisionMasks(flags_t mask);
 	void					ClearAllCollisionMasks( void );
@@ -74,7 +76,7 @@ public:
 	template < typename object_t >
 	object_t				*GetAsType( void );
 	bool					GetObjectFlag(unsigned int bit) const;
-	flags_t					GetObjectFlags(flags_t mask = 0xffffffffffffffff) const;
+	flags_t					GetObjectFlags(flags_t mask = AllFlagsOn) const;
 	void					SetObjectFlag(unsigned int bit, bool state);
 	void					SetObjectFlags(flags_t mask);
 	void					ClearAllObjectFlags( void );

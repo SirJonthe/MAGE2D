@@ -13,7 +13,7 @@ Object::Object( void ) :
 	m_graphics(), m_name(),
 	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
 	m_collider(mtlShared<Collider>::Create<EmptyCollider>()),
-	m_objectFlags(0x0000000000000001), m_collisionMask(0xffffffffffffffff), m_objectNumber(GetObjectNumber()),
+	m_objectFlags(0x0000000000000001), m_collisionMask(AllFlagsOn), m_objectNumber(GetObjectNumber()),
 	m_engine(NULL)
 {
 	m_name.Copy("object_generic");
@@ -42,6 +42,11 @@ void Object::Destroy( void )
 bool Object::IsTicking( void ) const
 {
 	return !m_frozen && !m_destroy;
+}
+
+bool Object::IsDestroyed( void ) const
+{
+	return m_destroy && m_engine == NULL;
 }
 
 bool Object::IsCollidable( void ) const

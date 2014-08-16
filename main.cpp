@@ -80,11 +80,13 @@ void Controllable::OnUpdate( void )
 	if (GetEngine()->IsDown(SDLK_RIGHT)) {
 		GetTransform().AxisTranslate(1.0f, 0.0f);
 	}
-	if (GetEngine()->IsDown(SDLK_a)) {
-		GetTransform().Rotate(-0.01f);
-	}
-	if (GetEngine()->IsDown(SDLK_s)) {
-		GetTransform().Rotate(0.01f);
+	if (GetTransform().GetParent() == NULL) {
+		if (GetEngine()->IsDown(SDLK_a)) {
+			GetTransform().Rotate(-0.01f);
+		}
+		if (GetEngine()->IsDown(SDLK_s)) {
+			GetTransform().Rotate(0.01f);
+		}
 	}
 	if (GetEngine()->IsDown(SDLK_ESCAPE)) {
 		GetEngine()->EndGame();
@@ -94,24 +96,24 @@ void Controllable::OnUpdate( void )
 void Controllable::OnGUI( void )
 {
 	mmlMatrix<2,2> r = GetTransform().GetRotation(Transform::Local);
-	GUI::Text("Object={");
+	GUI::Print("Object={");
 	GUI::NewLine();
 	for (int i = 0; i < 2; ++i) {
-		GUI::Text("\t");
+		GUI::Print("\t");
 		for (int j = 0; j < 2; ++j) {
-			GUI::Text(r[i][j]);
-			GUI::Text(";");
+			GUI::Print(r[i][j]);
+			GUI::Print(";");
 		}
 		GUI::NewLine();
 	}
-	GUI::Text("}");
+	GUI::Print("}");
 	GUI::NewLine();
 	if (GetTransform().GetParent() == NULL) {
 		GUI::SetColor(1.0f, 0.0f, 0.0f);
-		GUI::Text("Detached");
+		GUI::Print("Detached");
 	} else {
 		GUI::SetColor(0.0f, 1.0f, 0.0);
-		GUI::Text("Attached");
+		GUI::Print("Attached");
 	}
 	GUI::NewLine();
 }
@@ -147,7 +149,7 @@ void Controllable::OnDraw( void )
 void Controllable::OnCollision(Object &collider)
 {
 	GUI::SetColor(1.0f, 0.0f, 0.0f);
-	GUI::Text("OUCH!");
+	GUI::Print("OUCH!");
 }
 
 void Anchor::OnUpdate( void )
@@ -196,7 +198,7 @@ void FollowCamera::OnInit( void )
 void FollowCamera::OnUpdate( void )
 {
 	if (m_follow != NULL) {
-		GetTransform().SetPosition(Transform::Local, m_follow->GetTransform().GetPosition(Transform::Local));
+		GetTransform().SetPosition(Transform::Global, m_follow->GetTransform().GetPosition(Transform::Global));
 	}
 }
 
@@ -204,8 +206,8 @@ void FollowCamera::OnGUI( void )
 {
 	GUI::SetColor(1.0f, 1.0f, 0.0f);
 	mmlVector<2> p = GetTransform().GetPosition(Transform::Local);
-	GUI::Text("Camera=");
-	GUI::Text(p[0]); GUI::Text(";"); GUI::Text(p[1]);
+	GUI::Print("Camera=");
+	GUI::Print(p[0]); GUI::Print(";"); GUI::Print(p[1]);
 	GUI::NewLine();
 }
 

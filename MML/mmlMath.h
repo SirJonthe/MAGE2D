@@ -14,7 +14,7 @@
 #define mmlDEG_MAX 360.0f
 #define mmlDEG_QUAD (mmlDEG_MAX / 4.0f)
 
-#define mmlRAD_MIN 00.f
+#define mmlRAD_MIN 0.0f
 #define mmlRAD_MAX (mmlPI * 2.0f)
 #define mmlRAD_QUAD (mmlRAD_MAX / 4.0f)
 

@@ -4,10 +4,13 @@
 
 ENGINE_REGISTER_OBJECT_TYPE(KillPlane);
 
-void KillPlane::OnCollision(Object &collider)
+void KillPlane::OnCollision( void )
 {
-	if (collider.GetInstanceType() != KillPlane::GetClassType()) { // planes almost always collide, and we don't want to destroy our kill planes
-		collider.Destroy();
+	mtlList<Object*> objects;
+	GetEngine()->FilterByPlaneCollision(GetEngine()->GetObjects, objects, m_plane);
+	mtlNode<Object*> *object = objects->GetFirst();
+	while (object != NULL) {
+		object->GetItem()->Destroy();
 	}
 }
 
@@ -15,8 +18,6 @@ KillPlane::KillPlane( void ) : mtlInherit<Object>()
 {
 	ClearAllObjectFlags(); // other objects can not collide with us, *we* collide with *them*
 	SetName("tool_killplane");
-	// LoadCollider<PlaneCollider>();
-	// Plane *p = GetCollider<PlaneCollider>();
 }
 
 ENGINE_REGISTER_OBJECT_TYPE(Console);
@@ -30,7 +31,9 @@ void Console::OnUpdate( void )
 
 void Console::OnDraw( void )
 {
-	GUI::SetGUIView();
+	Engine::SetGUIProjection();
+	Engine::SetGUIView();
+
 	GUI::SetColor(m_bgColor);
 	GUI::Box(mmlVector<2>(0.0f, 0.0f), mmlVector<2>(Engine::GetVideoWidth(), Engine::GetVideoHeight() * m_screenHeightRatio));
 
@@ -47,7 +50,7 @@ void Console::OnDraw( void )
 				// color definition!
 				GUI::SetColor(c[0], c[1], c[2]);
 			}
-			GUI::Text(l->GetItem().GetSubstring(i, end));
+			GUI::Print(l->GetItem().GetSubstring(i, end));
 			i = end;
 		}
 	}

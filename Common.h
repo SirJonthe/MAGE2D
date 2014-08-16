@@ -5,6 +5,48 @@
 #include <cstddef>
 #include "MML/mmlVector.h"
 #include "MTL/mtlList.h"
+#include "MTL/mtlArray.h"
+#include "MTL/mtlList.h"
+
+#define ShallowArray(type_t) mtlShared< mtlArray<type_t> >
+#define ShallowList(type_t) mtlShared< mtlList<type_t> >
+
+template < typename type_t >
+class DeepArray : public mtlArray<type_t>
+{
+public:
+	DeepArray( void ) : mtlArray<type_t>() {}
+	DeepArray(int size) : mtlArray<type_t>(size) {}
+	DeepArray(const DeepArray &arr) : mtlArray<type_t>()
+	{
+		Copy(arr);
+	}
+	DeepArray &operator=(const DeepArray &arr)
+	{
+		if (this != &arr) {
+			Copy(arr);
+		}
+		return *this;
+	}
+};
+
+template < typename type_t >
+class DeepList : public mtlList<type_t>
+{
+public:
+	DeepList( void ) : mtlList<type_t>() {}
+	DeepList(const DeepList &list) : mtlList<type_t>()
+	{
+		Copy(list);
+	}
+	DeepList &operator=(const DeepList &list)
+	{
+		if (this != &list) {
+			Copy(list);
+		}
+		return *this;
+	}
+};
 
 struct Point
 {
@@ -37,5 +79,6 @@ inline mmlVector<2> LineNormal(mmlVector<2> l1, mmlVector<2> l2)
 }
 
 typedef unsigned long long int flags_t;
+#define AllFlagsOn 0xffffffffffffffff
 
 #endif // COMMON_H

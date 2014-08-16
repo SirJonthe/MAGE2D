@@ -531,6 +531,16 @@ inline mmlMatrix<4,4> mmlZRotationMatrix(float zrad)
 		);
 }
 
+inline mmlMatrix<2,2> mml2DRotationMatrix(float rad)
+{
+	const float SIN = sin(rad);
+	const float COS = cos(rad);
+	mmlMatrix<2,2> m;
+	m[0][0] = COS; m[0][1] = -SIN;
+	m[1][0] = SIN; m[1][1] = COS;
+	return m;
+}
+
 //
 // mmlEulerRotationMatrix
 //

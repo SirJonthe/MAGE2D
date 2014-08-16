@@ -9,9 +9,7 @@
 
 // NOTES
 // All shapes are centered around 0,0
-// Transformed by m_transform
 // Might want to do lazy evaluation since otherwise I will recalculate world space a lot
-// Collider transform will probably need to be object transform (i.e. remove object transform, replace by collider transform)
 
 class Collider;
 class BoxCollider; // a box that is always axis aligned even after world transform (means that non-square boxes change shape when transformed)
@@ -34,28 +32,33 @@ struct Range
 	float			apexRadians;
 };
 
-struct Plane
+struct Plane // a plane in 2d is actually just a line
 {
-	mmlVector<2> point;
-	mmlVector<2> normal;
+	mmlVector<2>	point;
+	mmlVector<2>	normal;
 };
 
-class CollisionInfo
+struct CollisionInfo
 {
-private:
-	Collider				*m_collider1;
-	Collider				*m_collider2;
-	mtlList< mmlVector<2> > m_contact;
-	bool					m_collision;
+	Collider					*collider1;
+	Collider					*collider2;
+	DeepArray< mmlVector<2> >	contactPoints; // intrusion points and intersections
+	bool						collision;
 };
 
-class RayCollisionInfo
+struct UnaryCollisionInfo
 {
-private:
-	Collider	*m_collider;
-	Ray			m_reflection;
-	bool		m_collision;
+	Collider					*collider;
+	DeepArray< mmlVector<2> >	contactPoints; // intersections
+	//DeepArray<Ray>				reflection;
+	bool						collision;
 };
+
+UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b);
+UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a);
+UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b);
+UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a);
+UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a, mmlVector<2> b);
 
 class ColliderTree
 {
@@ -209,9 +212,9 @@ public:
 	void SetHalfExtents(float halfW, float halfH) { SetHalfExtents(mmlVector<2>(halfW, halfH)); }
 };
 
-typedef Collider EmptyCollider;
+typedef Collider NullCollider;
 
-class BoxCollider : public mtlInherit<Collider>
+class BoxCollider : public mtlInherit<Collider> // Axis-aligned box
 {
 private:
 	mmlVector<2> m_dimensions;
@@ -270,7 +273,7 @@ public:
 	void SetHalfExtents(const mmlVector<2> &halfExtents);
 };
 
-/*class PolygonCollider : public mtlInherit<Collider>
+/*class PolygonCollider : public mtlInherit<Collider> // Free-form collider
 {
 private:
 	mtlArray< mmlVector<2> > m_polygon; // circles around [n-1, 0]

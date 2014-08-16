@@ -11,6 +11,7 @@
 #include "Common.h"
 #include "Graphics.h"
 #include "Collider.h"
+#include "GUI.h"
 
 class Object;
 
@@ -74,7 +75,7 @@ private:
 	unsigned int					m_rseed_z;
 	unsigned int					m_rseed_w;
 	//CollisionSolver					m_collisionSolver;
-	//GUI::Manager					m_guiManager;
+	GUI::Manager					m_guiManager;
 	bool							m_quit;
 	bool							m_inLoop;
 	Mix_Music						*m_music;
@@ -91,9 +92,6 @@ private:
 	void							FinalizeObjects( void );
 	void							DestroyObjects( void );
 	void							UpdateTimer( void );
-
-	static void						SetGameView( void );
-	static void						SetObjectView(const Transform &transform);
 
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
 	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
@@ -112,11 +110,17 @@ public:
 	template < typename type_t >
 	static void					FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out);
 	static void					FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id);
-	static void					FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
-	static void					FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, unsigned int mask);
-	static void					FilterByRay(const mtlList<Object*> &in, mtlList<Object*> &out, const Ray &ray);
-	static void					FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range);
-	static void					FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane);
+	static void					FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
+	static void					FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
+	static void					FilterByObjectFlagsInclusive(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
+	static void					FilterByCollisionMasksInclusive(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
+	static void					FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t mask = AllFlagsOn);
+	static void					FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t mask = AllFlagsOn);
+	static void					FilterByRayCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Ray &ray, flags_t mask = AllFlagsOn);
+	static void					FilterByRangeCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t mask = AllFlagsOn);
+	static void					FilterByPlaneCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t mask = AllFlagsOn);
+
+	//RayCollisionInfo			TraceRay(const Ray &ray); // traverses some kind of spatial data structure, returns object with closest intersection
 
 	void						AddObject(Object *object);
 	template < typename type_t >
@@ -131,6 +135,12 @@ public:
 	void						SetCamera(Object *camera);
 
 	void						SetWindowCaption(const mtlChars &caption);
+
+	static void					SetGameProjection( void ); // center at 0,0
+	void						SetGameView(const Object *object); // center at object position, rotations
+	static void					SetGUIProjection( void ); // top-left at 0,0
+	static void					SetGUIView( void ); // identity
+	void						SetGameGUIView(const Object *object); // center at object position, no rotations
 
 	int							RunGame( void );
 	void						EndGame( void );
