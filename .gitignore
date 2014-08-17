@@ -6,3 +6,6 @@
 /Release
 /tmp
 
+#non-portable QtCreator files
+*.user
+

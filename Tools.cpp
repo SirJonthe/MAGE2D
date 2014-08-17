@@ -4,11 +4,11 @@
 
 ENGINE_REGISTER_OBJECT_TYPE(KillPlane);
 
-void KillPlane::OnCollision( void )
+void KillPlane::OnUpdate( void )
 {
 	mtlList<Object*> objects;
-	GetEngine()->FilterByPlaneCollision(GetEngine()->GetObjects, objects, m_plane);
-	mtlNode<Object*> *object = objects->GetFirst();
+	GetEngine()->FilterByPlaneCollision(GetEngine()->GetObjects(), objects, m_plane);
+	mtlNode<Object*> *object = objects.GetFirst();
 	while (object != NULL) {
 		object->GetItem()->Destroy();
 	}
@@ -18,6 +18,13 @@ KillPlane::KillPlane( void ) : mtlInherit<Object>()
 {
 	ClearAllObjectFlags(); // other objects can not collide with us, *we* collide with *them*
 	SetName("tool_killplane");
+	SetPlane(mmlVector<2>(0.0f, 0.0f), mmlVector<2>(0.0f, -1.0f));
+}
+
+void KillPlane::SetPlane(mmlVector<2> point, mmlVector<2> normal)
+{
+	m_plane.point = point;
+	m_plane.normal = mmlNormalize(normal);
 }
 
 ENGINE_REGISTER_OBJECT_TYPE(Console);

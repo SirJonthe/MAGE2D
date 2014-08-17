@@ -53,13 +53,39 @@ HEADERS += \
 OTHER_FILES += \
     TODO.txt
 
-LIBS += \
-	-lSDL \
-	-lSDLmain \
-	-lSDL_image \
-	-lSDL_mixer \
-	-lGL \
-	-lGLU
+macx: {
+	OBJECTIVE_SOURCES += \
+		SDLmain.m
 
-DEFINES += \
-	GL_GLEXT_PROTOTYPES
+	HEADERS += \
+		SDLmain.h
+}
+
+win32: {
+	# on Windows we need to manually add SDL and GLEW search paths
+	LIBS += \
+		-lopengl32 \
+		-lglew32 \
+		-lSDL \
+		-lSDLmain \
+		-lSDL_image \
+		-lSDL_mixer
+}
+
+macx: {
+	LIBS += \
+		-framework Cocoa \
+		-framework OpenGL \
+		-framework SDL \
+		-framework SDL_image \
+		-framework SDL_mixer
+}
+
+unix:!macx: { # unix-like, e.g. linux, freeBSD
+	LIBS += \
+		-lGL \
+		-lSDL \
+		-lSDLmain \
+		-lSDL_image \
+		-lSDL_mixer
+}

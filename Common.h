@@ -19,12 +19,12 @@ public:
 	DeepArray(int size) : mtlArray<type_t>(size) {}
 	DeepArray(const DeepArray &arr) : mtlArray<type_t>()
 	{
-		Copy(arr);
+		this->Copy(arr);
 	}
 	DeepArray &operator=(const DeepArray &arr)
 	{
 		if (this != &arr) {
-			Copy(arr);
+			this->Copy(arr);
 		}
 		return *this;
 	}

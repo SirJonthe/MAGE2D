@@ -38,6 +38,8 @@
 	// LINK TO THESE
 	// -lGL -lSDL -lSDLmain -lSDL_image -lSDL_mixer
 
+	#define GL_GLEXT_PROTOTYPES
+
 	#include <GL/gl.h>
 	#include <GL/glext.h>
 

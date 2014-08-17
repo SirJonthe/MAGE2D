@@ -12,7 +12,7 @@ unsigned long long int GetObjectNumber( void )
 Object::Object( void ) :
 	m_graphics(), m_name(),
 	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
-	m_collider(mtlShared<Collider>::Create<EmptyCollider>()),
+	m_collider(mtlShared<Collider>::Create<NullCollider>()),
 	m_objectFlags(0x0000000000000001), m_collisionMask(AllFlagsOn), m_objectNumber(GetObjectNumber()),
 	m_engine(NULL)
 {
@@ -98,7 +98,7 @@ void Object::ClearAllCollisionMasks( void )
 
 void Object::DestroyCollider( void )
 {
-	LoadCollider<EmptyCollider>();
+	LoadCollider<NullCollider>();
 }
 
 const Collider *Object::GetCollider( void ) const

@@ -88,7 +88,7 @@ UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b)
 	mmlVector<2> normal;
 	float range;
 
-	if (r.length <= 0.0f || mmlDist(r.origin - a) <= r.length) {
+	if (r.length <= 0.0f || mmlDist(r.origin, a) <= r.length) {
 		normal = mmlNormalize(r.origin - a);
 		range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
 		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
@@ -97,7 +97,7 @@ UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b)
 		}
 	}
 
-	if (r.length <= 0.0f || mmlDist(r.origin - b) <= r.length) {
+	if (r.length <= 0.0f || mmlDist(r.origin, b) <= r.length) {
 		normal = mmlNormalize(r.origin - b);
 		range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
 		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
@@ -111,7 +111,7 @@ UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b)
 	Ray ray1 = { r.origin, dir1, r.length };
 	Ray ray2 = { r.origin, dir2, r.length };
 
-	RayCollisionInfo rayInfo = RayCollide(ray1, a, b);
+	UnaryCollisionInfo rayInfo = RayCollide(ray1, a, b);
 	if (rayInfo.collision) {
 		info.collision = true;
 		info.contactPoints.Add(info.contactPoints[0]);
@@ -642,9 +642,9 @@ bool BoxCollider::Collides(const Range &range) const
 
 	for (int i = 0; i < 4; ++i) {
 		mmlVector<2> pointToOriginNormal = mmlNormalize(range.origin - b[i]);
-		float range = (mmlDot(pointToOriginNormal, rdirection) + 1.0f) * mmlPI;
+		float relativeRange = (mmlDot(pointToOriginNormal, rdirection) + 1.0f) * mmlPI;
 		float halfApex = range.apexRadians;
-		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
+		if (relativeRange >= mmlRAD_MAX - halfApex && relativeRange <= mmlRAD_MAX + halfApex) {
 			return true;
 		}
 	}

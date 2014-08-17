@@ -7,10 +7,15 @@
 
 class KillPlane : public mtlInherit<Object>
 {
+private:
+	Plane m_plane;
+
 protected:
 	void OnUpdate( void );
+
 public:
 	KillPlane( void ); // grab all collisions, is defined as nothing, set collision shape to plane
+	void SetPlane(mmlVector<2> point, mmlVector<2> normal);
 };
 
 class Console : public mtlInherit<Object>

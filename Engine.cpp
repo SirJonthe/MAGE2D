@@ -422,10 +422,10 @@ void Engine::FilterByCollisionMasksInclusive(const mtlList<Object*> &in, mtlList
 void Engine::FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t collisionMask)
 {
 	out.RemoveAll();
-	mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<Object*> *object = in.GetFirst();
 	while (object != NULL) {
 		if ((object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			RangeCollisionInfo info = RangeCollide(range, object->GetItem()->GetTransform().GetPosition(Transform::Global));
+			UnaryCollisionInfo info = RangeCollide(range, object->GetItem()->GetTransform().GetPosition(Transform::Global));
 			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
@@ -437,10 +437,10 @@ void Engine::FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, co
 void Engine::FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t collisionMask)
 {
 	out.RemoveAll();
-	mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<Object*> *object = in.GetFirst();
 	while (object != NULL) {
 		if ((object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			PlaneCollisionInfo info = PlaneCollide(plane, object->GetItem()->GetTransform().GetPosition(Transform::Global));
+			UnaryCollisionInfo info = PlaneCollide(plane, object->GetItem()->GetTransform().GetPosition(Transform::Global));
 			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
@@ -482,9 +482,9 @@ void Engine::FilterByRayCollision(const mtlList<Object*> &in, mtlList<Object*> &
 	}*/
 
 	out.RemoveAll();
-	mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<Object*> *object = in.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_collisions) {
+		if (object->GetItem()->m_collisions && (object->GetItem()->m_objectFlags & collisionMask) > 0) {
 			if (object->GetItem()->GetCollider()->Collides(ray)) {
 				out.AddLast(object->GetItem());
 			}
@@ -496,9 +496,9 @@ void Engine::FilterByRayCollision(const mtlList<Object*> &in, mtlList<Object*> &
 void Engine::FilterByRangeCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t collisionMask)
 {
 	out.RemoveAll();
-	mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<Object*> *object = in.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_collisions) {
+		if (object->GetItem()->m_collisions && (object->GetItem()->m_objectFlags & collisionMask) > 0) {
 			if (object->GetItem()->GetCollider()->Collides(range)) {
 				out.AddLast(object->GetItem());
 			}
@@ -510,9 +510,9 @@ void Engine::FilterByRangeCollision(const mtlList<Object*> &in, mtlList<Object*>
 void Engine::FilterByPlaneCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t collisionMask)
 {
 	out.RemoveAll();
-	mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<Object*> *object = in.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_collisions) {
+		if (object->GetItem()->m_collisions && (object->GetItem()->m_objectFlags & collisionMask) > 0) {
 			object->GetItem()->GetCollider()->Collides(plane);
 			out.AddLast(object->GetItem());
 		}
