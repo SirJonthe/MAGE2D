@@ -2,15 +2,15 @@
 #include "Engine.h"
 #include "GUI.h"
 
-ENGINE_REGISTER_OBJECT_TYPE(KillPlane);
+RegisterObject(KillPlane);
 
 void KillPlane::OnUpdate( void )
 {
-	mtlList<Object*> objects;
+	mtlList<ObjectRef> objects;
 	GetEngine()->FilterByPlaneCollision(GetEngine()->GetObjects(), objects, m_plane);
-	mtlNode<Object*> *object = objects.GetFirst();
+	mtlNode<ObjectRef> *object = objects.GetFirst();
 	while (object != NULL) {
-		object->GetItem()->Destroy();
+		object->GetItem().GetShared()->Destroy();
 	}
 }
 
@@ -27,7 +27,7 @@ void KillPlane::SetPlane(mmlVector<2> point, mmlVector<2> normal)
 	m_plane.normal = mmlNormalize(normal);
 }
 
-ENGINE_REGISTER_OBJECT_TYPE(Console);
+RegisterObject(Console);
 
 void Console::OnUpdate( void )
 {

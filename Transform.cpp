@@ -333,7 +333,7 @@ mmlMatrix<3,3> Transform::GetTransformMatrix(Transform::Space space) const
 	return mmlMatrix<3,3>(
 		r[0][0], r[0][1], p[0],
 		r[1][0], r[1][1], p[1],
-		0.0f, 0.0f, 1.0f
+		0.0f,    0.0f,    1.0f
 	);
 }
 

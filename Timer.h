@@ -8,6 +8,7 @@ private:
 	float m_timeNow;
 	float m_interval;
 	float m_delta;
+
 public:
 	explicit		Timer(float intervalsPerSecond = 0.0f);
 	void			SetInterval(float fractionOfSecond);

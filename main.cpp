@@ -11,7 +11,6 @@ class Controllable : public mtlInherit<Object>
 protected:
 	void OnUpdate( void );
 	void OnGUI( void );
-	void OnDraw( void );
 	void OnCollision(Object &collider);
 public:
 	Controllable( void );
@@ -27,7 +26,7 @@ protected:
 class FollowCamera : public mtlInherit<Object>
 {
 private:
-	Object *m_follow;
+	ObjectRef m_follow;
 protected:
 	void OnInit( void );
 	void OnUpdate( void );
@@ -38,14 +37,12 @@ public:
 
 class NPC : public mtlInherit<Object>
 {
-protected:
-	void OnDraw( void );
 };
 
-ENGINE_REGISTER_OBJECT_TYPE(Controllable);
-ENGINE_REGISTER_OBJECT_TYPE(Anchor);
-ENGINE_REGISTER_OBJECT_TYPE(FollowCamera);
-ENGINE_REGISTER_OBJECT_TYPE(NPC);
+RegisterObject(Controllable);
+RegisterObject(Anchor);
+RegisterObject(FollowCamera);
+RegisterObject(NPC);
 
 void PrintString(const mtlChars &ch);
 
@@ -69,23 +66,23 @@ int main(int argc, char **argv)
 void Controllable::OnUpdate( void )
 {
 	if (GetEngine()->IsDown(SDLK_UP)) {
-		GetTransform().AxisTranslate(0.0f, -1.0f);
+		GetTransform().AxisTranslate(0.0f, -80.0f * GetEngine()->GetElapsedTime());
 	}
 	if (GetEngine()->IsDown(SDLK_DOWN)) {
-		GetTransform().AxisTranslate(0.0f, 1.0f);
+		GetTransform().AxisTranslate(0.0f, 80.0f * GetEngine()->GetElapsedTime());
 	}
 	if (GetEngine()->IsDown(SDLK_LEFT)) {
-		GetTransform().AxisTranslate(-1.0f, 0.0f);
+		GetTransform().AxisTranslate(-80.0f * GetEngine()->GetElapsedTime(), 0.0f);
 	}
 	if (GetEngine()->IsDown(SDLK_RIGHT)) {
-		GetTransform().AxisTranslate(1.0f, 0.0f);
+		GetTransform().AxisTranslate(80.0f * GetEngine()->GetElapsedTime(), 0.0f);
 	}
 	if (GetTransform().GetParent() == NULL) {
 		if (GetEngine()->IsDown(SDLK_a)) {
-			GetTransform().Rotate(-0.01f);
+			GetTransform().Rotate(-0.8f * GetEngine()->GetElapsedTime());
 		}
 		if (GetEngine()->IsDown(SDLK_s)) {
-			GetTransform().Rotate(0.01f);
+			GetTransform().Rotate(0.8f * GetEngine()->GetElapsedTime());
 		}
 	}
 	if (GetEngine()->IsDown(SDLK_ESCAPE)) {
@@ -110,40 +107,12 @@ void Controllable::OnGUI( void )
 	GUI::NewLine();
 	if (GetTransform().GetParent() == NULL) {
 		GUI::SetColor(1.0f, 0.0f, 0.0f);
-		GUI::Print("Detached");
+		GUI::Print("DETACHED");
 	} else {
 		GUI::SetColor(0.0f, 1.0f, 0.0);
 		GUI::Print("Attached");
 	}
 	GUI::NewLine();
-}
-
-void Controllable::OnDraw( void )
-{
-	Object::OnDraw();
-	/*glColor3f(0.0f, 1.0f, 0.0f);
-	glBegin(GL_LINES);
-	glVertex2f(0.0f, 0.0f);
-	glVertex2f(20.0f, 0.0f);
-	glEnd();*/
-
-	float xoff = GetCollider()->GetHalfExtents()[0];
-	float yoff = GetCollider()->GetHalfExtents()[1];
-
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(-xoff, -yoff);
-	glVertex2f( xoff, -yoff);
-	glVertex2f( xoff,  yoff);
-	glVertex2f(-xoff,  yoff);
-	glEnd();
-
-	glBegin(GL_LINES);
-	glVertex2f(-xoff,  yoff);
-	glVertex2f( xoff, -yoff);
-	glVertex2f(-xoff, -yoff);
-	glVertex2f( xoff,  yoff);
-	glEnd();
 }
 
 void Controllable::OnCollision(Object &collider)
@@ -155,20 +124,20 @@ void Controllable::OnCollision(Object &collider)
 void Anchor::OnUpdate( void )
 {
 	if (GetEngine()->IsDown(SDLK_a)) {
-		GetTransform().Rotate(-GetEngine()->GetDeltaTime());
+		GetTransform().Rotate(-GetEngine()->GetElapsedTime());
 	}
 	if (GetEngine()->IsDown(SDLK_s)) {
-		GetTransform().Rotate(GetEngine()->GetDeltaTime());
+		GetTransform().Rotate(GetEngine()->GetElapsedTime());
 	}
 	if (GetEngine()->IsPressed(SDLK_SPACE)) {
-		mtlList<Object*> list;
+		mtlList<ObjectRef> list;
 		GetEngine()->FilterByName(GetEngine()->GetObjects(), list, "object_controllable");
-		mtlNode<Object*> *node = list.GetFirst();
+		mtlNode<ObjectRef> *node = list.GetFirst();
 		if (node != NULL) {
-			if (node->GetItem()->GetTransform().GetParent() == NULL) {
-				node->GetItem()->GetTransform().SetParent(Transform::Global, &GetTransform());
+			if (node->GetItem().GetShared()->GetTransform().GetParent() == NULL) {
+				node->GetItem().GetShared()->GetTransform().SetParent(Transform::Global, &GetTransform());
 			} else {
-				node->GetItem()->GetTransform().SetParent(Transform::Global, NULL);
+				node->GetItem().GetShared()->GetTransform().SetParent(Transform::Global, NULL);
 			}
 		}
 	}
@@ -188,8 +157,8 @@ Controllable::Controllable( void )
 
 void FollowCamera::OnInit( void )
 {
-	mtlList<Object*> objects;
-	GetEngine()->FilterByRTTI<Controllable>(GetEngine()->GetObjects(), objects);
+	mtlList<ObjectRef> objects;
+	GetEngine()->FilterByDynamicType<Controllable>(GetEngine()->GetObjects(), objects);
 	if (objects.GetSize() > 0) {
 		m_follow = objects.GetFirst()->GetItem();
 	}
@@ -197,8 +166,8 @@ void FollowCamera::OnInit( void )
 
 void FollowCamera::OnUpdate( void )
 {
-	if (m_follow != NULL) {
-		GetTransform().SetPosition(Transform::Global, m_follow->GetTransform().GetPosition(Transform::Global));
+	if (!m_follow.IsNull() && !m_follow.GetShared()->IsDestroyed()) {
+		GetTransform().SetPosition(Transform::Global, m_follow.GetShared()->GetTransform().GetPosition(Transform::Global));
 	}
 }
 
@@ -211,32 +180,9 @@ void FollowCamera::OnGUI( void )
 	GUI::NewLine();
 }
 
-FollowCamera::FollowCamera( void ) : m_follow(NULL)
+FollowCamera::FollowCamera( void ) : m_follow()
 {
 	SetName("object_camera");
-}
-
-void NPC::OnDraw( void )
-{
-	Object::OnDraw();
-
-	float xoff = GetCollider()->GetHalfExtents()[0];
-	float yoff = GetCollider()->GetHalfExtents()[1];
-
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(-xoff, -yoff);
-	glVertex2f( xoff, -yoff);
-	glVertex2f( xoff,  yoff);
-	glVertex2f(-xoff,  yoff);
-	glEnd();
-
-	glBegin(GL_LINES);
-	glVertex2f(-xoff,  yoff);
-	glVertex2f( xoff, -yoff);
-	glVertex2f(-xoff, -yoff);
-	glVertex2f( xoff,  yoff);
-	glEnd();
 }
 
 void PrintString(const mtlChars &ch)
@@ -315,28 +261,28 @@ void Unit_RegisteredObjects( void )
 void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
-	Object *a = engine.AddObject("Controllable");
-	Object *c = engine.AddObject("FollowCamera");
+	ObjectRef a = engine.AddObject("Controllable");
+	ObjectRef c = engine.AddObject("FollowCamera");
 	engine.SetCamera(c);
-	if (a == NULL || !a->LoadGraphics<Sprite>("test.sprite")) {
+	if (a.IsNull() || !a.GetShared()->LoadGraphics<Sprite>("test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
-	a->LoadCollider<BoxCollider>();
+	a.GetShared()->LoadCollider<BoxCollider>();
 
-	Object *b = engine.AddObject<NPC>();
-	b->SetName("NPC");
-	if (b == NULL || !b->LoadGraphics<Image>("test.bmp")) {
+	ObjectRef b = engine.AddObject<NPC>();
+	b.GetShared()->SetName("NPC");
+	if (b.IsNull() || !b.GetShared()->LoadGraphics<Image>("test.bmp")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
-	b->GetGraphics().SetRed(0.2f);
-	b->GetGraphics().SetGreen(0.2f);
-	b->GetGraphics().SetBlue(0.2f);
-	b->LoadCollider<BoxCollider>();
+	b.GetShared()->GetGraphics().SetRed(0.2f);
+	b.GetShared()->GetGraphics().SetGreen(0.2f);
+	b.GetShared()->GetGraphics().SetBlue(0.2f);
+	b.GetShared()->LoadCollider<BoxCollider>();
 
-	Object *d = engine.AddObject("Anchor");
-	a->GetTransform().SetParent(Transform::Local, &d->GetTransform());
+	ObjectRef d = engine.AddObject("Anchor");
+	a.GetShared()->GetTransform().SetParent(Transform::Local, &d.GetShared()->GetTransform());
 
 	engine.RunGame();
 }

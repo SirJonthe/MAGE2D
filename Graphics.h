@@ -21,15 +21,19 @@ class Graphics : public mtlAssetInterface, public mtlBase
 private:
 	Graphics(const Graphics&) {}
 	Graphics &operator=(const Graphics&) { return *this; }
+
 protected:
 	struct BindID { GLuint vtx, uv, tex; };
+
 protected:
 	BindID m_id; // generate buffers for all of these, even if empty
+
 protected:
 	void LoadVertexArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadUVArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format) const;
 	void DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count, long long textureID = -1) const;
+
 public:
 	Graphics( void ); // construct buffers
 	virtual ~Graphics( void );
@@ -54,8 +58,10 @@ private:
 	mmlVector<4>		m_tint;
 	Timer				m_timer;
 	float				m_time;
+
 private:
 	void Unbind( void ) const;
+
 public:
 	GraphicsInstance( void ) : m_graphics(), m_tint(1.0f, 1.0f, 1.0f, 1.0f), m_timer(1.0f), m_time(0.0f) {}
 	GraphicsInstance(const GraphicsInstance &instance) : m_graphics(instance.m_graphics), m_tint(instance.m_tint), m_timer(instance.m_timer), m_time(instance.m_time) {}

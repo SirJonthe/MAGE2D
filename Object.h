@@ -7,12 +7,14 @@
 #include "MTL/mtlType.h"
 #include "Collider.h"
 #include "Graphics.h"
+#include "Engine.h"
 
-class Engine;
+//class Engine;
 
 class Object : public mtlBase
 {
 	friend class Engine;
+
 private:
 	GraphicsInstance			m_graphics;
 	mtlString					m_name;
@@ -26,7 +28,9 @@ private:
 	flags_t						m_objectFlags;		// what is the object?
 	flags_t						m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
+	ObjectRef					*m_ref;
 	Engine						*m_engine;
+
 protected:
 	virtual void	OnInit( void ) {}
 	virtual void	OnDestroy( void ) {}
@@ -35,9 +39,11 @@ protected:
 	virtual void	OnDraw( void ) { m_graphics.Draw(); }
 	virtual void	OnGUI( void ) {}
 	virtual void	OnFinal( void ) {}
+
 private:
 	Object(const Object&) : m_objectNumber(0) {}
 	Object &operator=(const Object&) { return *this; }
+
 public:
 	explicit				Object( void );
 	virtual					~Object( void ) {}
@@ -72,9 +78,13 @@ public:
 	const Transform			&GetTransform( void ) const;
 
 	template < typename object_t >
-	const object_t			*GetAsType( void ) const;
+	const object_t			*GetAsDynamicType( void ) const;
 	template < typename object_t >
-	object_t				*GetAsType( void );
+	object_t				*GetAsDynamicType( void );
+	template < typename object_t >
+	bool					IsDynamicType( void ) const;
+	template < typename object_t >
+	bool					IsStaticType( void ) const;
 	bool					GetObjectFlag(unsigned int bit) const;
 	flags_t					GetObjectFlags(flags_t mask = AllFlagsOn) const;
 	void					SetObjectFlag(unsigned int bit, bool state);
@@ -95,18 +105,32 @@ public:
 
 	const Engine			*GetEngine( void ) const;
 	Engine					*GetEngine( void );
+
+	ObjectRef				GetEngineReference( void ) const;
 };
 
 template < typename object_t >
-const object_t *Object::GetAsType( void ) const
+const object_t *Object::GetAsDynamicType( void ) const
 {
 	return dynamic_cast<const object_t*>(this);
 }
 
 template < typename object_t >
-object_t *Object::GetAsType( void )
+object_t *Object::GetAsDynamicType( void )
 {
 	return dynamic_cast<object_t*>(this);
+}
+
+template < typename object_t >
+bool Object::IsDynamicType( void ) const
+{
+	return GetAsDynamicType<object_t>() != NULL;
+}
+
+template < typename object_t >
+bool Object::IsStaticType( void ) const
+{
+	return object_t::GetClassType() == GetInstanceType();
 }
 
 template < typename collider_t >

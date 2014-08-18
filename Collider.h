@@ -13,7 +13,7 @@
 
 class Collider;
 class BoxCollider; // a box that is always axis aligned even after world transform (means that non-square boxes change shape when transformed)
-class CircleCollider;
+//class CircleCollider;
 //class PolygonCollider; // arbitrarily shaped polygon
 class ColliderTreeQuad;
 
@@ -99,13 +99,13 @@ public:
 	ColliderTree	*GetParent( void ) const { return m_parent; }
 	bool			IsRoot( void ) const { return this == m_root; }
 
-	int		GetCurrentDepth( void ) const { return m_depth; }
-	int		GetSubquad( void ) const { return m_subquad; }
-	int		GetSubquadX( void ) const { return m_subquad & 1; }
-	int		GetSubquadY( void ) const { return (m_subquad & 2) >> 1; }
-	int		GetSpaceWidth( void ) const { return m_root->m_spaceWidth >> m_depth; }
-	int		GetSpaceHeight( void ) const { return m_root->m_spaceHeight >> m_depth; }
-	int		GetMaxDepth( void ) const { return m_root->m_maxDepth; }
+	int	GetCurrentDepth( void ) const { return m_depth; }
+	int	GetSubquad( void ) const { return m_subquad; }
+	int	GetSubquadX( void ) const { return m_subquad & 1; }
+	int	GetSubquadY( void ) const { return (m_subquad & 2) >> 1; }
+	int	GetSpaceWidth( void ) const { return m_root->m_spaceWidth >> m_depth; }
+	int	GetSpaceHeight( void ) const { return m_root->m_spaceHeight >> m_depth; }
+	int	GetMaxDepth( void ) const { return m_root->m_maxDepth; }
 
 	mtlNode<Collider*>	*AddCollider(Collider *collider);
 	void				RemoveCollider(Collider *collider);
@@ -168,7 +168,7 @@ protected:
 
 protected:
 	virtual bool CollidesWith(const BoxCollider&) const { return false; }
-	virtual bool CollidesWith(const CircleCollider&) const { return false; }
+	//virtual bool CollidesWith(const CircleCollider&) const { return false; }
 	//virtual bool CollidesWith(const PolygonCollider&) const { return false; }
 
 	float GetInverseMass( void ) const;
@@ -203,9 +203,9 @@ public:
 	// various ApplyForce functions
 
 	virtual bool Collides(const Collider&) const { return false; }
-	virtual bool Collides(const Ray&) const { return false; }
-	virtual bool Collides(const Range&) const { return false; }
-	virtual bool Collides(const Plane&) const { return false; }
+	virtual bool Collides(Ray) const { return false; }
+	virtual bool Collides(Range) const { return false; }
+	virtual bool Collides(Plane) const { return false; }
 
 	virtual mmlVector<2> GetHalfExtents( void ) const { return mmlVector<2>(0.0f, 0.0f); }
 	virtual void SetHalfExtents(const mmlVector<2> &halfExtents) {}
@@ -221,7 +221,7 @@ private:
 
 protected:
 	bool CollidesWith(const BoxCollider &b) const;
-	bool CollidesWith(const CircleCollider &c) const;
+	//bool CollidesWith(const CircleCollider &c) const;
 	//bool CollidesWith(const PolygonCollider &p) const;
 
 public:
@@ -239,15 +239,15 @@ public:
 	void SetHeight(float height);
 
 	bool Collides(const Collider &collider) const;
-	bool Collides(const Ray &ray) const;
-	bool Collides(const Range &range) const;
-	bool Collides(const Plane &plane) const;
+	bool Collides(Ray ray) const;
+	bool Collides(Range range) const;
+	bool Collides(Plane plane) const;
 
 	mmlVector<2> GetHalfExtents( void ) const;
 	void SetHalfExtents(const mmlVector<2> &halfExtents);
 };
 
-class CircleCollider : public mtlInherit<Collider>
+/*class CircleCollider : public mtlInherit<Collider>
 {
 private:
 	float m_radius;
@@ -265,13 +265,13 @@ public:
 	void SetRadiuds(float radius);
 
 	bool Collides(const Collider &collider) const;
-	//bool Collides(const Ray&) const;
-	//bool Collides(const Range&) const;
-	//bool Collides(const Plane&) const;
+	//bool Collides(Ray ray) const;
+	//bool Collides(Range range) const;
+	//bool Collides(Plane plane) const;
 
 	mmlVector<2> GetHalfExtents( void ) const;
 	void SetHalfExtents(const mmlVector<2> &halfExtents);
-};
+};*/
 
 /*class PolygonCollider : public mtlInherit<Collider> // Free-form collider
 {
@@ -284,10 +284,10 @@ protected:
 	bool CollidesWith(const PolygonCollider &p) const;
 
 public:
-	bool Collides(const Collider&) const;
-	bool Collides(const Ray&) const;
-	bool Collides(const Range&) const;
-	bool Collides(const Plane&) const;
+	bool Collides(const Collider &collider) const;
+	bool Collides(Ray ray) const;
+	bool Collides(Range range) const;
+	bool Collides(Plane plane) const;
 };*/
 
 #endif // COLLIDER_H

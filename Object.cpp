@@ -1,7 +1,6 @@
 #include "Object.h"
-#include "Engine.h"
 
-ENGINE_REGISTER_OBJECT_TYPE(Object);
+RegisterObject(Object);
 
 unsigned long long int GetObjectNumber( void )
 {
@@ -201,4 +200,12 @@ const Engine *Object::GetEngine( void ) const
 Engine *Object::GetEngine( void )
 {
 	return m_engine;
+}
+
+ObjectRef Object::GetEngineReference( void ) const
+{
+	if (m_ref == NULL) {
+		return ObjectRef();
+	}
+	return *m_ref;
 }

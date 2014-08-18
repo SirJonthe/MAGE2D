@@ -14,6 +14,7 @@
 #include "GUI.h"
 
 class Object;
+typedef mtlShared<Object> ObjectRef;
 
 struct MouseButton
 {
@@ -43,7 +44,7 @@ private:
 	struct Type
 	{
 		mtlString name;
-		Object *(*creator_func)();
+		ObjectRef (*creator_func)();
 		Type( void ) : name(), creator_func(NULL) {}
 		Type(const Type &t) : name(), creator_func(t.creator_func) { name.Copy(t.name); }
 		Type &operator=(const Type &t) { if (this != &t) { name.Copy(t.name); creator_func = t.creator_func; } return *this; }
@@ -67,22 +68,26 @@ private:
 			Hold
 		};
 	};
+
 private:
-	mtlList<Object*>				m_objects;
-	Object							*m_camera;
-	Timer							m_timer;
-	float							m_deltaSeconds;
-	unsigned int					m_rseed_z;
-	unsigned int					m_rseed_w;
-	//CollisionSolver					m_collisionSolver;
-	GUI::Manager					m_guiManager;
-	bool							m_quit;
-	bool							m_inLoop;
-	Mix_Music						*m_music;
-	Point							m_mousePosition;
-	Point							m_prevMousePosition;
-	unsigned char					m_keyState[SDLK_LAST];
-	unsigned char					m_mouseButtonState[MouseButton::Last];
+	mtlList<ObjectRef>	m_objects;
+	mtlList<ObjectRef>	m_pending;
+	ObjectRef			m_camera;
+	Timer				m_timer;
+	float				m_deltaSeconds;
+	unsigned int		m_rseed_z;
+	unsigned int		m_rseed_w;
+	//CollisionSolver	m_collisionSolver;
+	GUI::Manager		m_guiManager;
+	bool				m_quit;
+	bool				m_inLoop;
+	bool				m_graphicsSort;
+	Mix_Music			*m_music;
+	Point				m_mousePosition;
+	Point				m_prevMousePosition;
+	unsigned char		m_keyState[SDLK_LAST];
+	unsigned char		m_mouseButtonState[MouseButton::Last];
+
 private:
 	void							UpdateInputBuffers( void );
 	void							UpdateObjects( void );
@@ -91,63 +96,67 @@ private:
 	void							DrawGUI( void );
 	void							FinalizeObjects( void );
 	void							DestroyObjects( void );
+	void							InitPendingObjects( void );
 	void							UpdateTimer( void );
+
+	void							AddObject(ObjectRef object);
 
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
 	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
+
 private:
 	Engine(const Engine&) {}
 	Engine &operator=(const Engine&) { return *this; }
+
 public:
 								Engine( void );
 								~Engine( void );
 
 	bool						Init(int argc, char **argv);
 
-	const mtlList<Object*>		&GetObjects( void ) const;
+	const mtlList<ObjectRef>	&GetObjects( void ) const;
 
-	static void					FilterByName(const mtlList<Object*> &in, mtlList<Object*> &out, const mtlChars &name);
+	static void					FilterByName(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const mtlChars &name);
 	template < typename type_t >
-	static void					FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out);
-	static void					FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id);
-	static void					FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
-	static void					FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
-	static void					FilterByObjectFlagsInclusive(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
-	static void					FilterByCollisionMasksInclusive(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask);
-	static void					FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t mask = AllFlagsOn);
-	static void					FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t mask = AllFlagsOn);
-	static void					FilterByRayCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Ray &ray, flags_t mask = AllFlagsOn);
-	static void					FilterByRangeCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t mask = AllFlagsOn);
-	static void					FilterByPlaneCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t mask = AllFlagsOn);
+	static void					FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out);
+	static void					FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, TypeID id);
+	static void					FilterByObjectFlags(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
+	static void					FilterByCollisionMasks(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
+	static void					FilterByObjectFlagsInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
+	static void					FilterByCollisionMasksInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
+	static void					FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t objectMask = AllFlagsOn);
+	static void					FilterByPlane(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t objectMask = AllFlagsOn);
+	static void					FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Ray &ray, flags_t mask = AllFlagsOn);
+	static void					FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t mask = AllFlagsOn);
+	static void					FilterByPlaneCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t mask = AllFlagsOn);
 
-	//RayCollisionInfo			TraceRay(const Ray &ray); // traverses some kind of spatial data structure, returns object with closest intersection
+	//UnaryCollisionInfo		TraceRay(const Ray &ray); // traverses some kind of spatial data structure, returns object with closest intersection
 
-	void						AddObject(Object *object);
 	template < typename type_t >
-	Object						*AddObject( void );
-	Object						*AddObject( void );
-	Object						*AddObject(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
+	ObjectRef					AddObject( void );
+	ObjectRef					AddObject( void );
+	ObjectRef					AddObject(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
 
 	void						DestroyAllObjects( void );
 
-	Object						*GetCamera( void );
-	const Object				*GetCamera( void ) const;
-	void						SetCamera(Object *camera);
+	ObjectRef					GetCamera( void );
+	const ObjectRef				GetCamera( void ) const;
+	void						SetCamera(ObjectRef camera);
 
 	void						SetWindowCaption(const mtlChars &caption);
 
 	static void					SetGameProjection( void ); // center at 0,0
-	void						SetGameView(const Object *object); // center at object position, rotations
+	void						SetGameView(Transform transform); // center at object position, rotations
 	static void					SetGUIProjection( void ); // top-left at 0,0
 	static void					SetGUIView( void ); // identity
-	void						SetGameGUIView(const Object *object); // center at object position, no rotations
+	void						SetRelativeGUIView(Transform transform); // center at object position, no rotations
 
 	int							RunGame( void );
 	void						EndGame( void );
 	void						KillProgram( void );
 
 	void						SetUpdateFrequency(float updatesPerSecond);
-	float						GetDeltaTime( void ) const;
+	float						GetElapsedTime( void ) const;
 
 	void						SetRandomizerSeeds(unsigned int z, unsigned int w);
 	unsigned int				GetRandomUint( void );
@@ -187,31 +196,58 @@ public:
 	bool						IsHeld(MouseButton::Button button) const;
 	bool						IsReleased(MouseButton::Button button) const;
 
-	static bool					RegisterType(const mtlChars &typeName, Object *(*creator_func)()); // don't call this manually
-	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types); // requires recursive in-order tree traversal to build tree
+	void						EnableGraphicsSorting( void );
+	void						DisableGraphicsSorting( void );
+
+	static bool					RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)()); // don't call this manually
+	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);
 };
 
-#define ENGINE_REGISTER_OBJECT_TYPE(ObjectTypeName) \
-	Object *Create_##ObjectTypeName( void ) { return new ObjectTypeName; } \
-	static bool ObjectTypeName##_Registered = Engine::RegisterType(#ObjectTypeName, Create_##ObjectTypeName)
-
-#define OBJECT_DECL(ObjectName) \
-	class ObjectName; \
-	ENGINE_REGISTER_OBJECT_TYPE(ObjectName); \
-	class ObjectName : public mtlInherit<Object>
-
-#define OBJECT_DECL_INHERIT(ObjectName, ObjectInheritance) \
-	class ObjectName; \
-	ENGINE_REGISTER_OBJECT_TYPE(ObjectName); \
-	class ObjectName : public mtlInherit<ObjectInheritance>
+/*class BaseProduct
+{
+public:
+	virtual ObjectRef Create( void ) const = 0;
+};
 
 template < typename type_t >
-void Engine::FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out)
+class Product : public BaseProduct
+{
+public:
+	ObjectRef Create( void ) const { return ObjectRef::Create<type_t>(); }
+};
+
+#define get_str(x) #x
+template < typename type_t >
+bool Engine::RegisterObject( void )
+{
+	mtlShared<BaseProduct> product = mtlShared<BaseProduct>::Create< Product<type_t> >();
+	Engine::GetObjectFactory().Add(product, get_str(type_t));
+	return true;
+}
+#undef get_str
+
+ObjectRef Engine::AddObject(const mtlChars &name)
+{
+	mtlShared<BaseProduct> product = Engine::GetObjectFactory().Find(name);
+	if (!product.IsNull()) {
+		return product.GetShared()->Create();
+	}
+	return ObjectRef();
+}
+
+#define RegisterObject(ObjectName) static const bool ObjectName##_Registered = Engine::RegisterObject<ObjectName>();*/
+
+#define RegisterObject(ObjectTypeName) \
+	ObjectRef Create_##ObjectTypeName( void ) { return ObjectRef::Create<ObjectTypeName>(); } \
+	static const bool ObjectTypeName##_Registered = Engine::RegisterType(#ObjectTypeName, Create_##ObjectTypeName)
+
+template < typename type_t >
+void Engine::FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (dynamic_cast<type_t*>(n->GetItem()) != NULL) { // have to call dynamic_cast rather than GetAsType because Object is not defined yet
+		if (dynamic_cast<const type_t*>(n->GetItem().GetShared()) != NULL) { // have to call dynamic_cast rather than GetAsDynamicType because Object is not defined yet
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
@@ -219,9 +255,10 @@ void Engine::FilterByRTTI(const mtlList<Object*> &in, mtlList<Object*> &out)
 }
 
 template < typename type_t >
-Object *Engine::AddObject( void )
+ObjectRef Engine::AddObject( void )
 {
-	type_t *o = new type_t;
+	ObjectRef o;
+	o.New<type_t>();
 	AddObject(o);
 	return o;
 }

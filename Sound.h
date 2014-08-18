@@ -9,6 +9,7 @@ class Sound : public mtlAssetInterface
 {
 private:
 	Mix_Chunk *m_chunk;
+
 public:
 	Sound( void );
 	Sound(const mtlChars &file);

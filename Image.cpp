@@ -117,37 +117,33 @@ bool Image::SetSurface(SDL_Surface *image)
 	LoadTexture(m_image->pixels, m_width, m_height, GL_RGBA);
 
 	mtlArray< mmlVector<2> > vtx;
-	vtx.Create(4);
+	vtx.Create(6);
 	float w = float(m_width) * 0.5f;
 	float h = float(m_height) * 0.5f;
-	/*vtx[0][0] = 0.0f;
-	vtx[0][1] = 0.0f;
-	vtx[1][0] = float(m_width);
-	vtx[1][1] = 0.0f;
-	vtx[2][0] = 0.0f;
-	vtx[2][1] = float(m_height);
-	vtx[3][0] = float(m_width);
-	vtx[3][1] = float(m_height);*/
 	vtx[0][0] = -w;
 	vtx[0][1] = -h;
 	vtx[1][0] = w;
 	vtx[1][1] = -h;
 	vtx[2][0] = -w;
 	vtx[2][1] = h;
-	vtx[3][0] = w;
-	vtx[3][1] = h;
+	vtx[3] = vtx[1];
+	vtx[4][0] = w;
+	vtx[4][1] = h;
+	vtx[5] = vtx[2];
 	LoadVertexArray(vtx);
 
 	mtlArray< mmlVector<2> > uv;
-	uv.Create(4);
+	uv.Create(6);
 	uv[0][0] = 0.0f;
 	uv[0][1] = 0.0f;
 	uv[1][0] = 1.0f;
 	uv[1][1] = 0.0f;
 	uv[2][0] = 0.0f;
 	uv[2][1] = 1.0f;
-	uv[3][0] = 1.0f;
-	uv[3][1] = 1.0f;
+	uv[3] = uv[1];
+	uv[4][0] = 1.0f;
+	uv[4][1] = 1.0f;
+	uv[5] = uv[2];
 	LoadUVArray(uv);
 
 	return true;
@@ -182,5 +178,5 @@ const Uint32 *Image::GetPixels(int x, int y) const
 
 void Image::Draw(float) const
 {
-	DrawGraphics(0, 0, GL_TRIANGLE_STRIP, 2);
+	DrawGraphics(0, 0, GL_TRIANGLES, 2);
 }

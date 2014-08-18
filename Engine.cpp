@@ -4,23 +4,8 @@
 #include "GUI.h"
 #include "MML/mmlMath.h"
 
-/*void Engine::GenerateEventList( void )
-{
-	m_events.RemoveAll();
-	SDL_Event event;
-	while (SDL_PollEvent(&event)) {
-		switch (event.type) {
-		case SDL_MOUSEBUTTONUP:
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEMOTION:
-		case SDL_KEYUP:
-		case SDL_KEYDOWN:
-			m_events.AddLast(event);
-			break;
-		case SDL_QUIT: m_quit = true; break;
-		}
-	}
-}*/
+#define node_ref(x) x->GetItem().GetShared()
+#define ptr_ref(x) x.GetShared()
 
 void Engine::UpdateInputBuffers( void )
 {
@@ -42,10 +27,10 @@ void Engine::UpdateInputBuffers( void )
 
 void Engine::UpdateObjects( void )
 {
-	mtlNode<Object*> *object = m_objects.GetFirst();
+	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->IsTicking()) {
-			object->GetItem()->OnUpdate();
+		if (node_ref(object)->IsTicking()) {
+			node_ref(object)->OnUpdate();
 		}
 		object = object->GetNext();
 	}
@@ -53,20 +38,20 @@ void Engine::UpdateObjects( void )
 
 void Engine::CollideObjects( void )
 {
-	mtlNode<Object*> *object = m_objects.GetFirst();
+	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->IsTicking() && object->GetItem()->IsCollidable()) {
-			mtlNode<Object*> *nextObject = object->GetNext();
+		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
+			mtlNode<ObjectRef> *nextObject = object->GetNext();
 			while (nextObject != NULL) {
-				if (nextObject->GetItem()->IsTicking() && nextObject->GetItem()->IsCollidable()) {
-					unsigned int abCollision = object->GetItem()->GetCollisionMasks() & nextObject->GetItem()->GetObjectFlags();
-					unsigned int baCollision = nextObject->GetItem()->GetObjectFlags() & object->GetItem()->GetCollisionMasks();
-					if ((abCollision > 0 || baCollision > 0) && object->GetItem()->m_collider.GetShared()->Collides(*nextObject->GetItem()->m_collider.GetShared())) {
+				if (node_ref(nextObject)->IsTicking() && node_ref(nextObject)->IsCollidable()) {
+					unsigned int abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
+					unsigned int baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
+					if ((abCollision > 0 || baCollision > 0) && node_ref(object)->m_collider.GetShared()->Collides(*node_ref(nextObject)->m_collider.GetShared())) {
 						if (abCollision > 0) {
-							object->GetItem()->OnCollision(*nextObject->GetItem());
+							node_ref(object)->OnCollision(*node_ref(nextObject));
 						}
 						if (baCollision > 0) {
-							nextObject->GetItem()->OnCollision(*object->GetItem());
+							node_ref(nextObject)->OnCollision(*node_ref(object));
 						}
 					}
 				}
@@ -77,24 +62,63 @@ void Engine::CollideObjects( void )
 	}
 }
 
+struct GraphicsContainer
+{
+	ObjectRef	object;
+	Transform	transform;
+	bool operator<(const GraphicsContainer &c) const { return transform.GetPosition(Transform::Local)[1] < c.transform.GetPosition(Transform::Local)[1]; }
+};
+
 void Engine::DrawObjects( void )
 {
-	mtlNode<Object*> *object = m_objects.GetFirst();
-	while (object != NULL) {
-		if (object->GetItem()->IsTicking() && object->GetItem()->IsVisible()) {
+	if (m_graphicsSort) {
+		mtlArray<GraphicsContainer> graphics;
+		graphics.SetCapacity(m_objects.GetSize());
+
+		mtlNode<ObjectRef> *object = m_objects.GetFirst();
+		while (object != NULL) {
+			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
+				GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global) };
+				graphics.Add(c);
+			}
+			object = object->GetNext();
+		}
+
+		mtlArray<GraphicsContainer> sortedGraphics;
+		graphics.MergeSort(sortedGraphics);
+
+		for (int i = 0; i < sortedGraphics.GetSize(); ++i) {
 
 			Engine::SetGameProjection();
-			SetGameView(object->GetItem());
+			SetGameView(sortedGraphics[i].transform);
 
 			glColor4f(
-				object->GetItem()->GetGraphics().GetRed(),
-				object->GetItem()->GetGraphics().GetGreen(),
-				object->GetItem()->GetGraphics().GetBlue(),
-				object->GetItem()->GetGraphics().GetAlpha()
+				sortedGraphics[i].object.GetShared()->GetGraphics().GetRed(),
+				sortedGraphics[i].object.GetShared()->GetGraphics().GetGreen(),
+				sortedGraphics[i].object.GetShared()->GetGraphics().GetBlue(),
+				sortedGraphics[i].object.GetShared()->GetGraphics().GetAlpha()
 			);
-			object->GetItem()->OnDraw();
+			sortedGraphics[i].object.GetShared()->OnDraw();
 		}
-		object = object->GetNext();
+
+	} else {
+		mtlNode<ObjectRef> *object = m_objects.GetFirst();
+		while (object != NULL) {
+			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
+
+				Engine::SetGameProjection();
+				SetGameView(node_ref(object)->GetTransform());
+
+				glColor4f(
+					node_ref(object)->GetGraphics().GetRed(),
+					node_ref(object)->GetGraphics().GetGreen(),
+					node_ref(object)->GetGraphics().GetBlue(),
+					node_ref(object)->GetGraphics().GetAlpha()
+				);
+				node_ref(object)->OnDraw();
+			}
+			object = object->GetNext();
+		}
 	}
 
 	glMatrixMode(GL_MODELVIEW);
@@ -104,13 +128,13 @@ void Engine::DrawObjects( void )
 void Engine::DrawGUI( void )
 {
 	GUI::SetCaretXY(0, 0);
-	mtlNode<Object*> *object = m_objects.GetFirst();
+	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->IsTicking()) {
+		if (node_ref(object)->IsTicking()) {
 			Engine::SetGUIProjection();
 			Engine::SetGUIView();
 			GUI::SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-			object->GetItem()->OnGUI();
+			node_ref(object)->OnGUI();
 		}
 		object = object->GetNext();
 	}
@@ -118,10 +142,10 @@ void Engine::DrawGUI( void )
 
 void Engine::FinalizeObjects( void )
 {
-	mtlNode<Object*> *object = m_objects.GetFirst();
+	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->IsTicking()) {
-			object->GetItem()->OnFinal();
+		if (node_ref(object)->IsTicking()) {
+			node_ref(object)->OnFinal();
 		}
 		object = object->GetNext();
 	}
@@ -129,21 +153,32 @@ void Engine::FinalizeObjects( void )
 
 void Engine::DestroyObjects( void )
 {
-	mtlNode<Object*> *object = m_objects.GetFirst();
+	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_destroy) {
-			if (m_camera == object->GetItem()) { m_camera = NULL; }
-			object->GetItem()->OnDestroy();
-			object->GetItem()->m_engine = NULL;
-			delete object->GetItem();
+		if (node_ref(object)->m_destroy) {
+			if (m_camera.GetShared() == node_ref(object)) { m_camera.Delete(); }
+			node_ref(object)->OnDestroy();
+			node_ref(object)->m_ref = NULL;
+			node_ref(object)->m_engine = NULL;
 			object = object->Remove();
 		} else {
 			object = object->GetNext();
 		}
 	}
-	if (m_objects.GetSize() == 0) {
+	if (m_objects.GetSize() == 0 && m_pending.GetSize() == 0) {
 		std::cout << "[EMPTY object list]" << std::endl;
 		EndGame();
+	}
+}
+
+void Engine::InitPendingObjects( void )
+{
+	mtlNode<ObjectRef> *object = m_pending.GetFirst();
+	while (object != NULL) {
+		m_objects.AddLast(object->GetItem());
+		node_ref(object)->m_ref = &m_objects.GetLast()->GetItem();
+		node_ref(object)->OnInit();
+		object = object->Remove();
 	}
 }
 
@@ -156,58 +191,15 @@ void Engine::UpdateTimer( void )
 	m_deltaSeconds = m_timer.GetTimeDeltaSecondsTick();
 }
 
-void Engine::SetGameProjection( void )
+void Engine::AddObject(ObjectRef object)
 {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	const GLdouble halfW = GLdouble(SDL_GetVideoSurface()->w) / 2.0;
-	const GLdouble halfH = GLdouble(SDL_GetVideoSurface()->h) / 2.0;
-	glOrtho(-halfW - 0.5, halfW + 0.5, halfH + 0.5, -halfH - 0.5, 0.0, 1.0);
-}
-
-void Engine::SetGameView(const Object *object)
-{
-	mmlMatrix<3,3> cameraView = m_camera != NULL ? mmlInv(m_camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> objectTransform = object != NULL ? object->GetTransform().GetTransformMatrix(Transform::Global) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> f = cameraView * objectTransform;
-	GLfloat m[16] = {
-		f[0][0], f[0][1], 0.0f, 0.0f,
-		f[1][0], f[1][1], 0.0f, 0.0f,
-		0.0f,    0.0f,    1.0f, 0.0f,
-		f[0][2], f[1][2], 0.0f, 1.0f
-	};
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(m);
-}
-
-void Engine::SetGUIProjection( void )
-{
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-0.5, (SDL_GetVideoSurface()->w - 1) + 0.5, (SDL_GetVideoSurface()->h - 1) + 0.5, -0.5, 0.0, 1.0);
-}
-
-void Engine::SetGUIView( void )
-{
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-}
-
-void Engine::SetGameGUIView(const Object *object)
-{
-	mmlMatrix<3,3> cameraView = m_camera != NULL ? mmlInv(m_camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> objectTransform = object != NULL ? object->GetTransform().GetTransformMatrix(Transform::Global) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> f = cameraView * objectTransform;
-	GLfloat m[16] = {
-		1.0f,    0.0f,    0.0f, 0.0f,
-		0.0f,    1.0f,    0.0f, 0.0f,
-		0.0f,    0.0f,    1.0f, 0.0f,
-		f[0][2], f[1][2], 0.0f, 1.0f
-	};
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(m);
+	if (object.GetShared() == NULL) {
+		std::cout << "Engine::AddObject: Object is NULL" << std::endl;
+		return;
+	}
+	object.GetShared()->m_engine = this;
+	m_pending.AddLast(object);
+	object.GetShared()->m_ref = &m_pending.GetLast()->GetItem();
 }
 
 mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )
@@ -236,10 +228,11 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 }
 
 Engine::Engine( void ) :
-	m_objects(), m_camera(NULL),
+	m_objects(), m_camera(),
 	m_timer(60.0f), m_deltaSeconds(0.0f),
 	m_rseed_z(0), m_rseed_w(0),
 	m_quit(false), m_inLoop(false),
+	m_graphicsSort(true),
 	m_music(NULL)
 {
 	SetRandomizerSeeds(0, 0); // grabs default values
@@ -342,90 +335,91 @@ bool Engine::Init(int argc, char **argv)
 	return true;
 }
 
-const mtlList<Object*> &Engine::GetObjects( void ) const
+const mtlList<ObjectRef> &Engine::GetObjects( void ) const
 {
 	return m_objects;
 }
 
-void Engine::FilterByName(const mtlList<Object *> &in, mtlList<Object *> &out, const mtlChars &name)
+void Engine::FilterByName(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const mtlChars &name)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetName().Compare(name)) {
+		if (node_ref(n)->GetName().Compare(name)) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByType(const mtlList<Object*> &in, mtlList<Object*> &out, TypeID id)
+void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, TypeID id)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetInstanceType() == id) {
+		if (node_ref(n)->GetInstanceType() == id) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByObjectFlags(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask)
+void Engine::FilterByObjectFlags(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetObjectFlags(mask) == mask) {
+		if (node_ref(n)->GetObjectFlags(mask) == mask) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByCollisionMasks(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask)
+void Engine::FilterByCollisionMasks(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetCollisionMasks(mask) == mask) {
+		if (node_ref(n)->GetCollisionMasks(mask) == mask) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByObjectFlagsInclusive(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask)
+void Engine::FilterByObjectFlagsInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetObjectFlags(mask) > 0) {
+		if (node_ref(n)->GetObjectFlags(mask) > 0) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByCollisionMasksInclusive(const mtlList<Object*> &in, mtlList<Object*> &out, flags_t mask)
+void Engine::FilterByCollisionMasksInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *n = in.GetFirst();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem()->GetCollisionMasks(mask) > 0) {
+		if (node_ref(n)->GetCollisionMasks(mask) > 0) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
 	}
 }
 
-void Engine::FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t collisionMask)
+void Engine::FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t objectMask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
-		if ((object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			UnaryCollisionInfo info = RangeCollide(range, object->GetItem()->GetTransform().GetPosition(Transform::Global));
+		// we do not check if object can collide since this is not technically collisions
+		if ((node_ref(object)->m_objectFlags & objectMask) > 0) {
+			UnaryCollisionInfo info = RangeCollide(range, node_ref(object)->GetTransform().GetPosition(Transform::Global));
 			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
@@ -434,13 +428,14 @@ void Engine::FilterByRange(const mtlList<Object*> &in, mtlList<Object*> &out, co
 	}
 }
 
-void Engine::FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t collisionMask)
+void Engine::FilterByPlane(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t objectMask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
-		if ((object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			UnaryCollisionInfo info = PlaneCollide(plane, object->GetItem()->GetTransform().GetPosition(Transform::Global));
+		// we do not check if object can collide since this is not technically collisions
+		if ((node_ref(object)->m_objectFlags & objectMask) > 0) {
+			UnaryCollisionInfo info = PlaneCollide(plane, node_ref(object)->GetTransform().GetPosition(Transform::Global));
 			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
@@ -449,43 +444,14 @@ void Engine::FilterByPlane(const mtlList<Object*> &in, mtlList<Object*> &out, co
 	}
 }
 
-void Engine::FilterByRayCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Ray &ray, flags_t collisionMask)
+void Engine::FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Ray &ray, flags_t collisionMask)
 {
-	/*struct DistanceStruct
-	{
-		Object *object;
-		float distance;
-		bool operator<(DistanceStruct d) const { return distance < d.distance; }
-	};
+	// BONUS: sort by distance, from shortest to greatest
 	out.RemoveAll();
-	mtlArray<DistanceStruct> collisionInfo;
-	collisionInfo.SetCapacity(in.GetSize());
-	mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_collisions) {
-			RayCollisionInfo info = object->GetItem()->GetCollider()->Collides(ray);
-			if (info.collision) {
-				DistanceStruct d;
-				d.object = object->GetItem();
-				d.distance = mmlDist(ray.origin - d.contact);
-				collisionInfo.Add(d);
-			}
-		}
-		object = object->GetNext();
-	}
-	if (collisionInfo.GetSize() > 0) {
-		mtlArray<DistanceStruct> sorted;
-		collisionInfo.MergeSort(sorted);
-		for (int i = 0; i < sorted.GetSize(); ++i) {
-			out.AddLast(sorted[i].object);
-		}
-	}*/
-
-	out.RemoveAll();
-	const mtlNode<Object*> *object = in.GetFirst();
-	while (object != NULL) {
-		if (object->GetItem()->m_collisions && (object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			if (object->GetItem()->GetCollider()->Collides(ray)) {
+		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
+			if (node_ref(object)->GetCollider()->Collides(ray)) {
 				out.AddLast(object->GetItem());
 			}
 		}
@@ -493,13 +459,13 @@ void Engine::FilterByRayCollision(const mtlList<Object*> &in, mtlList<Object*> &
 	}
 }
 
-void Engine::FilterByRangeCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Range &range, flags_t collisionMask)
+void Engine::FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t collisionMask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_collisions && (object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			if (object->GetItem()->GetCollider()->Collides(range)) {
+		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
+			if (node_ref(object)->GetCollider()->Collides(range)) {
 				out.AddLast(object->GetItem());
 			}
 		}
@@ -507,39 +473,28 @@ void Engine::FilterByRangeCollision(const mtlList<Object*> &in, mtlList<Object*>
 	}
 }
 
-void Engine::FilterByPlaneCollision(const mtlList<Object*> &in, mtlList<Object*> &out, const Plane &plane, flags_t collisionMask)
+void Engine::FilterByPlaneCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t collisionMask)
 {
 	out.RemoveAll();
-	const mtlNode<Object*> *object = in.GetFirst();
+	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
-		if (object->GetItem()->m_collisions && (object->GetItem()->m_objectFlags & collisionMask) > 0) {
-			object->GetItem()->GetCollider()->Collides(plane);
+		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
+			node_ref(object)->GetCollider()->Collides(plane);
 			out.AddLast(object->GetItem());
 		}
 		object = object->GetNext();
 	}
 }
 
-void Engine::AddObject(Object *object)
+ObjectRef Engine::AddObject( void )
 {
-	if (object == NULL) {
-		std::cout << "Engine::AddObject: Object is NULL" << std::endl;
-		return;
-	} else if (object->m_engine != NULL) {
-		std::cout << "Engine::AddObject: Object is already attached to an engine" << std::endl;
-		return;
-	}
-	m_objects.AddLast(object);
-	object->m_engine = this;
-	object->OnInit();
+	ObjectRef o;
+	o.New();
+	AddObject(o);
+	return o;
 }
 
-Object *Engine::AddObject( void )
-{
-	return AddObject<Object>();
-}
-
-Object *Engine::AddObject(const mtlChars &typeName)
+ObjectRef Engine::AddObject(const mtlChars &typeName)
 {
 	mtlHash h(typeName);
 	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
@@ -550,49 +505,49 @@ Object *Engine::AddObject(const mtlChars &typeName)
 		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
 		while (n != NULL) {
 			if (n->GetItem().name.Compare(typeName)) {
-				Object *o = n->GetItem().creator_func();
+				ObjectRef o = n->GetItem().creator_func();
 				AddObject(o);
 				return o;
 			}
 			n = n->GetNext();
 		}
 	}
-	return NULL;
+	return ObjectRef();
 }
 
 void Engine::DestroyAllObjects( void )
 {
-	mtlNode<Object*> *object = m_objects.GetFirst();
+	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	if (m_inLoop) {
 		while (object != NULL) {
-			object->GetItem()->Destroy();
+			node_ref(object)->Destroy();
 			object = object->GetNext();
 		}
 	} else {
 		m_inLoop = true; // prevent some stupid object from recursively calling DestroyAllObjects
-		while (object != NULL) {
+		/*while (object != NULL) {
 			delete object->GetItem();
 			object = object->GetNext();
-		}
+		}*/
 		m_objects.RemoveAll();
 		m_inLoop = false;
 	}
 }
 
-Object *Engine::GetCamera( void )
+ObjectRef Engine::GetCamera( void )
 {
 	return m_camera;
 }
 
-const Object *Engine::GetCamera( void ) const
+const ObjectRef Engine::GetCamera( void ) const
 {
 	return m_camera;
 }
 
-void Engine::SetCamera(Object *camera)
+void Engine::SetCamera(ObjectRef camera)
 {
-	if (camera == NULL || camera->m_engine != this) {
-		m_camera = NULL;
+	if (camera.IsNull() || camera.GetShared()->m_engine != this) {
+		m_camera.Delete();
 	} else {
 		m_camera = camera;
 	}
@@ -603,12 +558,68 @@ void Engine::SetWindowCaption(const mtlChars &caption)
 	SDL_WM_SetCaption(caption.GetChars(), NULL);
 }
 
+void Engine::SetGameProjection( void )
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	const GLdouble halfW = GLdouble(SDL_GetVideoSurface()->w) / 2.0;
+	const GLdouble halfH = GLdouble(SDL_GetVideoSurface()->h) / 2.0;
+	glOrtho(-halfW - 0.5, halfW + 0.5, halfH + 0.5, -halfH - 0.5, 0.0, 1.0);
+}
+
+void Engine::SetGameView(Transform transform)
+{
+	Object *camera = m_camera.GetShared();
+	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
+	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
+	const mmlMatrix<3,3> f = cameraView * objectTransform;
+	GLfloat m[16] = {
+		f[0][0], f[0][1], 0.0f, 0.0f,
+		f[1][0], f[1][1], 0.0f, 0.0f,
+		0.0f,    0.0f,    1.0f, 0.0f,
+		f[0][2], f[1][2], 0.0f, 1.0f
+	};
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(m);
+}
+
+void Engine::SetGUIProjection( void )
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-0.5, (SDL_GetVideoSurface()->w - 1) + 0.5, (SDL_GetVideoSurface()->h - 1) + 0.5, -0.5, 0.0, 1.0);
+}
+
+void Engine::SetGUIView( void )
+{
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+void Engine::SetRelativeGUIView(Transform transform)
+{
+	Object *camera = m_camera.GetShared();
+	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
+	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
+	const mmlMatrix<3,3> f = cameraView * objectTransform;
+	GLfloat m[16] = {
+		1.0f,    0.0f,    0.0f, 0.0f,
+		0.0f,    1.0f,    0.0f, 0.0f,
+		0.0f,    0.0f,    1.0f, 0.0f,
+		f[0][2], f[1][2], 0.0f, 1.0f
+	};
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(m);
+}
+
 int Engine::RunGame( void )
 {
 	if (m_inLoop) { return 0; } // some stupid object is recursively calling RunGame
 
 	std::cout << "[START main loop]" << std::endl;
-	if (m_camera == NULL) {
+	if (m_camera.IsNull()) {
 		std::cout << "Engine::RunGame: No camera at game start" << std::endl;
 	}
 
@@ -618,7 +629,6 @@ int Engine::RunGame( void )
 	m_timer.Restart();
 
 	while (!m_quit) {
-		//GenerateEventList();
 		UpdateInputBuffers();
 		UpdateObjects();
 		CollideObjects();
@@ -627,6 +637,7 @@ int Engine::RunGame( void )
 		UpdateVideo();
 		FinalizeObjects();
 		DestroyObjects();
+		InitPendingObjects();
 		UpdateTimer();
 	}
 
@@ -664,7 +675,7 @@ void Engine::SetUpdateFrequency(float updatesPerSecond)
 	m_timer.SetIntervalsPerSecond(updatesPerSecond);
 }
 
-float Engine::GetDeltaTime( void ) const
+float Engine::GetElapsedTime( void ) const
 {
 	return m_deltaSeconds;
 }
@@ -853,7 +864,17 @@ bool Engine::IsReleased(MouseButton::Button button) const
 	return m_mouseButtonState[button] == InputState::Release;
 }
 
-bool Engine::RegisterType(const mtlChars &typeName, Object *(*creator_func)())
+void Engine::EnableGraphicsSorting( void )
+{
+	m_graphicsSort = true;
+}
+
+void Engine::DisableGraphicsSorting( void )
+{
+	m_graphicsSort = false;
+}
+
+bool Engine::RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)())
 {
 	mtlHash h(typeName);
 	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();

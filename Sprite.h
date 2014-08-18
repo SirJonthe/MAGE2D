@@ -23,6 +23,7 @@ private:
 		bool isLooping;
 		Metadata( void ) : file(), frameWidth(-1), frameCount(-1), framesPerSecond(0.0f), loopBack(0), isLooping(true) {}
 	};
+
 private:
 	mtlAsset<Graphics>	m_sheet;
 	int					m_frameWidth;
@@ -30,10 +31,12 @@ private:
 	int					m_numFrames;
 	float				m_framesPerSecond;
 	int					m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
+
 private:
 	Sprite(const Sprite&) {}
 	Sprite &operator=(const Sprite&) { return *this; }
 	bool LoadMetadata(Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened);
+
 public:
 			Sprite( void );
 

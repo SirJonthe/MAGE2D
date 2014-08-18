@@ -1,25 +1,16 @@
 --------
 --TODO--
 --------
+Collision response
+	no physics, just prevent two objects from intersecting
 Collisions
 	Polygon
-Physics?
-	Roll my own?
-		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
-		http://xbox.create.msdn.com/en-US/education/catalog/tutorial/collision_2d_perpixel_transformed
-	Remember:
-		Physics act on transforms' World locations (not local locations)
-More randomizer functions in engine
-	Non linear randomizer
-According to asset manager: "/home/jonathan/Code/SGE2D/Debug/test.bmp" is not same as relative file "test.bmp"
-	Fix so that the engine detects absolute and relative files so that there is no risk of loading something twice
-Define a safe way to reference objects inside engine
-	mtlExclusive and mtlReference
-	mtlReference requires NULL check though
 
 ----------
 --DESIGN--
 ----------
+According to asset manager: "/home/jonathan/Code/SGE2D/Debug/test.bmp" is not same as relative file "test.bmp"
+	Fix so that the engine detects absolute and relative files so that there is no risk of loading something twice
 Type tree in Engine should be mtlStringMap instead of mtlBinaryTree (saves a ton of code)
 In order for font to work properly I think I need to store font in an extended Graphics object
 	Graphics objects store mirrors global state, font modifies global state which might desync Graphics mirrored state from global state
@@ -43,14 +34,18 @@ Tile set editor
 Sprite editor:
 	Game object that allows for editing sprites
 	Load and save sprite files
+Physics?
+	Roll my own?
+		http://gamedevelopment.tutsplus.com/tutorials/custom-2d-physics-engine-oriented-rigid-bodies--gamedev-8032
+		http://xbox.create.msdn.com/en-US/education/catalog/tutorial/collision_2d_perpixel_transformed
+	Remember:
+		Physics act on transforms' World locations (not local locations)
+More randomizer functions in engine
+	Non linear randomizer
 
 ---------------
 --IN PROGRESS--
 ---------------
-Engine filtering of object list
-	by ray - has to operate on collider, not transform position
-	by cone - has to operate on collider, not transform position
-	by separating plane - has to operate on collider, not transform position
 
 ---------
 --DEBUG--
@@ -70,8 +65,6 @@ Compiler warnings
 --------
 --BUGS--
 --------
-Collision boxes are not transforming? Might be an endemic problem affecting all colliders.
-	BoxCollider is axis-aligned. Maybe it shouldn't be?
 Valgrind is warning about a 4 byte overwrite in Object::Draw and Image does not render properly (must be something about triangle strip rendering)
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?

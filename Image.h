@@ -13,9 +13,11 @@ private:
 	SDL_Surface	*m_image;
 	int			m_width;
 	int			m_height;
+
 private:
 	Image(const Image &) {}
 	Image &operator=(const Image &) { return *this; }
+
 public:
 						Image( void );
 						Image(const mtlDirectory &file);
