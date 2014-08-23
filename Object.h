@@ -30,6 +30,7 @@ private:
 	const unsigned long long	m_objectNumber;
 	ObjectRef					*m_ref;
 	Engine						*m_engine;
+	float						m_depth;
 
 protected:
 	virtual void	OnInit( void ) {}
@@ -76,6 +77,9 @@ public:
 
 	Transform				&GetTransform( void );
 	const Transform			&GetTransform( void ) const;
+
+	float					GetDepth( void ) const;
+	void					SetDepth(float depth);
 
 	template < typename object_t >
 	const object_t			*GetAsDynamicType( void ) const;

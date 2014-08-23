@@ -57,8 +57,8 @@ public:
 	float GetAngle(Space space) const;
 	
 	void Rotate(float angle);
-	void Rotate(Space space, mmlVector<2> point, float angle); // can benefit from 'space' param
-	void Rotate(Space space, float x, float y, float angle);
+	//void Rotate(Space space, mmlVector<2> point, float angle); // can benefit from 'space' param
+	//void Rotate(Space space, float x, float y, float angle);
 	
 	mmlVector<2> GetAxisX(Space space) const;
 	void SetAxisX(Space space, mmlVector<2> normal);

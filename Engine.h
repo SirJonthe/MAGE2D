@@ -69,6 +69,14 @@ private:
 		};
 	};
 
+public:
+	enum OcclusionMethod
+	{
+		None,
+		TermY,
+		TermZ
+	};
+
 private:
 	mtlList<ObjectRef>	m_objects;
 	mtlList<ObjectRef>	m_pending;
@@ -82,6 +90,7 @@ private:
 	bool				m_quit;
 	bool				m_inLoop;
 	bool				m_graphicsSort;
+	OcclusionMethod		m_occlusionMethod;
 	Mix_Music			*m_music;
 	Point				m_mousePosition;
 	Point				m_prevMousePosition;
@@ -146,10 +155,10 @@ public:
 	void						SetWindowCaption(const mtlChars &caption);
 
 	static void					SetGameProjection( void ); // center at 0,0
-	void						SetGameView(Transform transform); // center at object position, rotations
+	void						SetGameView(const Object &object); // center at object position, rotations
 	static void					SetGUIProjection( void ); // top-left at 0,0
 	static void					SetGUIView( void ); // identity
-	void						SetRelativeGUIView(Transform transform); // center at object position, no rotations
+	void						SetRelativeGUIView(const Object &object); // center at object position, no rotations
 
 	int							RunGame( void );
 	void						EndGame( void );
@@ -168,7 +177,7 @@ public:
 	bool						PlayMusic(const mtlChars &file);
 	void						StopMusic( void );
 
-	static void					UpdateVideo( void );
+	void						UpdateVideo( void ) const;
 	static int					GetVideoWidth( void );
 	static int					GetVideoHeight( void );
 
@@ -198,6 +207,7 @@ public:
 
 	void						EnableGraphicsSorting( void );
 	void						DisableGraphicsSorting( void );
+	void						SetOcclusionMethod(OcclusionMethod method);
 
 	static bool					RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);

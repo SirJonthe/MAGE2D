@@ -90,7 +90,7 @@ void Engine::DrawObjects( void )
 		for (int i = 0; i < sortedGraphics.GetSize(); ++i) {
 
 			Engine::SetGameProjection();
-			SetGameView(sortedGraphics[i].transform);
+			SetGameView(*sortedGraphics[i].object.GetShared());
 
 			glColor4f(
 				sortedGraphics[i].object.GetShared()->GetGraphics().GetRed(),
@@ -107,7 +107,7 @@ void Engine::DrawObjects( void )
 			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
 
 				Engine::SetGameProjection();
-				SetGameView(node_ref(object)->GetTransform());
+				SetGameView(*node_ref(object));
 
 				glColor4f(
 					node_ref(object)->GetGraphics().GetRed(),
@@ -127,6 +127,8 @@ void Engine::DrawObjects( void )
 
 void Engine::DrawGUI( void )
 {
+	glDisable(GL_DEPTH_TEST);
+
 	GUI::SetCaretXY(0, 0);
 	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
@@ -137,6 +139,10 @@ void Engine::DrawGUI( void )
 			node_ref(object)->OnGUI();
 		}
 		object = object->GetNext();
+	}
+
+	if (m_occlusionMethod != None) {
+		glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -232,7 +238,7 @@ Engine::Engine( void ) :
 	m_timer(60.0f), m_deltaSeconds(0.0f),
 	m_rseed_z(0), m_rseed_w(0),
 	m_quit(false), m_inLoop(false),
-	m_graphicsSort(true),
+	m_graphicsSort(true), m_occlusionMethod(None),
 	m_music(NULL)
 {
 	SetRandomizerSeeds(0, 0); // grabs default values
@@ -298,6 +304,7 @@ bool Engine::Init(int argc, char **argv)
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	if (SDL_SetVideoMode(args.width, args.height, 32, SDL_OPENGL) == NULL) {
 		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
 		return false;
@@ -567,17 +574,18 @@ void Engine::SetGameProjection( void )
 	glOrtho(-halfW - 0.5, halfW + 0.5, halfH + 0.5, -halfH - 0.5, 0.0, 1.0);
 }
 
-void Engine::SetGameView(Transform transform)
+void Engine::SetGameView(const Object &object)
 {
 	Object *camera = m_camera.GetShared();
 	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
+	const mmlMatrix<3,3> objectTransform = object.GetTransform().GetTransformMatrix(Transform::Global);
 	const mmlMatrix<3,3> f = cameraView * objectTransform;
+	float depth = m_occlusionMethod == TermZ ? object.GetDepth() : (m_occlusionMethod == TermY ? f[1][1] : 1.0f);
 	GLfloat m[16] = {
-		f[0][0], f[0][1], 0.0f, 0.0f,
-		f[1][0], f[1][1], 0.0f, 0.0f,
-		0.0f,    0.0f,    1.0f, 0.0f,
-		f[0][2], f[1][2], 0.0f, 1.0f
+		f[0][0], f[0][1], 0.0f,  0.0f,
+		f[1][0], f[1][1], 0.0f,  0.0f,
+		0.0f,    0.0f,    depth, 0.0f,
+		f[0][2], f[1][2], 0.0f,  1.0f
 	};
 
 	glMatrixMode(GL_MODELVIEW);
@@ -597,11 +605,11 @@ void Engine::SetGUIView( void )
 	glLoadIdentity();
 }
 
-void Engine::SetRelativeGUIView(Transform transform)
+void Engine::SetRelativeGUIView(const Object &object)
 {
 	Object *camera = m_camera.GetShared();
 	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
+	const mmlMatrix<3,3> objectTransform = object.GetTransform().GetTransformMatrix(Transform::Global);
 	const mmlMatrix<3,3> f = cameraView * objectTransform;
 	GLfloat m[16] = {
 		1.0f,    0.0f,    0.0f, 0.0f,
@@ -738,10 +746,13 @@ void Engine::StopMusic( void )
 	}
 }
 
-void Engine::UpdateVideo( void )
+void Engine::UpdateVideo( void ) const
 {
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT);
+	if (m_occlusionMethod != None) {
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
 }
 
 int Engine::GetVideoWidth( void )
@@ -872,6 +883,21 @@ void Engine::EnableGraphicsSorting( void )
 void Engine::DisableGraphicsSorting( void )
 {
 	m_graphicsSort = false;
+}
+
+void Engine::SetOcclusionMethod(OcclusionMethod method)
+{
+	switch (method) {
+	case TermY:
+	case TermZ:
+		m_occlusionMethod = method;
+		glEnable(GL_DEPTH_TEST);
+		break;
+	default:
+		m_occlusionMethod = None;
+		glDisable(GL_DEPTH_TEST);
+		break;
+	}
 }
 
 bool Engine::RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)())

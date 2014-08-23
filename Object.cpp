@@ -13,7 +13,8 @@ Object::Object( void ) :
 	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
 	m_collider(mtlShared<Collider>::Create<NullCollider>()),
 	m_objectFlags(0x0000000000000001), m_collisionMask(AllFlagsOn), m_objectNumber(GetObjectNumber()),
-	m_engine(NULL)
+	m_engine(NULL),
+	m_depth(1.0f)
 {
 	m_name.Copy("object_generic");
 }
@@ -118,6 +119,16 @@ Transform &Object::GetTransform( void )
 const Transform &Object::GetTransform( void ) const
 {
 	return m_collider.GetShared()->GetTransform();
+}
+
+float Object::GetDepth( void ) const
+{
+	return m_depth;
+}
+
+void Object::SetDepth(float depth)
+{
+	m_depth = depth;
 }
 
 bool Object::GetObjectFlag(unsigned int bit) const

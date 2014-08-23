@@ -261,6 +261,7 @@ void Unit_RegisteredObjects( void )
 void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
+
 	ObjectRef a = engine.AddObject("Controllable");
 	ObjectRef c = engine.AddObject("FollowCamera");
 	engine.SetCamera(c);
