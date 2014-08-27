@@ -71,6 +71,11 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 				SetError("frame_count must be positive integer");
 				return false;
 			}
+		} else if (param.Compare("frame_height")) {
+			if (!val.ToInt(out.frameHeight) || out.frameHeight < 0) {
+				SetError("frame_height must be positive integer");
+				return false;
+			}
 		} else if (param.Compare("frames_per_second")) {
 			if (!val.ToFloat(out.framesPerSecond) || out.framesPerSecond < 0.0f) {
 				SetError("frames_per_second must be positive float");
@@ -110,7 +115,7 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 	return true;
 }
 
-Sprite::Sprite( void ) : mtlInherit<Graphics>(), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
+Sprite::Sprite( void ) : mtlInherit<Graphics, Sprite>(), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
 {}
 
 int Sprite::GetFrameCount( void ) const
@@ -180,13 +185,18 @@ bool Sprite::Load(const mtlDirectory &file)
 	mtlList<mtlDirectory> filesOpened;
 	Metadata out;
 	if (!LoadMetadata(out, file, filesOpened)) {
+		std::cout << "\tfailed: " << GetError().GetChars() << std::endl;
 		return false;
 	}
 
 	// calculate final values
 	m_sheet = mtlAsset<Graphics>::Load<Image>(out.file);
 	if (!m_sheet.IsNull()) {
-		m_frameHeight = m_sheet.GetAsset()->GetHeight();
+		if (out.frameHeight	== -1) {
+			m_frameHeight = m_sheet.GetAsset()->GetHeight();
+		} else {
+			m_frameHeight = mmlMin2(m_sheet.GetAsset()->GetHeight(), out.frameHeight);
+		}
 		if (out.frameCount == -1 && out.frameWidth == -1) {
 			m_numFrames = 1;
 			m_frameWidth = m_sheet.GetAsset()->GetWidth();
@@ -196,6 +206,9 @@ bool Sprite::Load(const mtlDirectory &file)
 		} else if (out.frameWidth == -1) {
 			m_numFrames = out.frameCount;
 			m_frameWidth = m_sheet.GetAsset()->GetWidth() / m_numFrames;
+		} else {
+			m_numFrames = out.frameCount;
+			m_frameWidth = out.frameWidth;
 		}
 		m_framesPerSecond = out.framesPerSecond;
 		if (out.isLooping) {
@@ -225,22 +238,23 @@ bool Sprite::Load(const mtlDirectory &file)
 
 		mtlArray< mmlVector<2> > uv;
 		uv.Create(GetFrameCount() * 6);
-		const float uInc = 1.0f / float(GetFrameCount());
+		const float uInc = (float)GetWidth() / (float)m_sheet.GetAsset()->GetWidth();
+		const float vMax = (float)GetHeight() / (float)m_sheet.GetAsset()->GetHeight();
 		for (int i = 0; i < GetFrameCount(); ++i) {
-			const int vtx = i * 6;
-			uv[vtx+0][0] = uInc * i;
-			uv[vtx+0][1] = 0.0f;
-			uv[vtx+1][0] = uInc * (i+1);
-			uv[vtx+1][1] = 0.0f;
-			uv[vtx+2][0] = uInc * i;
-			uv[vtx+2][1] = 1.0f;
+			const int v = i * 6;
+			uv[v+0][0] = uInc * i;
+			uv[v+0][1] = 0.0f;
+			uv[v+1][0] = uInc * (i+1);
+			uv[v+1][1] = 0.0f;
+			uv[v+2][0] = uInc * i;
+			uv[v+2][1] = vMax;
 
-			uv[vtx+3][0] = uInc * (i+1);
-			uv[vtx+3][1] = 0.0f;
-			uv[vtx+4][0] = uInc * (i+1);
-			uv[vtx+4][1] = 1.0f;
-			uv[vtx+5][0] = uInc * i;
-			uv[vtx+5][1] = 1.0f;
+			uv[v+3][0] = uInc * (i+1);
+			uv[v+3][1] = 0.0f;
+			uv[v+4][0] = uInc * (i+1);
+			uv[v+4][1] = vMax;
+			uv[v+5][0] = uInc * i;
+			uv[v+5][1] = vMax;
 		}
 		LoadUVArray(uv);
 
@@ -263,9 +277,7 @@ void Sprite::Destroy( void )
 void Sprite::Draw(float time) const
 {
 	if (!m_sheet.IsNull()) {
-		DrawGraphics(0, GetFrameIndex(time)*2, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
-
-		//DrawGraphics(0, 0, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
+		DrawGraphics(0, GetFrameIndex(time)*6, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
 	}
 }
 

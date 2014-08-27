@@ -52,6 +52,8 @@ void DrawBoxFilledUV(float u1, float v1, float u2, float v2);
 void DrawImage(); // image*/
 
 Point GetTextSize(const mtlChars &text, int scale = 1);
+Point GetTextSize(int number, int scale = 1);
+Point GetTextSize(float number, int scale = 1);
 
 int GetCharPixelWidth(int scale = 1);
 int GetCharPixelHeight(int scale = 1);
@@ -111,7 +113,7 @@ public:
 	control_t *NewControl( void ) { m_children.AddLast(mtlShared<GUI::Control>::Create<control_t>()); return m_children.GetLast()->GetItem()->GetShared(); }*/
 };
 
-class Window : public mtlInherit<GUI::Control>
+class Window : public mtlInherit<GUI::Control, GUI::Window>
 {
 	friend class GUI::Manager;
 

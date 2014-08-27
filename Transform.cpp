@@ -56,6 +56,19 @@ float Transform::GetParentScaleY( void ) const
 Transform::Transform( void ) : m_position(0.0f, 0.0f), m_rotation(mmlMatrix<2,2>::IdentityMatrix()), m_parent(NULL)
 {}
 
+Transform::Transform(const Transform &transform) : m_position(transform.m_position), m_rotation(transform.m_rotation), m_parent(transform.m_parent)
+{}
+
+Transform &Transform::operator=(const Transform &transform)
+{
+	if (this != &transform) {
+		m_position = transform.m_position;
+		m_rotation = transform.m_rotation;
+		m_parent = transform.m_parent;
+	}
+	return *this;
+}
+
 const Transform *Transform::GetParent( void ) const
 {
 	return m_parent;
@@ -175,31 +188,24 @@ void Transform::Rotate(float angle)
 	m_rotation *= RotationMatrix(angle);
 }
 
-/*void Transform::Rotate(Transform::Space space, mmlVector<2> point, float angle)
+void Transform::Rotate(Transform::Space space, mmlVector<2> point, float angle)
 {
-	if (space == Global) {
-		point = TransformPoint(Global, point);
-	}
-	mmlMatrix<2,2> r = RotationMatrix(angle);
-	m_rotation *= r;
-	m_position -= point;
-	m_position *= r;
-	m_position += point;
+	mmlVector<2> position = GetPosition(space);
+	mmlVector<2> vector = point - position;
+	mmlVector<2> rotationVector = -vector;
+	rotationVector *= RotationMatrix(angle);
+	m_rotation *= RotationMatrix(-angle);
+	m_position = rotationVector + m_position + vector;
 }
 
 void Transform::Rotate(Transform::Space space, float x, float y, float angle)
 {
 	Rotate(space, mmlVector<2>(x, y), angle);
-}*/
+}
 
 mmlVector<2> Transform::GetAxisX(Transform::Space space) const
 {
-	if (space == Local) {
-		return mmlNormalize(m_rotation[0]);
-	} else if (space == Global) {
-		return mmlNormalize(GetRotation(Global)[0]);
-	}
-	return mmlVector<2>(1.0f, 0.0f);
+	return mmlNormalize(GetRotation(space)[0]);
 }
 
 void Transform::SetAxisX(Transform::Space space, mmlVector<2> normal)
@@ -212,6 +218,24 @@ void Transform::SetAxisX(Transform::Space space, mmlVector<2> normal)
 	m_rotation *= RotationMatrix(t.GetAngle(Local) - GetAngle(space));
 }
 
+int Transform::GetAxisDirectionX( void ) const
+{
+	return (mmlCross2(m_rotation[0], m_rotation[1]) < 0.0f) ? -1 : 1;
+}
+
+int Transform::GetAxisDirectionX(Space space, mmlVector<2> up) const
+{
+	return (mmlCross2(GetAxisX(space), up) < 0.0f) ? -1 : 1;
+}
+
+void Transform::SetAxisDirectionX(int x)
+{
+	int dir = GetAxisDirectionX();
+	if ((x < 0 && dir > 0) || (x > 0 && dir < 0)) {
+		FlipAxisX();
+	}
+}
+
 void Transform::FlipAxisX( void )
 {
 	m_rotation[0] = -m_rotation[0];
@@ -219,12 +243,7 @@ void Transform::FlipAxisX( void )
 
 mmlVector<2> Transform::GetAxisY(Transform::Space space) const
 {
-	if (space == Local) {
-		return mmlNormalize(m_rotation[1]);
-	} else if (space == Global) {
-		return mmlNormalize(GetRotation(Global)[1]);
-	}
-	return mmlVector<2>(0.0f, 1.0f);
+	return mmlNormalize(GetRotation(space)[1]);
 }
 
 void Transform::SetAxisY(Transform::Space space, mmlVector<2> normal)
@@ -235,6 +254,24 @@ void Transform::SetAxisY(Transform::Space space, mmlVector<2> normal)
 	t.m_rotation[0][0] = normal[1];
 	t.m_rotation[0][1] = -normal[0];
 	m_rotation *= RotationMatrix(t.GetAngle(Local) - GetAngle(space));
+}
+
+int Transform::GetAxisDirectionY( void ) const
+{
+	return (mmlCross2(m_rotation[1], m_rotation[0]) < 0.0f) ? -1 : 1;
+}
+
+int Transform::GetAxisDirectionY(Space space, mmlVector<2> right) const
+{
+	return (mmlCross2(GetAxisY(space), right) < 0.0f) ? -1 : 1;
+}
+
+void Transform::SetAxisDirectionY(int y)
+{
+	int dir = GetAxisDirectionY();
+	if ((y < 0 && dir > 0) || (y > 0 && dir < 0)) {
+		FlipAxisY();
+	}
 }
 
 void Transform::FlipAxisY( void )
@@ -268,6 +305,12 @@ void Transform::SetScaleY(Transform::Space space, float scale)
 	} else if (space == Global) {
 		m_rotation[1] = mmlNormalize(m_rotation[1]) * (GetParentScaleY() / scale);
 	}
+}
+
+void Transform::SetScale(Space space, float scale)
+{
+	SetScaleX(space, scale);
+	SetScaleY(space, scale);
 }
 
 void Transform::Scale(float scale)

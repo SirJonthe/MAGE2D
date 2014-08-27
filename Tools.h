@@ -5,7 +5,7 @@
 #include "Common.h"
 #include "MTL/mtlDuplex.h"
 
-class KillPlane : public mtlInherit<Object>
+/*ObjectDeclaration(KillPlane)
 {
 private:
 	Plane m_plane;
@@ -16,9 +16,9 @@ protected:
 public:
 	KillPlane( void ); // grab all collisions, is defined as nothing, set collision shape to plane
 	void SetPlane(mmlVector<2> point, mmlVector<2> normal);
-};
+};*/
 
-class Console : public mtlInherit<Object>
+ObjectDeclaration(Console)
 {
 private:
 	mmlVector<4>			m_bgColor;

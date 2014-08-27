@@ -1,25 +1,31 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <climits>
 #include "Common.h"
 #include "Transform.h"
 #include "MTL/mtlString.h"
 #include "MTL/mtlType.h"
 #include "Collider.h"
 #include "Graphics.h"
-#include "Engine.h"
 
-//class Engine;
+class Engine;
+
+class Object;
+typedef mtlShared<Object> ObjectRef;
 
 class Object : public mtlBase
 {
 	friend class Engine;
 
+public:
+	static const flags_t default_object = 1;
+	static const flags_t ruleset_object = (1ull << (sizeof(flags_t)*CHAR_BIT - 1));
+
 private:
 	GraphicsInstance			m_graphics;
 	mtlString					m_name;
-	//Transform					m_transform; // transform is reverted to an interpolated value between this and next should next be rejected by solver
-	//Transform					m_nextTransform; // Get* returns this, Set* modifies this
+	Transform					m_transform;
 	bool						m_destroy;
 	bool						m_collisions;
 	bool						m_visible;
@@ -28,7 +34,6 @@ private:
 	flags_t						m_objectFlags;		// what is the object?
 	flags_t						m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
-	ObjectRef					*m_ref;
 	Engine						*m_engine;
 	float						m_depth;
 
@@ -36,7 +41,7 @@ protected:
 	virtual void	OnInit( void ) {}
 	virtual void	OnDestroy( void ) {}
 	virtual void	OnUpdate( void ) {}
-	virtual void	OnCollision(Object&) {}
+	virtual void	OnCollision(ObjectRef&) {}
 	virtual void	OnDraw( void ) { m_graphics.Draw(); }
 	virtual void	OnGUI( void ) {}
 	virtual void	OnFinal( void ) {}
@@ -71,7 +76,6 @@ public:
 	void					DestroyCollider( void );
 	const Collider			*GetCollider( void ) const;
 	Collider				*GetCollider( void );
-	//void					SetCollider(mtlShared<Collider> &collider);
 	template < typename collider_t >
 	void					LoadCollider( void );
 
@@ -89,6 +93,7 @@ public:
 	bool					IsDynamicType( void ) const;
 	template < typename object_t >
 	bool					IsStaticType( void ) const;
+	bool					IsStaticType(TypeID id);
 	bool					GetObjectFlag(unsigned int bit) const;
 	flags_t					GetObjectFlags(flags_t mask = AllFlagsOn) const;
 	void					SetObjectFlag(unsigned int bit, bool state);
@@ -106,12 +111,15 @@ public:
 	void					SetGraphics(const GraphicsInstance &graphics);
 	template < typename graphics_t >
 	bool					LoadGraphics(const mtlChars &file);
+	void					DrawGraphics( void );
 
 	const Engine			*GetEngine( void ) const;
 	Engine					*GetEngine( void );
 
-	ObjectRef				GetEngineReference( void ) const;
+	void					MakeRulesetObject( void );
 };
+
+#include "Engine.h"
 
 template < typename object_t >
 const object_t *Object::GetAsDynamicType( void ) const
@@ -140,9 +148,8 @@ bool Object::IsStaticType( void ) const
 template < typename collider_t >
 void Object::LoadCollider( void )
 {
-	Transform transform = m_collider.GetShared()->GetTransform();
 	m_collider.New<collider_t>();
-	m_collider.GetShared()->GetTransform() = transform;
+	m_collider->SetTransform(&m_transform);
 	if (m_graphics.IsGood()) {
 		m_collider.GetShared()->SetHalfExtents((float)m_graphics.GetGraphicsWidth() * 0.5f, (float)m_graphics.GetGraphicsHeight() * 0.5f);
 	}
@@ -154,5 +161,7 @@ bool Object::LoadGraphics(const mtlChars &file)
 	m_graphics = mtlAsset<Graphics>::Load<graphics_t>(file);
 	return m_graphics.GetGraphics().GetAsset() != NULL;
 }
+
+#define ObjectDeclaration(ObjectName) class ObjectName : public mtlInherit<Object, ObjectName>
 
 #endif // OBJECT_H

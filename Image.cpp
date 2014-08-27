@@ -53,6 +53,7 @@ bool Image::Load(const mtlDirectory &file)
 		return false;
 	}
 
+	std::cout << "\t";
 	return SetSurface(image);
 }
 
@@ -114,7 +115,7 @@ bool Image::SetSurface(SDL_Surface *image)
 	m_width = m_image->w;
 	m_height = m_image->h;
 
-	LoadTexture(m_image->pixels, m_width, m_height, GL_RGBA);
+	LoadTexture(m_image->pixels, m_width, m_height, m_image->format->BytesPerPixel, GL_BGRA);
 
 	mtlArray< mmlVector<2> > vtx;
 	vtx.Create(6);
@@ -146,6 +147,7 @@ bool Image::SetSurface(SDL_Surface *image)
 	uv[5] = uv[2];
 	LoadUVArray(uv);
 
+	std::cout << "\tdone" << std::endl;
 	return true;
 }
 

@@ -20,7 +20,7 @@ void Graphics::LoadUVArray(const mtlArray< mmlVector<2> > &array) const
 	Unbind();
 }
 
-void Graphics::LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format) const
+void Graphics::LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint bytesPerPixel, GLint format) const
 {
 	//glFinish(); // do we need to wait for everything else to finish?
 	glBindTexture(GL_TEXTURE_2D, m_id.tex);
@@ -29,7 +29,7 @@ void Graphics::LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, bytesPerPixel, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
 
 	Unbind();
 }
@@ -171,6 +171,14 @@ void GraphicsInstance::SetTint(const mmlVector<3> &tint, float a)
 	SetRed(tint[0]);
 	SetGreen(tint[1]);
 	SetBlue(tint[2]);
+	SetAlpha(a);
+}
+
+void GraphicsInstance::SetTint(float r, float g, float b, float a)
+{
+	SetRed(r);
+	SetGreen(g);
+	SetBlue(b);
 	SetAlpha(a);
 }
 

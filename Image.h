@@ -7,7 +7,7 @@
 #include "Timer.h"
 #include "Graphics.h"
 
-class Image : public mtlInherit<Graphics>
+class Image : public mtlInherit<Graphics, Image>
 {
 private:
 	SDL_Surface	*m_image;

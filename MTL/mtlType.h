@@ -12,18 +12,36 @@ public:
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
 };
 
-template < typename type_t >
-class mtlInherit : public type_t
+//
+// Use the second template parameter to be able to make a
+// distinction between two different objects that share
+// the same base class. Declaration should look like the
+// following:
+//
+// class Object : public mtlInherit<BaseObject, Object>
+// ...
+//
+
+template < typename base_t, typename type_t = int >
+class mtlInherit : public base_t
 {
 private:
-	static const char m_typeAddress;
+	// This type has to be of type_t. Using a small value
+	// such as 'char' for all mtlInherit<base, ...> types
+	// causes MSVC to optimize memory layout and make sure
+	// that all mtlInherit<base, ...> share the same static
+	// member despite being of different types, for instance
+	// &mtlInherit<someClass, child1>::m_typeAddress == &mtlInherit<someClass, child2>::m_typeAddress
+	static const type_t *m_typeAddress;
+
 public:
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
 	virtual TypeID GetInstanceType( void ) const { return GetClassType(); }
-	static TypeID GetParentClassType( void ) { return type_t::GetClassType(); }
-	virtual TypeID GetParentInstanceType( void ) const { return type_t::GetInstanceType(); }
+
+	static TypeID GetParentClassType( void ) { return base_t::GetClassType(); }
+	virtual TypeID GetParentInstanceType( void ) const { return base_t::GetInstanceType(); }
 };
 
-template < typename type_t > const char mtlInherit<type_t>::m_typeAddress = 0;
+template < typename base_t, typename type_t > const type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL;
 
 #endif

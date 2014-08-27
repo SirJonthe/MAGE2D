@@ -113,12 +113,12 @@ Collider *Object::GetCollider( void )
 
 Transform &Object::GetTransform( void )
 {
-	return m_collider.GetShared()->GetTransform();
+	return m_transform;
 }
 
 const Transform &Object::GetTransform( void ) const
 {
-	return m_collider.GetShared()->GetTransform();
+	return m_transform;
 }
 
 float Object::GetDepth( void ) const
@@ -129,6 +129,11 @@ float Object::GetDepth( void ) const
 void Object::SetDepth(float depth)
 {
 	m_depth = depth;
+}
+
+bool Object::IsStaticType(TypeID id)
+{
+	return GetInstanceType() == id;
 }
 
 bool Object::GetObjectFlag(unsigned int bit) const
@@ -203,6 +208,11 @@ void Object::SetGraphics(const GraphicsInstance &graphics)
 	m_graphics = graphics;
 }
 
+void Object::DrawGraphics( void )
+{
+	m_graphics.Draw();
+}
+
 const Engine *Object::GetEngine( void ) const
 {
 	return m_engine;
@@ -213,10 +223,13 @@ Engine *Object::GetEngine( void )
 	return m_engine;
 }
 
-ObjectRef Object::GetEngineReference( void ) const
+void Object::MakeRulesetObject( void )
 {
-	if (m_ref == NULL) {
-		return ObjectRef();
-	}
-	return *m_ref;
+	DestroyGraphics();
+	DisableGraphics();
+	LoadCollider<NullCollider>();
+	DisableCollisions();
+	ClearAllCollisionMasks();
+	ClearAllObjectFlags();
+	SetObjectFlags(Object::ruleset_object);
 }

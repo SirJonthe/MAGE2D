@@ -520,6 +520,20 @@ Point GUI::GetTextSize(const mtlChars &text, int scale)
 	return p;
 }
 
+Point GUI::GetTextSize(int number, int scale)
+{
+	mtlString num;
+	num.FromInt(number);
+	return GetTextSize(num, scale);
+}
+
+Point GUI::GetTextSize(float number, int scale)
+{
+	mtlString num;
+	num.FromFloat(number);
+	return GetTextSize(num, scale);
+}
+
 int GUI::GetCharPixelWidth(int scale)
 {
 	return char_px_width * scale;

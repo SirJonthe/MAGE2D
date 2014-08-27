@@ -19,15 +19,15 @@
 #elif defined(_MSC_VER)
 
 	#pragma comment(lib, "opengl32.lib")
-	// set library search path for the following libs...
+	// don't forget to set search paths for these...
 	#pragma comment(lib, "glew32.lib")
 	#pragma comment(lib, "SDL.lib")
 	#pragma comment(lib, "SDLmain.lib")
 	#pragma comment(lib, "SDL_image.lib")
 	#pragma comment(lib, "SDL_mixer.lib")
 
-	#include <GL/gl.h> // only core profile (1.1), need glew/glext/glee (I chose glew)
-	#include <GL/glew.h> // download install in GL folder (remember to put .dll and .lib files in appropriate places as well)
+	#include <GL\glew.h> // download install in GL folder (remember to put .dll and .lib files in appropriate places as well)
+	#include <GL\gl.h> // only core profile (1.1), need glew/glext/glee (I chose glew)
 
 	#include "SDL.h"
 	#include "SDL_image.h"
@@ -38,7 +38,9 @@
 	// LINK TO THESE
 	// -lGL -lSDL -lSDLmain -lSDL_image -lSDL_mixer
 
-	#define GL_GLEXT_PROTOTYPES
+	#ifndef GL_GLEXT_PROTOTYPES
+		#define GL_GLEXT_PROTOTYPES
+	#endif
 
 	#include <GL/gl.h>
 	#include <GL/glext.h>

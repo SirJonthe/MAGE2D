@@ -9,19 +9,20 @@
 
 void Engine::UpdateInputBuffers( void )
 {
-	SDL_PumpEvents();
-	if (SDL_PeepEvents(NULL, 0, SDL_PEEKEVENT, SDL_QUITMASK)) {
-		EndGame();
-	} else {
-		Uint8 *keys = SDL_GetKeyState(NULL);
-		for (int i = 0; i < SDLK_LAST; ++i) {
-			m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 3;
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) { // some annoying valgrind error here (already tried initializing 'event')
+		if (event.type == SDL_QUIT) {
+			EndGame();
 		}
-		m_prevMousePosition = m_mousePosition;
-		Uint8 mouse = SDL_GetMouseState(&m_mousePosition.x, &m_mousePosition.y);
-		for (int i = 0; i < MouseButton::Last; ++i) {
-			m_mouseButtonState[i] = ((m_mouseButtonState[i] << 1) | ((mouse >> i) & 1)) & 3;
-		}
+	}
+	Uint8 *keys = SDL_GetKeyState(NULL);
+	for (int i = 0; i < SDLK_LAST; ++i) {
+		m_keyState[i] = ((m_keyState[i] << 1) | keys[i]) & 3;
+	}
+	m_prevMousePosition = m_mousePosition;
+	Uint8 mouse = SDL_GetMouseState(&m_mousePosition.x, &m_mousePosition.y);
+	for (int i = 0; i < MouseButton::Last; ++i) {
+		m_mouseButtonState[i] = ((m_mouseButtonState[i] << 1) | ((mouse >> i) & 1)) & 3;
 	}
 }
 
@@ -38,25 +39,36 @@ void Engine::UpdateObjects( void )
 
 void Engine::CollideObjects( void )
 {
+	// construct a list of possible collisions and reset the colliders' state
 	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlList<ObjectRef> colliders;
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
-			mtlNode<ObjectRef> *nextObject = object->GetNext();
-			while (nextObject != NULL) {
-				if (node_ref(nextObject)->IsTicking() && node_ref(nextObject)->IsCollidable()) {
-					unsigned int abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
-					unsigned int baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
-					if ((abCollision > 0 || baCollision > 0) && node_ref(object)->m_collider.GetShared()->Collides(*node_ref(nextObject)->m_collider.GetShared())) {
-						if (abCollision > 0) {
-							node_ref(object)->OnCollision(*node_ref(nextObject));
-						}
-						if (baCollision > 0) {
-							node_ref(nextObject)->OnCollision(*node_ref(object));
-						}
+			node_ref(object)->GetCollider()->ResetState();
+			colliders.AddLast(object->GetItem());
+		}
+		object = object->GetNext();
+	}
+
+	// test for collisions (O(n^2))
+	object = colliders.GetFirst();
+	while (object != NULL) {
+		mtlNode<ObjectRef> *nextObject = object->GetNext();
+		while (nextObject != NULL) {
+			unsigned int abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
+			unsigned int baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
+			if (abCollision > 0 || baCollision > 0) {
+				CollisionInfo info = node_ref(object)->m_collider.GetShared()->Collides(*node_ref(nextObject)->m_collider.GetShared());
+				if (info.collision) {
+					if (abCollision > 0) {
+						node_ref(object)->OnCollision(nextObject->GetItem());
+					}
+					if (baCollision > 0) {
+						node_ref(nextObject)->OnCollision(object->GetItem());
 					}
 				}
-				nextObject = nextObject->GetNext();
 			}
+			nextObject = nextObject->GetNext();
 		}
 		object = object->GetNext();
 	}
@@ -64,21 +76,22 @@ void Engine::CollideObjects( void )
 
 struct GraphicsContainer
 {
-	ObjectRef	object;
-	Transform	transform;
-	bool operator<(const GraphicsContainer &c) const { return transform.GetPosition(Transform::Local)[1] < c.transform.GetPosition(Transform::Local)[1]; }
+	ObjectRef				object;
+	Transform				transform;
+	Engine::OcclusionMethod	term;
+	bool operator<(const GraphicsContainer &c) const { return transform.GetPosition(Transform::Local)[(int)term] < c.transform.GetPosition(Transform::Local)[(int)term]; }
 };
 
 void Engine::DrawObjects( void )
 {
-	if (m_graphicsSort) {
+	if (m_occlusionMethod >= SortByX && m_occlusionMethod <= SortByZ) {
 		mtlArray<GraphicsContainer> graphics;
 		graphics.SetCapacity(m_objects.GetSize());
 
 		mtlNode<ObjectRef> *object = m_objects.GetFirst();
 		while (object != NULL) {
 			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
-				GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global) };
+				GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global), m_occlusionMethod };
 				graphics.Add(c);
 			}
 			object = object->GetNext();
@@ -90,7 +103,7 @@ void Engine::DrawObjects( void )
 		for (int i = 0; i < sortedGraphics.GetSize(); ++i) {
 
 			Engine::SetGameProjection();
-			SetGameView(*sortedGraphics[i].object.GetShared());
+			SetGameView(sortedGraphics[i].object.GetShared()->GetTransform());
 
 			glColor4f(
 				sortedGraphics[i].object.GetShared()->GetGraphics().GetRed(),
@@ -107,7 +120,7 @@ void Engine::DrawObjects( void )
 			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
 
 				Engine::SetGameProjection();
-				SetGameView(*node_ref(object));
+				SetGameView(node_ref(object)->GetTransform());
 
 				glColor4f(
 					node_ref(object)->GetGraphics().GetRed(),
@@ -127,8 +140,6 @@ void Engine::DrawObjects( void )
 
 void Engine::DrawGUI( void )
 {
-	glDisable(GL_DEPTH_TEST);
-
 	GUI::SetCaretXY(0, 0);
 	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
@@ -139,10 +150,6 @@ void Engine::DrawGUI( void )
 			node_ref(object)->OnGUI();
 		}
 		object = object->GetNext();
-	}
-
-	if (m_occlusionMethod != None) {
-		glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -159,14 +166,45 @@ void Engine::FinalizeObjects( void )
 
 void Engine::DestroyObjects( void )
 {
+	// NOTE
+	// There is still a potential that an some object
+	// is keeping a reference (ObjectRef) to a destroyed
+	// object and using that as a parent transform for
+	// new objects. Those transforms will not be set
+	// to NULL since the parent object was already
+	// removed from the engine.
+
+	// The only sane way to do this is to store
+	// parent transforms inside Transform as a
+	// safe reference that will automatically
+	// turn to NULL when the parent is destroyed
+
 	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_destroy) {
 			if (m_camera.GetShared() == node_ref(object)) { m_camera.Delete(); }
 			node_ref(object)->OnDestroy();
-			node_ref(object)->m_ref = NULL;
 			node_ref(object)->m_engine = NULL;
+			const Transform *transform_addr = &node_ref(object)->GetTransform();
 			object = object->Remove();
+
+			// Now we need to remove any references to the transform
+			// that will dissapear as a result of calling Destroy
+			mtlNode<ObjectRef> *remaining = m_objects.GetFirst();
+			while (remaining != NULL) {
+				if (node_ref(remaining)->GetTransform().GetParent() == transform_addr) {
+					node_ref(remaining)->GetTransform().SetParent(Transform::Global, NULL);
+				}
+				remaining = remaining->GetNext();
+			}
+			remaining = m_pending.GetFirst();
+			while (remaining != NULL) {
+				if (node_ref(remaining)->GetTransform().GetParent() == transform_addr) {
+					node_ref(remaining)->GetTransform().SetParent(Transform::Global, NULL);
+				}
+				remaining = remaining->GetNext();
+			}
+
 		} else {
 			object = object->GetNext();
 		}
@@ -182,7 +220,6 @@ void Engine::InitPendingObjects( void )
 	mtlNode<ObjectRef> *object = m_pending.GetFirst();
 	while (object != NULL) {
 		m_objects.AddLast(object->GetItem());
-		node_ref(object)->m_ref = &m_objects.GetLast()->GetItem();
 		node_ref(object)->OnInit();
 		object = object->Remove();
 	}
@@ -199,13 +236,23 @@ void Engine::UpdateTimer( void )
 
 void Engine::AddObject(ObjectRef object)
 {
-	if (object.GetShared() == NULL) {
+	if (object.IsNull()) {
 		std::cout << "Engine::AddObject: Object is NULL" << std::endl;
 		return;
 	}
 	object.GetShared()->m_engine = this;
 	m_pending.AddLast(object);
-	object.GetShared()->m_ref = &m_pending.GetLast()->GetItem();
+}
+
+void Engine::AddObjectNow(ObjectRef object)
+{
+	if (object.IsNull()) {
+		std::cout << "Engine::AddObjectNow: Object is NULL" << std::endl;
+		return;
+	}
+	object.GetShared()->m_engine = this;
+	m_objects.AddLast(object);
+	object.GetShared()->OnInit();
 }
 
 mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )
@@ -238,8 +285,10 @@ Engine::Engine( void ) :
 	m_timer(60.0f), m_deltaSeconds(0.0f),
 	m_rseed_z(0), m_rseed_w(0),
 	m_quit(false), m_inLoop(false),
-	m_graphicsSort(true), m_occlusionMethod(None),
-	m_music(NULL)
+	m_occlusionMethod(None),
+	m_destroyingAll(false),
+	m_music(NULL),
+	m_clearColor(0.0f, 0.0f, 0.0f)
 {
 	SetRandomizerSeeds(0, 0); // grabs default values
 	m_mousePosition.x = 0;
@@ -265,7 +314,7 @@ Engine::~Engine( void )
 	SDL_Quit();
 }
 
-bool Engine::Init(int argc, char **argv)
+bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc, char **argv)
 {
 	std::cout << "Engine::Init: " << std::endl;
 	struct Args
@@ -277,8 +326,8 @@ bool Engine::Init(int argc, char **argv)
 	srand(1); // make things predictably random
 
 	Args args;
-	args.width = 800;
-	args.height = 600;
+	args.width = width;
+	args.height = height;
 	args.fullscreen = false;
 
 	for (int i = 1; i < argc; ++i) {
@@ -304,11 +353,18 @@ bool Engine::Init(int argc, char **argv)
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	if (SDL_SetVideoMode(args.width, args.height, 32, SDL_OPENGL) == NULL) {
 		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
 		return false;
 	}
+
+#ifdef __GLEW_H__
+	GLenum err = glewInit();
+	if (err != GLEW_OK) {
+		std::cout << "Could not initialize GLEW: " << glewGetErrorString(err);
+		return false;
+	}
+#endif
 
 	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) == -1) {
 		std::cout << "\tfailed: " << Mix_GetError() << std::endl;
@@ -338,6 +394,8 @@ bool Engine::Init(int argc, char **argv)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	GUI::Init();
+
+	SetWindowCaption(windowCaption);
 
 	return true;
 }
@@ -458,7 +516,8 @@ void Engine::FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRe
 	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
-			if (node_ref(object)->GetCollider()->Collides(ray)) {
+			UnaryCollisionInfo info = node_ref(object)->GetCollider()->Collides(ray);
+			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
 		}
@@ -472,7 +531,8 @@ void Engine::FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<Object
 	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
-			if (node_ref(object)->GetCollider()->Collides(range)) {
+			UnaryCollisionInfo info = node_ref(object)->GetCollider()->Collides(range);
+			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
 		}
@@ -486,8 +546,10 @@ void Engine::FilterByPlaneCollision(const mtlList<ObjectRef> &in, mtlList<Object
 	const mtlNode<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
-			node_ref(object)->GetCollider()->Collides(plane);
-			out.AddLast(object->GetItem());
+			UnaryCollisionInfo info = node_ref(object)->GetCollider()->Collides(plane);
+			if (info.collision) {
+				out.AddLast(object->GetItem());
+			}
 		}
 		object = object->GetNext();
 	}
@@ -522,8 +584,40 @@ ObjectRef Engine::AddObject(const mtlChars &typeName)
 	return ObjectRef();
 }
 
+ObjectRef Engine::AddObjectNow( void )
+{
+	ObjectRef o;
+	o.New();
+	AddObjectNow(o);
+	return o;
+}
+
+ObjectRef Engine::AddObjectNow(const mtlChars &typeName)
+{
+	mtlHash h(typeName);
+	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	if (b != NULL) {
+		b = b->Find(h);
+	}
+	if (b != NULL) {
+		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
+		while (n != NULL) {
+			if (n->GetItem().name.Compare(typeName)) {
+				ObjectRef o = n->GetItem().creator_func();
+				AddObjectNow(o);
+				return o;
+			}
+			n = n->GetNext();
+		}
+	}
+	return ObjectRef();
+}
+
 void Engine::DestroyAllObjects( void )
 {
+	if (m_destroyingAll) { return; }
+	m_destroyingAll = true;
+
 	mtlNode<ObjectRef> *object = m_objects.GetFirst();
 	if (m_inLoop) {
 		while (object != NULL) {
@@ -531,14 +625,10 @@ void Engine::DestroyAllObjects( void )
 			object = object->GetNext();
 		}
 	} else {
-		m_inLoop = true; // prevent some stupid object from recursively calling DestroyAllObjects
-		/*while (object != NULL) {
-			delete object->GetItem();
-			object = object->GetNext();
-		}*/
 		m_objects.RemoveAll();
-		m_inLoop = false;
 	}
+
+	m_destroyingAll = false;
 }
 
 ObjectRef Engine::GetCamera( void )
@@ -574,18 +664,17 @@ void Engine::SetGameProjection( void )
 	glOrtho(-halfW - 0.5, halfW + 0.5, halfH + 0.5, -halfH - 0.5, 0.0, 1.0);
 }
 
-void Engine::SetGameView(const Object &object)
+void Engine::SetGameView(const Transform &transform)
 {
 	Object *camera = m_camera.GetShared();
 	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> objectTransform = object.GetTransform().GetTransformMatrix(Transform::Global);
+	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
 	const mmlMatrix<3,3> f = cameraView * objectTransform;
-	float depth = m_occlusionMethod == TermZ ? object.GetDepth() : (m_occlusionMethod == TermY ? f[1][1] : 1.0f);
 	GLfloat m[16] = {
-		f[0][0], f[0][1], 0.0f,  0.0f,
-		f[1][0], f[1][1], 0.0f,  0.0f,
-		0.0f,    0.0f,    depth, 0.0f,
-		f[0][2], f[1][2], 0.0f,  1.0f
+		f[0][0], f[0][1], 0.0f, 0.0f,
+		f[1][0], f[1][1], 0.0f, 0.0f,
+		0.0f,    0.0f,    1.0f, 0.0f,
+		f[0][2], f[1][2], 0.0f, 1.0f
 	};
 
 	glMatrixMode(GL_MODELVIEW);
@@ -605,12 +694,24 @@ void Engine::SetGUIView( void )
 	glLoadIdentity();
 }
 
-void Engine::SetRelativeGUIView(const Object &object)
+void Engine::SetGUIView(mmlVector<2> offset)
+{
+	GLfloat m[16] = {
+		1.0f,      0.0f,      0.0f, 0.0f,
+		0.0f,      1.0f,      0.0f, 0.0f,
+		0.0f,      0.0f,      1.0f, 0.0f,
+		offset[0], offset[1], 0.0f, 1.0f
+	};
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(m);
+}
+
+void Engine::SetRelativeGUIView(const Transform &transform)
 {
 	Object *camera = m_camera.GetShared();
-	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
-	const mmlMatrix<3,3> objectTransform = object.GetTransform().GetTransformMatrix(Transform::Global);
-	const mmlMatrix<3,3> f = cameraView * objectTransform;
+	mmlMatrix<3,3> c = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
+	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
+	const mmlMatrix<3,3> f = c * objectTransform;
 	GLfloat m[16] = {
 		1.0f,    0.0f,    0.0f, 0.0f,
 		0.0f,    1.0f,    0.0f, 0.0f,
@@ -715,7 +816,7 @@ int Engine::GetRandomInt( void )
 
 int Engine::GetRandomInt(int min, int max)
 {
-	int r = GetRandomUint();
+	int r = GetRandomInt();
 	return (r % (max-min+1)) + min;
 }
 
@@ -750,9 +851,6 @@ void Engine::UpdateVideo( void ) const
 {
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT);
-	if (m_occlusionMethod != None) {
-		glClear(GL_DEPTH_BUFFER_BIT);
-	}
 }
 
 int Engine::GetVideoWidth( void )
@@ -875,29 +973,88 @@ bool Engine::IsReleased(MouseButton::Button button) const
 	return m_mouseButtonState[button] == InputState::Release;
 }
 
-void Engine::EnableGraphicsSorting( void )
+bool Engine::IsAnyDown( void ) const
 {
-	m_graphicsSort = true;
+	for (int i = (int)SDLK_FIRST; i < (int)SDLK_LAST; ++i) {
+		if (IsDown((SDLKey)i)) { return true; }
+	}
+	for (int i = (int)MouseButton::First; i < (int)MouseButton::Last; ++i) {
+		if (IsDown((MouseButton::Button)i)) { return true; }
+	}
+	return false;
 }
 
-void Engine::DisableGraphicsSorting( void )
+bool Engine::IsAnyUp( void ) const
 {
-	m_graphicsSort = false;
+	for (int i = (int)SDLK_FIRST; i < (int)SDLK_LAST; ++i) {
+		if (IsUp((SDLKey)i)) { return true; }
+	}
+	for (int i = (int)MouseButton::First; i < (int)MouseButton::Last; ++i) {
+		if (IsUp((MouseButton::Button)i)) { return true; }
+	}
+	return false;
+}
+
+bool Engine::IsAnyPressed( void ) const
+{
+	for (int i = (int)SDLK_FIRST; i < (int)SDLK_LAST; ++i) {
+		if (IsPressed((SDLKey)i)) { return true; }
+	}
+	for (int i = (int)MouseButton::First; i < (int)MouseButton::Last; ++i) {
+		if (IsPressed((MouseButton::Button)i)) { return true; }
+	}
+	return false;
+}
+
+bool Engine::IsAnyHeld( void ) const
+{
+	for (int i = (int)SDLK_FIRST; i < (int)SDLK_LAST; ++i) {
+		if (IsHeld((SDLKey)i)) { return true; }
+	}
+	for (int i = (int)MouseButton::First; i < (int)MouseButton::Last; ++i) {
+		if (IsHeld((MouseButton::Button)i)) { return true; }
+	}
+	return false;
+}
+
+bool Engine::IsAnyReleased( void ) const
+{
+	for (int i = (int)SDLK_FIRST; i < (int)SDLK_LAST; ++i) {
+		if (IsReleased((SDLKey)i)) { return true; }
+	}
+	for (int i = (int)MouseButton::First; i < (int)MouseButton::Last; ++i) {
+		if (IsReleased((MouseButton::Button)i)) { return true; }
+	}
+	return false;
+}
+
+void Engine::DisableOcclusion( void )
+{
+	m_occlusionMethod = None;
 }
 
 void Engine::SetOcclusionMethod(OcclusionMethod method)
 {
 	switch (method) {
-	case TermY:
-	case TermZ:
+	case SortByX:
+	case SortByY:
+	case SortByZ:
 		m_occlusionMethod = method;
-		glEnable(GL_DEPTH_TEST);
 		break;
 	default:
 		m_occlusionMethod = None;
-		glDisable(GL_DEPTH_TEST);
 		break;
 	}
+}
+
+void Engine::SetClearColor(float r, float g, float b)
+{
+	glClearColor(r, g, b, 0.0f);
+}
+
+void Engine::SetClearColor(mmlVector<3> color)
+{
+	SetClearColor(color[0], color[1], color[2]);
 }
 
 bool Engine::RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)())

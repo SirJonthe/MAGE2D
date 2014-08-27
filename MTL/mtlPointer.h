@@ -38,6 +38,8 @@ public:
 	mtlShared &operator=(const mtlShared<type_t> &shared);
 	type_t *GetShared( void );
 	const type_t *GetShared( void ) const;
+	type_t *operator->( void ) { return GetShared(); }
+	const type_t *operator->( void ) const { return GetShared(); }
 	template < typename derived_t >
 	void New( void );
 	void New( void );

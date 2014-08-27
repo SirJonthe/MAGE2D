@@ -331,6 +331,14 @@ inline mmlVector<3> mmlCross(const mmlVector<3> &u, const mmlVector<3> &v)
 }
 
 //
+// mmlCross2
+//
+inline float mmlCross2(const mmlVector<2> &v, const mmlVector<2> &w)
+{
+	return v[0]*w[1] - v[1]*w[0];
+}
+
+//
 // mmlNormal
 //
 inline mmlVector<3> mmlSurfaceNormal(const mmlVector<3> &x, const mmlVector<3> &y, const mmlVector<3> &z) // this should be a specialization of mmlVector<3>

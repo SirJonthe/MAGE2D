@@ -373,16 +373,14 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 
 mtlString &mtlString::Append(const mtlChars &p_str)
 {
-	int oldSize = m_size;
 	if (m_size + p_str.GetSize() > m_pool) {
 		NewPoolPreserve(m_size + p_str.GetSize());
-	} else {
-		m_size += p_str.GetSize();
-		m_str[m_size] = '\0';
 	}
 	for (int i = 0; i < p_str.GetSize(); ++i) {
-		m_str[i + oldSize] = p_str.GetChars()[i];
+		m_str[i + m_size] = p_str.GetChars()[i];
 	}
+	m_size += p_str.GetSize();
+	m_str[m_size] = '\0';
 	return *this;
 }
 

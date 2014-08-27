@@ -10,8 +10,10 @@ class mtlAssetInterface
 {
 private:
 	mtlString m_error;
+
 protected:
 	void SetError(const mtlChars &error) { m_error.Copy(error); }
+
 public:
 	virtual			~mtlAssetInterface( void ) {}
 	virtual bool	Load(const mtlDirectory &p_filename) = 0;

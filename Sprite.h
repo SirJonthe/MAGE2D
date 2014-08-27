@@ -10,7 +10,7 @@
 // REMEMBER:
 // Sprites may animate in height as well
 
-class Sprite : public mtlInherit<Graphics>
+class Sprite : public mtlInherit<Graphics, Sprite>
 {
 private:
 	struct Metadata
@@ -18,10 +18,11 @@ private:
 		mtlString file;
 		int frameWidth; // init to -1 (calculate m_frameCount based on this if not -1)
 		int frameCount; // init to -1 (calculate m_frameWidth based on this if not -1)
+		int frameHeight; // calculate if -1
 		float framesPerSecond;
 		int loopBack;
 		bool isLooping;
-		Metadata( void ) : file(), frameWidth(-1), frameCount(-1), framesPerSecond(0.0f), loopBack(0), isLooping(true) {}
+		Metadata( void ) : file(), frameWidth(-1), frameCount(-1), frameHeight(-1), framesPerSecond(0.0f), loopBack(0), isLooping(true) {}
 	};
 
 private:

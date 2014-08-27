@@ -2,7 +2,7 @@
 #include "Engine.h"
 #include "GUI.h"
 
-RegisterObject(KillPlane);
+/*RegisterObject(KillPlane);
 
 void KillPlane::OnUpdate( void )
 {
@@ -14,7 +14,7 @@ void KillPlane::OnUpdate( void )
 	}
 }
 
-KillPlane::KillPlane( void ) : mtlInherit<Object>()
+KillPlane::KillPlane( void ) : mtlInherit<Object, KillPlane>()
 {
 	ClearAllObjectFlags(); // other objects can not collide with us, *we* collide with *them*
 	SetName("tool_killplane");
@@ -25,7 +25,7 @@ void KillPlane::SetPlane(mmlVector<2> point, mmlVector<2> normal)
 {
 	m_plane.point = point;
 	m_plane.normal = mmlNormalize(normal);
-}
+}*/
 
 RegisterObject(Console);
 
@@ -64,7 +64,7 @@ void Console::OnDraw( void )
 }
 
 Console::Console( void ) :
-	mtlInherit<Object>(),
+	mtlInherit<Object, Console>(),
 	m_bgColor(0.0f, 0.0f, 0.0f),
 	m_lines(), m_maxHistory(10),
 	m_screenHeightRatio(0.5f),

@@ -37,6 +37,8 @@ public:
 	};
 	
 	Transform( void );
+	Transform(const Transform &transform);
+	Transform &operator=(const Transform &transform);
 	
 	const Transform *GetParent( void ) const;
 	void SetParent(Space space, const Transform *parent);
@@ -57,15 +59,21 @@ public:
 	float GetAngle(Space space) const;
 	
 	void Rotate(float angle);
-	//void Rotate(Space space, mmlVector<2> point, float angle); // can benefit from 'space' param
-	//void Rotate(Space space, float x, float y, float angle);
+	void Rotate(Space space, mmlVector<2> point, float angle); // can benefit from 'space' param
+	void Rotate(Space space, float x, float y, float angle);
 	
 	mmlVector<2> GetAxisX(Space space) const;
 	void SetAxisX(Space space, mmlVector<2> normal);
+	int GetAxisDirectionX( void ) const;
+	int GetAxisDirectionX(Space space, mmlVector<2> up = mmlVector<2>(0.0f, 1.0f)) const;
+	void SetAxisDirectionX(int x);
 	void FlipAxisX( void );
 	
 	mmlVector<2> GetAxisY(Space space) const;
 	void SetAxisY(Space space, mmlVector<2> normal);
+	int GetAxisDirectionY( void ) const;
+	int GetAxisDirectionY(Space space, mmlVector<2> right = mmlVector<2>(1.0f, 0.0f)) const;
+	void SetAxisDirectionY(int y);
 	void FlipAxisY( void );
 	
 	float GetScaleX(Space space) const;
@@ -73,6 +81,8 @@ public:
 	
 	float GetScaleY(Space space) const;
 	void SetScaleY(Space space, float scale);
+
+	void SetScale(Space space, float scale);
 	
 	void Scale(float scale);
 	void Scale(float x, float y);

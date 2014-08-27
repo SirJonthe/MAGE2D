@@ -1,10 +1,23 @@
 --------
 --TODO--
 --------
+Make SceneGraph (handles relations between transforms, that's all)
+Reimplement Engine filtering for Ray/Range/Plane collisions
 Collision response
 	no physics, just prevent two objects from intersecting
-Collisions
-	Polygon
+Object callbacks
+mtlParser
+	bool Match("%s = { %f, %f, %f };", mtlList<mtlString> &out);
+	// a string (any)
+	// an equals sign
+	// an opening brace
+	// three floats separated by commas
+	// a closing brace
+	// a semi-colon
+	// NOTE: values will be returned in out
+	// NOTE: can specify if white spaces should be ignored - may even search multiple kines of text
+	// NOTE: returns FALSE if no match was found
+	// NOTE: search always begins from current position forward (doesn't just look for match wherever it can find it)
 
 ----------
 --DESIGN--

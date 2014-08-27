@@ -12,21 +12,21 @@
 #include "Graphics.h"
 #include "Collider.h"
 #include "GUI.h"
-
-class Object;
-typedef mtlShared<Object> ObjectRef;
+#include "Object.h"
 
 struct MouseButton
 {
 	enum Button
 	{
-		Left = SDL_BUTTON_LEFT,
-		Middle = SDL_BUTTON_MIDDLE,
-		Right = SDL_BUTTON_RIGHT,
-		WheelUp = SDL_BUTTON_WHEELUP,
+		Left = 0,
+		First = Left,
+		Middle = 1,
+		Right = 2,
+
+		/*WheelUp = SDL_BUTTON_WHEELUP,
 		WheelDown = SDL_BUTTON_WHEELDOWN,
 		X1 = SDL_BUTTON_X1,
-		X2 = SDL_BUTTON_X2,
+		X2 = SDL_BUTTON_X2,*/
 
 		Last
 	};
@@ -72,9 +72,10 @@ private:
 public:
 	enum OcclusionMethod
 	{
-		None,
-		TermY,
-		TermZ
+		SortByX,
+		SortByY,
+		SortByZ,
+		None
 	};
 
 private:
@@ -89,11 +90,12 @@ private:
 	GUI::Manager		m_guiManager;
 	bool				m_quit;
 	bool				m_inLoop;
-	bool				m_graphicsSort;
+	bool				m_destroyingAll;
 	OcclusionMethod		m_occlusionMethod;
 	Mix_Music			*m_music;
 	Point				m_mousePosition;
 	Point				m_prevMousePosition;
+	mmlVector<3>		m_clearColor;
 	unsigned char		m_keyState[SDLK_LAST];
 	unsigned char		m_mouseButtonState[MouseButton::Last];
 
@@ -109,6 +111,7 @@ private:
 	void							UpdateTimer( void );
 
 	void							AddObject(ObjectRef object);
+	void							AddObjectNow(ObjectRef object);
 
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
 	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
@@ -121,7 +124,7 @@ public:
 								Engine( void );
 								~Engine( void );
 
-	bool						Init(int argc, char **argv);
+	bool						Init(int width, int height, const mtlChars &windowCaption, int argc, char **argv);
 
 	const mtlList<ObjectRef>	&GetObjects( void ) const;
 
@@ -129,6 +132,8 @@ public:
 	template < typename type_t >
 	static void					FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out);
 	static void					FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, TypeID id);
+	template < typename type_t >
+	static void					FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out);
 	static void					FilterByObjectFlags(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
 	static void					FilterByCollisionMasks(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
 	static void					FilterByObjectFlagsInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
@@ -145,6 +150,10 @@ public:
 	ObjectRef					AddObject( void );
 	ObjectRef					AddObject( void );
 	ObjectRef					AddObject(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
+	template < typename type_t >
+	ObjectRef					AddObjectNow( void );
+	ObjectRef					AddObjectNow( void );
+	ObjectRef					AddObjectNow(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
 
 	void						DestroyAllObjects( void );
 
@@ -155,10 +164,11 @@ public:
 	void						SetWindowCaption(const mtlChars &caption);
 
 	static void					SetGameProjection( void ); // center at 0,0
-	void						SetGameView(const Object &object); // center at object position, rotations
+	void						SetGameView(const Transform &transform); // center at object position, rotations
 	static void					SetGUIProjection( void ); // top-left at 0,0
 	static void					SetGUIView( void ); // identity
-	void						SetRelativeGUIView(const Object &object); // center at object position, no rotations
+	static void					SetGUIView(mmlVector<2> offset);
+	void						SetRelativeGUIView(const Transform &transform); // center at object position, no rotations
 
 	int							RunGame( void );
 	void						EndGame( void );
@@ -205,9 +215,17 @@ public:
 	bool						IsHeld(MouseButton::Button button) const;
 	bool						IsReleased(MouseButton::Button button) const;
 
-	void						EnableGraphicsSorting( void );
-	void						DisableGraphicsSorting( void );
+	bool						IsAnyDown( void ) const;
+	bool						IsAnyUp( void ) const;
+	bool						IsAnyPressed( void ) const;
+	bool						IsAnyHeld( void ) const;
+	bool						IsAnyReleased( void ) const;
+
+	void						DisableOcclusion( void );
 	void						SetOcclusionMethod(OcclusionMethod method);
+
+	void						SetClearColor(float r, float g, float b);
+	void						SetClearColor(mmlVector<3> color);
 
 	static bool					RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);
@@ -257,7 +275,20 @@ void Engine::FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef
 	out.RemoveAll();
 	const mtlNode<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (dynamic_cast<const type_t*>(n->GetItem().GetShared()) != NULL) { // have to call dynamic_cast rather than GetAsDynamicType because Object is not defined yet
+		if (n->GetItem().GetShared()->IsDynamicType<type_t>()) { // have to call dynamic_cast rather than GetAsDynamicType because Object is not defined yet
+			out.AddLast(n->GetItem());
+		}
+		n = n->GetNext();
+	}
+}
+
+template < typename type_t >
+void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out)
+{
+	out.RemoveAll();
+	const mtlNode<ObjectRef> *n = in.GetFirst();
+	while (n != NULL) {
+		if (n->GetItem().GetShared()->IsStaticType<type_t>()) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();
@@ -270,6 +301,15 @@ ObjectRef Engine::AddObject( void )
 	ObjectRef o;
 	o.New<type_t>();
 	AddObject(o);
+	return o;
+}
+
+template < typename type_t >
+ObjectRef Engine::AddObjectNow( void )
+{
+	ObjectRef o;
+	o.New<type_t>();
+	AddObjectNow(o);
 	return o;
 }
 

@@ -31,7 +31,7 @@ protected:
 protected:
 	void LoadVertexArray(const mtlArray< mmlVector<2> > &array) const;
 	void LoadUVArray(const mtlArray< mmlVector<2> > &array) const;
-	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint format) const;
+	void LoadTexture(const GLvoid *pixels, GLsizei width, GLsizei height, GLint bytesPerPixel, GLint format) const;
 	void DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei count, long long textureID = -1) const;
 
 public:

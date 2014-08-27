@@ -55,8 +55,7 @@ int main(int argc, char **argv)
 {
 	//Unit_OpenGLTest();
 	Engine engine;
-	engine.Init(argc, argv);
-	engine.SetWindowCaption("Lots-o-tests");
+	engine.Init(800, 600, "Lots-o-tests", argc, argv);
 	Unit_RegisteredObjects();
 	Unit_Controllable(engine);
 	Unit_StringMap();
@@ -269,7 +268,7 @@ void Unit_Controllable(Engine &engine)
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
-	a.GetShared()->LoadCollider<BoxCollider>();
+	a.GetShared()->LoadCollider<PolygonCollider>();
 
 	ObjectRef b = engine.AddObject<NPC>();
 	b.GetShared()->SetName("NPC");
@@ -280,7 +279,7 @@ void Unit_Controllable(Engine &engine)
 	b.GetShared()->GetGraphics().SetRed(0.2f);
 	b.GetShared()->GetGraphics().SetGreen(0.2f);
 	b.GetShared()->GetGraphics().SetBlue(0.2f);
-	b.GetShared()->LoadCollider<BoxCollider>();
+	b.GetShared()->LoadCollider<PolygonCollider>();
 
 	ObjectRef d = engine.AddObject("Anchor");
 	a.GetShared()->GetTransform().SetParent(Transform::Local, &d.GetShared()->GetTransform());
