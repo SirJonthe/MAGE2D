@@ -252,6 +252,9 @@ const Transform &Collider::GetTransform( void ) const
 void Collider::SetTransform(Transform *transform)
 {
 	m_transform = transform;
+	if (m_transform != NULL) {
+		m_prevTransform = *m_transform;
+	}
 }
 
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const

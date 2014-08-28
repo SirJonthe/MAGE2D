@@ -2,7 +2,7 @@
 #include "Engine.h"
 #include "GUI.h"
 
-/*RegisterObject(KillPlane);
+RegisterObject(KillPlane);
 
 void KillPlane::OnUpdate( void )
 {
@@ -25,7 +25,7 @@ void KillPlane::SetPlane(mmlVector<2> point, mmlVector<2> normal)
 {
 	m_plane.point = point;
 	m_plane.normal = mmlNormalize(normal);
-}*/
+}
 
 RegisterObject(Console);
 

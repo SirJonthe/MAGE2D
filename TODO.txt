@@ -1,8 +1,10 @@
 --------
 --TODO--
 --------
+Change name to MAGE2D (Minimal amateur game engine)
+	https://help.github.com/articles/renaming-a-repository
 Make SceneGraph (handles relations between transforms, that's all)
-Reimplement Engine filtering for Ray/Range/Plane collisions
+Simple GUI
 Collision response
 	no physics, just prevent two objects from intersecting
 Object callbacks
@@ -40,10 +42,6 @@ Tile set editor
 	Game object
 	Place tiles + collision boxes in a grid
 	Place objects on the grid
-		This requires the editor to know what objects are available in the game
-		http://stackoverflow.com/questions/582331/is-there-a-way-to-instantiate-objects-from-a-string-holding-their-class-name
-		http://stackoverflow.com/questions/410823/factory-method-implementation-c/534396#534396
-		User must register them
 Sprite editor:
 	Game object that allows for editing sprites
 	Load and save sprite files
@@ -78,6 +76,17 @@ Compiler warnings
 --------
 --BUGS--
 --------
+Depending on the driver, font rendering is sometimes broken due to the fact that the characters are so closely packed
+	On OSX, results in the top pixels of the characters directly below the rendered character to appear
+	Fix by letting characters 'breathe', i.e. the UV coordinates are tightly packed around the character, but we increment UVs during construction by the actual character width
+	<--> UV width
+	####_###__
+	#__#_#_#__
+	####_####_
+	#__#_#__#_
+	#__#_####_
+	<----> actual width
+
 Valgrind is warning about a 4 byte overwrite in Object::Draw and Image does not render properly (must be something about triangle strip rendering)
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?

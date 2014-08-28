@@ -261,6 +261,8 @@ void Unit_Controllable(Engine &engine)
 {
 	std::cout << "Unit_Controllable: " << std::endl;
 
+	engine.SetOcclusionMethod(Engine::SortByY);
+
 	ObjectRef a = engine.AddObject("Controllable");
 	ObjectRef c = engine.AddObject("FollowCamera");
 	engine.SetCamera(c);

@@ -10,42 +10,50 @@ Copyright Jonathan Karlsson (SirJonthe@github) 2014
   credit the original author (and subsequent authors in case of modification).
 * This code is provided "as-is", i.e. the author give no guarantees as to how
   well it will work, if at all, for whatever purpose.
-* The author of this code takes no responsibility for any damages
-  resulting directly or indirectly from the use of this code.
+* The author of this code takes no responsibility for any damages resulting
+  directly or indirectly from the use of this code.
 
 About
 -----
 * SGE2D (Simple Game Engine 2D) is a small, simple, OpenGL hardware accelerated
-  2D game engine that aims to get developers started making a game in C++ as quickly
-  as possible by omitting the need to write engine code.
+  2D game engine aimed at amateur C++ game developers, enabling them to focus on
+  writing game code rather than engine code.
 * SGE2D is based around a game object design, where the coder adds a specialized game
   object that overloads virtual functions inherited from a generic game object which
   are then called by the engine at appropriate times.
 * Includes a hardware accelerated graphics pipeline for pixel perfect rendering.
 * Render pipeline is generic enough for developers to write their own renderers that
   work on custom graphics data.
-* Includes routines for sound and music playback.
+* Includes routines for sound and music playback. Nothing too fancy.
+* Asset managers that allow the user to load an asset once and only once without having
+  to worry about the specifics.
 
 Planned features
 ----------------
 * Collisions.
-  - Various primitive shapes.
-  - Pixel perfect.
-* A small physics engine.
-  - Various primitive shapes.
   - Maybe pixel perfect...
+* A small physics engine.
+  - Maybe pixel perfect...
+* Explicit scene graph.
+* Simple GUI
 
 Compiling
 ---------
 * Download and link the following libraries to the project:
   - SDL
   - SDL_mixer
+  - SDL_image
   - OpenGL
-* Also depends on MiniLib (included in project for now)
+* Also depends on MiniLib
+  - Source code included, no need to download separately.
 
 NOTES
 -----
 * This software is still in very early development. There will be both missing and non-working
   features.
-* Documentation is missing.
+* Because the code is in early development, the author might refactor and/or alter anything in
+  the code that will break compatibility with older versions of the code.
+* Documentation is missing for now.
+* This engine will change name to MAGE2D at a later date to avoid confusion between the already
+  established SDL Game Engine 2D (SGE2D).
 
