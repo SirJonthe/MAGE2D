@@ -11,7 +11,7 @@ class Controllable : public mtlInherit<Object>
 protected:
 	void OnUpdate( void );
 	void OnGUI( void );
-	void OnCollision(Object &collider);
+	void OnCollision(ObjectRef);
 public:
 	Controllable( void );
 };
@@ -114,7 +114,7 @@ void Controllable::OnGUI( void )
 	GUI::NewLine();
 }
 
-void Controllable::OnCollision(Object &collider)
+void Controllable::OnCollision(ObjectRef)
 {
 	GUI::SetColor(1.0f, 0.0f, 0.0f);
 	GUI::Print("OUCH!");

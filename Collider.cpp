@@ -273,14 +273,14 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 
 	mmlVector<2> a1 = m_globalVert[m_globalVert.GetSize() - 1];
 
-	for (int i = 0, k = m_globalVert.GetSize() - 1; i < m_globalVert.GetSize(); k=i, ++i) {
+	for (int i = 0/*, k = m_globalVert.GetSize() - 1*/; i < m_globalVert.GetSize(); /*k=i,*/ ++i) {
 
 		mmlVector<2> a2 = m_globalVert[i];
 		mmlVector<2> sa = a2 - a1;
 
 		mmlVector<2> b1 = c.m_globalVert[c.m_globalVert.GetSize() - 1];
 
-		for (int j = 0, l = c.m_globalVert.GetSize() - 1; j < c.m_globalVert.GetSize(); l=j, ++j) {
+		for (int j = 0/*, l = c.m_globalVert.GetSize() - 1*/; j < c.m_globalVert.GetSize(); /*l=j,*/ ++j) {
 
 			mmlVector<2> b2 = c.m_globalVert[j];
 			mmlVector<2> sb = b2 - b1;

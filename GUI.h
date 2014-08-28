@@ -58,6 +58,13 @@ Point GetTextSize(float number, int scale = 1);
 int GetCharPixelWidth(int scale = 1);
 int GetCharPixelHeight(int scale = 1);
 
+struct ContentRect
+{
+	int x, y;
+	int w, h;
+	int ox, oy; // offsets
+};
+
 class Manager;
 
 class Control : public mtlBase
@@ -72,25 +79,18 @@ private:
 	mtlString						m_name;
 	int								m_textScale;
 	bool							m_hasFocus; // only one child can have focus
+	bool							m_visible;
 	bool							m_locked;
-	bool							m_autoResize;
-	int								m_originX; // modifies behavior of SetPosition (-1, 0, 1)
-	int								m_originY; // modifies behavior of SetPosition (-1, 0, 1)
-	int								m_anchorMaskX; // resize to parent X border
-	int								m_anchorMaskY; // resize to parent Y border
 
 protected:
-	virtual void OnDraw( void ) = 0;
-	virtual void OnUpdate( void ) = 0;
-	virtual void OnFocus( void ) = 0;
-	virtual void OnUnfocus( void ) = 0;
-	virtual void OnHover( void ) = 0;
-	virtual void OnDestroy( void ) = 0;
+	virtual void OnDraw(ContentRect rect) const {}
+	virtual void OnUpdate( void ) {}
+	virtual void OnInit( void ) {}
+	virtual void OnDestroy( void ) {}
 
 public:
-	/*void FitToContents( void );
-	void EnableAutoResize( void );
-	void DisableAutoResize( void );
+	Control( void );
+	virtual ~Control( void );
 
 	void SetPositionXY(int x, int y);
 	void SetPositionUV(float u, float v); // always sets a position in relation to its parent where 0,0 is top left and 1,1 is lower right (depending on originX and originY)
@@ -105,12 +105,14 @@ public:
 
 	void Hide( void );
 	void Show( void );
-	void ToggleVisible( void );
 
+	void Draw(ContentRect rect) const;
+	void Update( void );
+	void Init( void );
 	void Destroy( void ); // send signal to manager to delete this and all children
 
 	template < typename control_t >
-	control_t *NewControl( void ) { m_children.AddLast(mtlShared<GUI::Control>::Create<control_t>()); return m_children.GetLast()->GetItem()->GetShared(); }*/
+	mtlShared<GUI::Control> NewControl( void ) { m_children.AddLast(mtlShared<GUI::Control>::Create<control_t>()); return m_children.GetLast()->GetItem(); }
 };
 
 class Window : public mtlInherit<GUI::Control, GUI::Window>
@@ -177,7 +179,7 @@ class Manager
 {
 private:
 	mtlList< mtlShared<GUI::Window> >	m_windows;
-	mtlShared<GUI::Control>				m_focus;
+	mtlShared<GUI::Control>				m_focus; // input is redirected to this object
 	//mtlAsset<Font>					m_font;
 	mmlVector<4>						m_color;
 	int									m_textCaretX, m_textCaretY;
@@ -192,7 +194,7 @@ public:
 	Manager( void );
 	~Manager( void );
 
-	//void Init( void );
+	void Init( void );
 	void Destroy( void );
 
 	void SetTextColor(float r, float g, float b, float a = 1.0f);
@@ -208,7 +210,7 @@ public:
 	void DrawBox(int x1, int y1, int x2, int y2);
 	void DrawLine(int x1, int y1, int x2, int y2);
 
-	/*template < typename window_t >
+	template < typename window_t >
 	Window *NewWindow( void )
 	{
 		m_windows.AddFirst(mtlShared<GUI::Window>::Create<window_t>());
@@ -218,7 +220,7 @@ public:
 		w->Focus();
 		return w;
 	}
-	Window *NewWindow(const mtlChars &file)
+	/*Window *NewWindow(const mtlChars &file)
 	{
 		m_windows.AddFirst();
 		GUI::Window *w = m_windows.GetFirst()->GetItem().GetShared();

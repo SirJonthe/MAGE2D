@@ -544,6 +544,119 @@ int GUI::GetCharPixelHeight(int scale)
 	return char_px_height * scale;
 }
 
+GUI::Control::Control( void ) :
+	m_manager(NULL), m_parent(NULL),
+	m_children(),
+	m_rect(),
+	m_name(),
+	m_textScale(1),
+	m_hasFocus(false), m_visible(true), m_locked(false)
+{
+}
+
+GUI::Control::~Control( void )
+{
+}
+
+void GUI::Control::SetPositionXY(int x, int y)
+{
+	m_rect.x = x;
+	m_rect.y = y;
+}
+
+void GUI::Control::SetPositionUV(float u, float v)
+{
+	m_rect.x = U_To_X(u);
+	m_rect.y = V_To_Y(v);
+}
+
+void GUI::Control::SetDimensionsXY(int w, int h)
+{
+	m_rect.w = w;
+	m_rect.h = h;
+}
+
+void GUI::Control::SetDimensionsUV(float u, float v)
+{
+	m_rect.x = U_To_X(u);
+	m_rect.y = V_To_Y(v);
+}
+
+void GUI::Control::Lock( void )
+{
+	m_locked = true;
+}
+
+void GUI::Control::Unlock( void )
+{
+	m_locked = false;
+}
+
+void GUI::Control::Focus( void )
+{
+	if (m_manager != NULL) {
+
+		m_hasFocus = true;
+	}
+}
+
+void GUI::Control::Unfocus( void )
+{
+	m_hasFocus = false;
+}
+
+void GUI::Control::Hide( void )
+{
+	m_visible = false;
+	Unfocus();
+}
+
+void GUI::Control::Show( void )
+{
+	m_visible = true;
+}
+
+void GUI::Control::Draw(ContentRect rect) const
+{
+	rect = ClipRect(rect);
+	OnDraw(rect);
+	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	while (control != NULL) {
+		control->GetItem()->Draw(rect);
+		control = control->GetNext();
+	}
+}
+
+void GUI::Control::Update( void )
+{
+	OnUpdate();
+	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	while (control != NULL) {
+		control->GetItem()->Update();
+		control = control->GetNext();
+	}
+}
+
+void GUI::Control::Init( void )
+{
+	OnInit();
+	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	while (control != NULL) {
+		control->GetItem()->Init();
+		control = control->GetItem();
+	}
+}
+
+void GUI::Control::Destroy( void )
+{
+	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	while (control != NULL) {
+		control->GetItem()->Destroy();
+		control = control->GetItem();
+	}
+	OnDestroy();
+}
+
 GUI::Manager::Manager( void ) : m_windows(), m_focus(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_textCaretX(0), m_textCaretY(0), m_newlineHeight(char_px_height)
 {}
 

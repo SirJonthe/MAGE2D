@@ -86,13 +86,14 @@ protected:
 
 public:
 	Collider( void );
+	virtual ~Collider( void ) {}
 
 	Transform					&GetTransform( void );
 	const Transform				&GetTransform( void ) const;
 	void						SetTransform(Transform *transform);
 
 	virtual void				SetHalfExtents(float w, float h)	{ SetHalfExtents(mmlVector<2>(w, h)); }
-	virtual void				SetHalfExtents(mmlVector<2> half)	{} // exactly what this does is left undefined, hopefully something reasonable
+	virtual void				SetHalfExtents(mmlVector<2>)		{} // exactly what this does is left undefined, hopefully something reasonable
 	virtual mmlVector<2>		GetHalfExtents( void ) const		{ return mmlVector<2>(0.0f, 0.0f); }
 	virtual void				ResetState( void )					{ m_prevTransform = *m_transform; }
 

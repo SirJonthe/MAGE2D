@@ -32,7 +32,7 @@ private:
 	// that all mtlInherit<base, ...> share the same static
 	// member despite being of different types, for instance
 	// &mtlInherit<someClass, child1>::m_typeAddress == &mtlInherit<someClass, child2>::m_typeAddress
-	static const type_t *m_typeAddress;
+	static type_t *m_typeAddress;
 
 public:
 	static TypeID GetClassType( void ) { return (TypeID)(&m_typeAddress); }
@@ -42,6 +42,6 @@ public:
 	virtual TypeID GetParentInstanceType( void ) const { return base_t::GetInstanceType(); }
 };
 
-template < typename base_t, typename type_t > const type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL;
+template < typename base_t, typename type_t > type_t *mtlInherit<base_t, type_t>::m_typeAddress = NULL;
 
 #endif

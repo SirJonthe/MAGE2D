@@ -53,7 +53,7 @@ private:
 public:
 	explicit				Object( void );
 	virtual					~Object( void ) {}
-	virtual void			SetDefaultValues(const mtlChars &variation) {}
+	virtual void			SetValuesViaString(const mtlChars&) {}
 
 	const mtlString			&GetName( void ) const;
 	void					SetName(const mtlChars &name);

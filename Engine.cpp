@@ -285,8 +285,8 @@ Engine::Engine( void ) :
 	m_timer(60.0f), m_deltaSeconds(0.0f),
 	m_rseed_z(0), m_rseed_w(0),
 	m_quit(false), m_inLoop(false),
-	m_occlusionMethod(None),
 	m_destroyingAll(false),
+	m_occlusionMethod(None),
 	m_music(NULL),
 	m_clearColor(0.0f, 0.0f, 0.0f)
 {
