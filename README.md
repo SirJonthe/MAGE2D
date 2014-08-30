@@ -1,5 +1,5 @@
 SGE2D
------
+=====
 
 Legal notice
 ------------
@@ -12,6 +12,7 @@ Copyright Jonathan Karlsson (SirJonthe@github) 2014
   well it will work, if at all, for whatever purpose.
 * The author of this code takes no responsibility for any damages resulting
   directly or indirectly from the use of this code.
+* This legal notice must be provided if the source code is redistributed.
 
 About
 -----

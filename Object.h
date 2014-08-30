@@ -41,7 +41,7 @@ protected:
 	virtual void	OnInit( void ) {}
 	virtual void	OnDestroy( void ) {}
 	virtual void	OnUpdate( void ) {}
-	virtual void	OnCollision(ObjectRef&) {}
+	virtual void	OnCollision(ObjectRef, const CollisionInfo&) {}
 	virtual void	OnDraw( void ) { m_graphics.Draw(); }
 	virtual void	OnGUI( void ) {}
 	virtual void	OnFinal( void ) {}

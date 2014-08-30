@@ -343,19 +343,9 @@ void Transform::ScaleY(float scale)
 
 mmlVector<2> Transform::TransformPoint(Space space, mmlVector<2> point) const
 {
-	/*Transform t;
-	if (space == Global) { // point is in global space, transform it to local space
-		t.SetParent(Global, this);
-		t.SetPosition(Global, point);
-		return t.GetPosition(Local);
-	} else if (space == Local) { // point is in local space, transform it to global space
-		t.SetPosition(Local, point);
-		t.SetParent(Local, this);
-		return t.GetPosition(Global);
-	}
-	return t.GetPosition(Local);*/
-
-	return (point * mmlInv(GetRotation(space))) + GetPosition(space);
+	mmlMatrix<2,2> rot = GetRotation(space);
+	mmlVector<2> pos = GetPosition(space);
+	return (point * rot) + pos;
 }
 
 mmlVector<2> Transform::TransformPoint(Space space, float x, float y) const

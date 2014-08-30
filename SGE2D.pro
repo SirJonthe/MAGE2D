@@ -51,7 +51,8 @@ HEADERS += \
     Collider.h
 
 OTHER_FILES += \
-    TODO.txt
+    TODO.txt \
+    README.md
 
 macx: {
 	OBJECTIVE_SOURCES += \

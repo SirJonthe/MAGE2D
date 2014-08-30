@@ -11,7 +11,7 @@ class Controllable : public mtlInherit<Object>
 protected:
 	void OnUpdate( void );
 	void OnGUI( void );
-	void OnCollision(ObjectRef);
+	void OnCollision(ObjectRef, const CollisionInfo&);
 public:
 	Controllable( void );
 };
@@ -114,7 +114,7 @@ void Controllable::OnGUI( void )
 	GUI::NewLine();
 }
 
-void Controllable::OnCollision(ObjectRef)
+void Controllable::OnCollision(ObjectRef, const CollisionInfo&)
 {
 	GUI::SetColor(1.0f, 0.0f, 0.0f);
 	GUI::Print("OUCH!");
@@ -271,6 +271,7 @@ void Unit_Controllable(Engine &engine)
 		return;
 	}
 	a.GetShared()->LoadCollider<PolygonCollider>();
+	a->GetTransform().Scale(2.0f);
 
 	ObjectRef b = engine.AddObject<NPC>();
 	b.GetShared()->SetName("NPC");

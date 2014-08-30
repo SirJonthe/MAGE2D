@@ -55,16 +55,20 @@ void Engine::CollideObjects( void )
 	while (object != NULL) {
 		mtlNode<ObjectRef> *nextObject = object->GetNext();
 		while (nextObject != NULL) {
-			unsigned int abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
-			unsigned int baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
+			flags_t abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
+			flags_t baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
 			if (abCollision > 0 || baCollision > 0) {
 				CollisionInfo info = node_ref(object)->m_collider.GetShared()->Collides(*node_ref(nextObject)->m_collider.GetShared());
 				if (info.collision) {
-					if (abCollision > 0) {
-						node_ref(object)->OnCollision(nextObject->GetItem());
-					}
+
 					if (baCollision > 0) {
-						node_ref(nextObject)->OnCollision(object->GetItem());
+						node_ref(nextObject)->OnCollision(object->GetItem(), info);
+					}
+
+					mmlSwap(info.c1, info.c2);
+					mmlSwap(info.c1_points, info.c2_points);
+					if (abCollision > 0) {
+						node_ref(object)->OnCollision(nextObject->GetItem(), info);
 					}
 				}
 			}

@@ -227,6 +227,9 @@ public:
 	void						SetClearColor(float r, float g, float b);
 	void						SetClearColor(mmlVector<3> color);
 
+	template < typename form_t >
+	mtlShared<GUI::Form>		AddForm( void );
+
 	static bool					RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);
 };
@@ -317,6 +320,12 @@ template < typename graphics_t >
 mtlAsset<Graphics> Engine::LoadGraphics(const mtlChars &file)
 {
 	return mtlAsset<Graphics>::Load<graphics_t>(file);
+}
+
+template < typename form_t >
+mtlShared<GUI::Form> Engine::AddForm( void )
+{
+	return m_guiManager.AddForm<form_t>();
 }
 
 #endif // ENGINE_H

@@ -21,6 +21,12 @@ mtlParser
 	// NOTE: returns FALSE if no match was found
 	// NOTE: search always begins from current position forward (doesn't just look for match wherever it can find it)
 
+	bool Expression(int &out, const mtlList<mtlString> &var, const mtlList<int> &val);
+	bool Expressions(float &out, const mtlList<mtlString> &def, const mtlList<float> &val);
+	// parses a string, treats it as a mathematical expression
+	// calculates expression and retuns value in 'out'
+	// uses strings in 'var' and values in 'val' to identify variables
+
 ----------
 --DESIGN--
 ----------

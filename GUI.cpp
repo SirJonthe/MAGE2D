@@ -544,6 +544,20 @@ int GUI::GetCharPixelHeight(int scale)
 	return char_px_height * scale;
 }
 
+GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
+{
+	GUI::ContentRect r;
+	r.ox = m_rect.x + rect.cx;
+	r.oy = m_rect.y + rect.cy;
+	r.x = mmlMax2(m_rect.x, rect.x) + rect.cx;
+	r.y = mmlMax2(m_rect.y, rect.y) + rect.cy;
+	r.w = r.cx + m_rect.w < rect.w ? m_rect.w : (m_rect.w - (rect.w - r.cx + m_rect.w));
+	r.h = r.cy + m_rect.h < rect.h ? m_rect.h : (m_rect.h - (rect.h - r.cy + m_rect.h));
+	r.cw = mmlMin2(rect.cw, m_rect.w);
+	r.ch = mmlMin2(rect.cw, m_rect.w);
+	return r;
+}
+
 GUI::Control::Control( void ) :
 	m_manager(NULL), m_parent(NULL),
 	m_children(),
@@ -620,7 +634,7 @@ void GUI::Control::Draw(ContentRect rect) const
 {
 	rect = ClipRect(rect);
 	OnDraw(rect);
-	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	const mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Draw(rect);
 		control = control->GetNext();
@@ -643,7 +657,7 @@ void GUI::Control::Init( void )
 	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Init();
-		control = control->GetItem();
+		control = control->GetNext();
 	}
 }
 
@@ -652,9 +666,35 @@ void GUI::Control::Destroy( void )
 	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Destroy();
-		control = control->GetItem();
+		control = control->GetNext();
 	}
 	OnDestroy();
+}
+
+void GUI::Label::OnDraw(GUI::ContentRect rect) const
+{
+	Point content = GUI::GetTextSize(m_text);
+	int cx = rect.cx + (rect.cw - content.x) / 2;
+	int cy = rect.cy + (rect.ch - content.y) / 2;
+	GUI::SetCaretXY(cx, cy);
+	GUI::Print(m_text);
+}
+
+void GUI::Manager::HandleInput( void )
+{
+	mtlNode< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
+	while (n != NULL) {
+		n = n->GetNext();
+	}
+}
+
+void GUI::Manager::DrawForms( void ) const
+{
+	mtlNode< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
+	while (n != NULL) {
+		n->GetItem()->Draw();
+		n = n->GetNext();
+	}
 }
 
 GUI::Manager::Manager( void ) : m_windows(), m_focus(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_textCaretX(0), m_textCaretY(0), m_newlineHeight(char_px_height)
@@ -664,10 +704,14 @@ GUI::Manager::~Manager( void )
 {
 }
 
+void GUI::Manager::Init( void )
+{
+}
+
 void GUI::Manager::Destroy( void )
 {
 	m_focus.Delete();
-	m_windows.RemoveAll();
+	m_forms.RemoveAll();
 }
 
 void GUI::Manager::SetTextColor(float r, float g, float b, float a)
@@ -836,4 +880,10 @@ void GUI::Manager::DrawLine(int x1, int y1, int x2, int y2)
 	glVertex2i(x2, y2);
 
 	glEnd();
+}
+
+void GUI::Manager::Update( void )
+{
+	HandleInput();
+	DrawForms();
 }

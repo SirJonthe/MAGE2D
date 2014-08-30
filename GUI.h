@@ -62,17 +62,21 @@ struct ContentRect
 {
 	int x, y;
 	int w, h;
-	int ox, oy; // offsets
+	int cx, cy;
+	int cw, ch;
 };
 
+class Form;
 class Manager;
 
 class Control : public mtlBase
 {
+	friend class GUI::Form;
 	friend class GUI::Manager;
 
 private:
 	GUI::Manager					*m_manager;
+	GUI::Form						*m_form;
 	GUI::Control					*m_parent;
 	mtlList< mtlShared<Control> >	m_children;
 	Rect							m_rect;
@@ -82,8 +86,13 @@ private:
 	bool							m_visible;
 	bool							m_locked;
 
+private:
+	ContentRect ClipRect(ContentRect rect) const;
+
 protected:
 	virtual void OnDraw(ContentRect rect) const {}
+	virtual void OnClick(int x, int y) {}
+	virtual void OnKey(SDLKey key) {}
 	virtual void OnUpdate( void ) {}
 	virtual void OnInit( void ) {}
 	virtual void OnDestroy( void ) {}
@@ -93,9 +102,9 @@ public:
 	virtual ~Control( void );
 
 	void SetPositionXY(int x, int y);
-	void SetPositionUV(float u, float v); // always sets a position in relation to its parent where 0,0 is top left and 1,1 is lower right (depending on originX and originY)
+	void SetPositionUV(float u, float v);
 	void SetDimensionsXY(int w, int h);
-	void SetDimensionsUV(float u, float v); // always sets a dimension in relation to its parent where 0,0 is area=0 and 1,1 is the full size of the parent control
+	void SetDimensionsUV(float u, float v);
 
 	void Lock( void );
 	void Unlock( void );
@@ -112,10 +121,19 @@ public:
 	void Destroy( void ); // send signal to manager to delete this and all children
 
 	template < typename control_t >
-	mtlShared<GUI::Control> NewControl( void ) { m_children.AddLast(mtlShared<GUI::Control>::Create<control_t>()); return m_children.GetLast()->GetItem(); }
+	mtlShared<GUI::Control> AddControl( void ) { m_children.AddLast(mtlShared<GUI::Control>::Create<control_t>()); return m_children.GetLast()->GetItem(); }
 };
 
-class Window : public mtlInherit<GUI::Control, GUI::Window>
+class Label : public mtlInherit<GUI::Control, GUI::Label>
+{
+private:
+	mtlString m_text;
+
+protected:
+	void OnDraw(ContentRect rect) const;
+};
+
+class Form : public mtlInherit<GUI::Control, GUI::Form>
 {
 	friend class GUI::Manager;
 
@@ -125,16 +143,13 @@ public:
 		int				textScale;
 		int				paddingX;
 		int				paddingY;
-		mmlVector<4>	primaryColor;
-		mmlVector<4>	secondaryColor;
-		mmlVector<4>	activationColor;
-		mmlVector<4>	hoverColor;
+		mmlVector<4>	fontColor;
+		mmlVector<4>	addColor;
+		mmlVector<4>	mulColor;
+		float			blur;
 	};
 private:
-	GUI::Window::Theme m_theme;
-
-public:
-	//bool LoadLayout(const mtlChars &file);
+	GUI::Form::Theme m_theme;
 };
 
 // scroll bars and such
@@ -178,12 +193,15 @@ private:
 class Manager
 {
 private:
-	mtlList< mtlShared<GUI::Window> >	m_windows;
-	mtlShared<GUI::Control>				m_focus; // input is redirected to this object
-	//mtlAsset<Font>					m_font;
-	mmlVector<4>						m_color;
-	int									m_textCaretX, m_textCaretY;
-	int									m_newlineHeight;
+	mtlList< mtlShared<GUI::Form> >	m_forms;
+	mtlShared<GUI::Control>			m_focus; // input is redirected to this object
+	mmlVector<4>					m_color;
+	int								m_textCaretX, m_textCaretY;
+	int								m_newlineHeight;
+
+private:
+	void HandleInput( void );
+	void DrawForms( void ) const;
 
 public:
 	enum Format {
@@ -210,29 +228,19 @@ public:
 	void DrawBox(int x1, int y1, int x2, int y2);
 	void DrawLine(int x1, int y1, int x2, int y2);
 
-	template < typename window_t >
-	Window *NewWindow( void )
+	void Update( void );
+
+	template < typename form_t >
+	mtlShared<GUI::Form> AddForm( void )
 	{
-		m_windows.AddFirst(mtlShared<GUI::Window>::Create<window_t>());
+		m_forms.AddFirst(mtlShared<GUI::Form>::Create<form_t>());
 		GUI::Window *w = m_windows.GetFirst()->GetItem().GetShared();
 		w->m_manager = this;
 		w->m_parent = NULL;
+		w->m_form = w.GetShared();
 		w->Focus();
 		return w;
 	}
-	/*Window *NewWindow(const mtlChars &file)
-	{
-		m_windows.AddFirst();
-		GUI::Window *w = m_windows.GetFirst()->GetItem().GetShared();
-		w->m_manager = this;
-		w->m_parent = NULL;
-		if (!w->LoadLayout(file)) {
-			w->Destroy();
-		} else {
-			w->Focus();
-		}
-		return w;
-	}*/
 };
 
 }
