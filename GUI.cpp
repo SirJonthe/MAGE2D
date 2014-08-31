@@ -546,15 +546,20 @@ int GUI::GetCharPixelHeight(int scale)
 
 GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
 {
+	int x1 = m_rect.x, y1 = m_rect.y;
+	int x2 = x1 + m_rect.w, y2 = y1 + m_rect.h;
+
 	GUI::ContentRect r;
-	r.cx = m_rect.x + rect.cx;
-	r.cy = m_rect.y + rect.cy;
-	r.x = mmlMax2(m_rect.x, rect.x) + rect.cx;
-	r.y = mmlMax2(m_rect.y, rect.y) + rect.cy;
-	r.w = r.cx + m_rect.w < rect.w ? m_rect.w : (m_rect.w - (rect.w - r.cx + m_rect.w));
-	r.h = r.cy + m_rect.h < rect.h ? m_rect.h : (m_rect.h - (rect.h - r.cy + m_rect.h));
+	r.cx = m_rect.x;
+	r.cy = m_rect.y;
 	r.cw = m_rect.w;
-	r.ch = m_rect.w;
+	r.ch = m_rect.h;
+
+	r.x = mmlMax2(x1, rect.x);
+	r.y = mmlMax2(y1, rect.y);
+	r.w = mmlMin2(x1 + x2, rect.w);
+	r.h = mmlMin2(y1 + y2, rect.h);
+
 	return r;
 }
 
@@ -630,7 +635,7 @@ void GUI::Control::Show( void )
 	m_visible = true;
 }
 
-void GUI::Control::Draw(ContentRect rect) const
+void GUI::Control::Draw(GUI::ContentRect rect) const
 {
 	rect = ClipRect(rect);
 	OnDraw(rect);
@@ -673,11 +678,39 @@ void GUI::Control::Destroy( void )
 
 void GUI::Label::OnDraw(GUI::ContentRect rect) const
 {
-	Point content = GUI::GetTextSize(m_text);
-	int cx = rect.cx + (rect.cw - content.x) / 2;
-	int cy = rect.cy + (rect.ch - content.y) / 2;
-	GUI::SetCaretXY(cx, cy);
+	GUI::SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+	GUI::SetCaretXY(rect.cx, rect.cy);
 	GUI::Print(m_text);
+}
+
+const mtlString &GUI::Label::GetLabel( void ) const
+{
+	return m_text;
+}
+
+void GUI::Label::SetLabel(const mtlChars &text)
+{
+	m_text.Copy(text);
+	Point content = GUI::GetTextSize(m_text, 1);
+	SetDimensionsXY(content.x, content.y);
+}
+
+void GUI::Form::OnDraw(GUI::ContentRect rect) const
+{
+	GUI::SetColor(0.0f, 0.0f, 0.0f, 0.5f);
+	GUI::Box(m_rect);
+}
+
+GUI::Form::Form( void )
+{
+	SetDimensionsXY(100, 70);
+	m_theme.blur = 0.0f;
+	m_theme.paddingX = 0;
+	m_theme.paddingY = 0;
+	m_theme.textScale = 1;
+	m_theme.fontColor = mmlVector<4>(1.0f, 1.0f, 1.0f, 1.0f);
+	m_theme.addColor = mmlVector<4>(0.0f, 0.0f, 0.0f, 0.0f);
+	m_theme.mulColor = mmlVector<4>(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void GUI::Manager::HandleInput( void )

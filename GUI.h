@@ -60,8 +60,10 @@ int GetCharPixelHeight(int scale = 1);
 
 struct ContentRect
 {
+	// writable area
 	int x, y;
 	int w, h;
+	// actual control size
 	int cx, cy;
 	int cw, ch;
 };
@@ -131,6 +133,10 @@ private:
 
 protected:
 	void OnDraw(ContentRect rect) const;
+
+public:
+	const mtlString &GetLabel( void ) const;
+	void SetLabel(const mtlChars &text);
 };
 
 class Form : public mtlInherit<GUI::Control, GUI::Form>
@@ -148,8 +154,15 @@ public:
 		mmlVector<4>	mulColor;
 		float			blur;
 	};
+
 private:
 	GUI::Form::Theme m_theme;
+
+protected:
+	void OnDraw(ContentRect rect) const;
+
+public:
+	Form( void );
 };
 
 // scroll bars and such

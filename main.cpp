@@ -330,8 +330,12 @@ void Unit_ArrayResize( void )
 void Unit_GUI(Engine &engine)
 {
 	std::cout << "Unit_GUI: ";
+	engine.SetClearColor(1.0f, 0.0f, 1.0f);
+	engine.DestroyAllObjects();
+	engine.AddObject<Object>();
 	mtlShared<GUI::Form> form = engine.AddForm<GUI::Form>();
 	mtlShared<GUI::Control> label = form->AddControl<GUI::Label>();
+	dynamic_cast<GUI::Label*>(label.GetShared())->SetLabel("A label");
 	engine.RunGame();
 	std::cout << "success" << std::endl;
 }
@@ -343,8 +347,8 @@ void Unit_RandomFloat(Engine &engine)
 	for (int i = 0; i < 10; ++i) {
 		std::cout << engine.GetRandomUniform() << " ";
 	}
-	std::cout << std::endl << "\ttrig:    " ;
+	std::cout << std::endl << "\traised cos: " ;
 	for (int i = 0; i < 10; ++i) {
-		std::cout << engine.GetRandomTrig() << " ";
+		std::cout << engine.GetRandomRaisedCos() << " ";
 	}
 }

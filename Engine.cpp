@@ -155,6 +155,8 @@ void Engine::DrawGUI( void )
 		}
 		object = object->GetNext();
 	}
+
+	m_guiManager.Update();
 }
 
 void Engine::FinalizeObjects( void )
@@ -632,6 +634,8 @@ void Engine::DestroyAllObjects( void )
 		m_objects.RemoveAll();
 	}
 
+	m_camera.Delete();
+
 	m_destroyingAll = false;
 }
 
@@ -829,7 +833,7 @@ float Engine::GetRandomUniform( void )
 	return float((GetRandomUint() + 1) * 2.328306435454494e-10);
 }
 
-float Engine::GetRandomTrig( void )
+float Engine::GetRandomRaisedCos( void )
 {
 	float x = (GetRandomUniform() - 0.5f) * 2.0f * mmlPI;
 	return (cos(x) + 1.0f) / 2.0f;
