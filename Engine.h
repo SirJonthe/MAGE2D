@@ -183,6 +183,7 @@ public:
 	int							GetRandomInt( void );
 	int							GetRandomInt(int min, int max);
 	float						GetRandomUniform( void );
+	float						GetRandomTrig( void );
 
 	bool						PlayMusic(const mtlChars &file);
 	void						StopMusic( void );

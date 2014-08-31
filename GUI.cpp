@@ -547,14 +547,14 @@ int GUI::GetCharPixelHeight(int scale)
 GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
 {
 	GUI::ContentRect r;
-	r.ox = m_rect.x + rect.cx;
-	r.oy = m_rect.y + rect.cy;
+	r.cx = m_rect.x + rect.cx;
+	r.cy = m_rect.y + rect.cy;
 	r.x = mmlMax2(m_rect.x, rect.x) + rect.cx;
 	r.y = mmlMax2(m_rect.y, rect.y) + rect.cy;
 	r.w = r.cx + m_rect.w < rect.w ? m_rect.w : (m_rect.w - (rect.w - r.cx + m_rect.w));
 	r.h = r.cy + m_rect.h < rect.h ? m_rect.h : (m_rect.h - (rect.h - r.cy + m_rect.h));
-	r.cw = mmlMin2(rect.cw, m_rect.w);
-	r.ch = mmlMin2(rect.cw, m_rect.w);
+	r.cw = m_rect.w;
+	r.ch = m_rect.w;
 	return r;
 }
 
@@ -690,14 +690,18 @@ void GUI::Manager::HandleInput( void )
 
 void GUI::Manager::DrawForms( void ) const
 {
-	mtlNode< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
+	GUI::ContentRect rect;
+	rect.cx	= rect.cy = rect.x = rect.y;
+	rect.cw = rect.w = SDL_GetVideoSurface()->w;
+	rect.ch = rect.h = SDL_GetVideoSurface()->h;
+	const mtlNode< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
 	while (n != NULL) {
-		n->GetItem()->Draw();
+		n->GetItem()->Draw(rect);
 		n = n->GetNext();
 	}
 }
 
-GUI::Manager::Manager( void ) : m_windows(), m_focus(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_textCaretX(0), m_textCaretY(0), m_newlineHeight(char_px_height)
+GUI::Manager::Manager( void ) : m_forms(), m_focus(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_textCaretX(0), m_textCaretY(0), m_newlineHeight(char_px_height)
 {}
 
 GUI::Manager::~Manager( void )

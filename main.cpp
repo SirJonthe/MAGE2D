@@ -50,6 +50,9 @@ void Unit_OpenGLTest( void );
 void Unit_RegisteredObjects( void );
 void Unit_Controllable(Engine &engine);
 void Unit_StringMap( void );
+void Unit_ArrayResize( void );
+void Unit_GUI(Engine &engine);
+void Unit_RandomFloat(Engine &engine);
 
 int main(int argc, char **argv)
 {
@@ -59,6 +62,9 @@ int main(int argc, char **argv)
 	Unit_RegisteredObjects();
 	Unit_Controllable(engine);
 	Unit_StringMap();
+	Unit_ArrayResize();
+	Unit_GUI(engine);
+	Unit_RandomFloat(engine);
 	return 0;
 }
 
@@ -302,4 +308,43 @@ void Unit_StringMap( void )
 	if (b != map.GetEntry("~/.local/share/game/another_image.bmp")) { std::cout << "failed (b)" << std::endl; return; }
 	if (c != map.GetEntry("~/.local/share/game/a_third_image.bmp")) { std::cout << "failed (c)" << std::endl; return; }
 	std::cout << "success" << std::endl;
+}
+
+void Unit_ArrayResize( void )
+{
+	std::cout << "Unit_ArrayResize: ";
+
+	mtlArray<int> arr;
+	arr.poolMemory = true;
+	arr.SetCapacity(1024);
+	arr.Resize(512);
+
+	if (arr.GetCapacity() != 1024 || arr.GetSize() != 512) {
+		std::cout << "failed" << std::endl;
+		return;
+	}
+
+	std::cout << "success" << std::endl;
+}
+
+void Unit_GUI(Engine &engine)
+{
+	std::cout << "Unit_GUI: ";
+	mtlShared<GUI::Form> form = engine.AddForm<GUI::Form>();
+	mtlShared<GUI::Control> label = form->AddControl<GUI::Label>();
+	engine.RunGame();
+	std::cout << "success" << std::endl;
+}
+
+void Unit_RandomFloat(Engine &engine)
+{
+	std::cout << "Unit_RandomFloat: " << std::endl;
+	std::cout << "\tuniform: " ;
+	for (int i = 0; i < 10; ++i) {
+		std::cout << engine.GetRandomUniform() << " ";
+	}
+	std::cout << std::endl << "\ttrig:    " ;
+	for (int i = 0; i < 10; ++i) {
+		std::cout << engine.GetRandomTrig() << " ";
+	}
 }

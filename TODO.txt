@@ -6,7 +6,6 @@ Change name to MAGE2D (Minimal amateur game engine)
 Make SceneGraph (handles relations between transforms, that's all)
 Simple GUI
 Collision response
-	no physics, just prevent two objects from intersecting
 Object callbacks
 mtlParser
 	bool Match("%s = { %f, %f, %f };", mtlList<mtlString> &out);
@@ -30,8 +29,6 @@ mtlParser
 ----------
 --DESIGN--
 ----------
-According to asset manager: "/home/jonathan/Code/SGE2D/Debug/test.bmp" is not same as relative file "test.bmp"
-	Fix so that the engine detects absolute and relative files so that there is no risk of loading something twice
 Type tree in Engine should be mtlStringMap instead of mtlBinaryTree (saves a ton of code)
 In order for font to work properly I think I need to store font in an extended Graphics object
 	Graphics objects store mirrors global state, font modifies global state which might desync Graphics mirrored state from global state
@@ -57,8 +54,6 @@ Physics?
 		http://xbox.create.msdn.com/en-US/education/catalog/tutorial/collision_2d_perpixel_transformed
 	Remember:
 		Physics act on transforms' World locations (not local locations)
-More randomizer functions in engine
-	Non linear randomizer
 
 ---------------
 --IN PROGRESS--
@@ -97,8 +92,6 @@ Valgrind is warning about a 4 byte overwrite in Object::Draw and Image does not 
 mtlStringMap - Unit_StringMap
 	Only adding first entry (CreateEntry)?
 	Not finding other entries because only first entry is stored?
-mtlString::Append still not working
-Pretty sure mtlArray::Resize not working as expected (will always allocate data as if pooling is disabled?)
 
 --------------
 --ADDITIONAL--

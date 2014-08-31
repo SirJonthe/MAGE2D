@@ -234,12 +234,12 @@ public:
 	mtlShared<GUI::Form> AddForm( void )
 	{
 		m_forms.AddFirst(mtlShared<GUI::Form>::Create<form_t>());
-		GUI::Window *w = m_windows.GetFirst()->GetItem().GetShared();
-		w->m_manager = this;
-		w->m_parent = NULL;
-		w->m_form = w.GetShared();
-		w->Focus();
-		return w;
+		GUI::Form *f = m_forms.GetFirst()->GetItem().GetShared();
+		f->m_manager = this;
+		f->m_parent = NULL;
+		f->m_form = f;
+		f->Focus();
+		return m_forms.GetFirst()->GetItem();
 	}
 };
 

@@ -826,8 +826,13 @@ int Engine::GetRandomInt(int min, int max)
 
 float Engine::GetRandomUniform( void )
 {
-	const float invRand = 1.0f / float(0xffffffff);
-	return float(GetRandomUint()) * invRand;
+	return float((GetRandomUint() + 1) * 2.328306435454494e-10);
+}
+
+float Engine::GetRandomTrig( void )
+{
+	float x = (GetRandomUniform() - 0.5f) * 2.0f * mmlPI;
+	return (cos(x) + 1.0f) / 2.0f;
 }
 
 bool Engine::PlayMusic(const mtlChars &file)
