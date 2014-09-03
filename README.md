@@ -1,5 +1,5 @@
-SGE2D
-=====
+MAGE2D
+======
 
 Legal notice
 ------------
@@ -16,10 +16,10 @@ Copyright Jonathan Karlsson (SirJonthe@github) 2014
 
 About
 -----
-* SGE2D (Simple Game Engine 2D) is a small, simple, OpenGL hardware accelerated
+* MAGE2D (Minimal Amateur Game Engine 2D) is a small, simple, OpenGL hardware accelerated
   2D game engine aimed at amateur C++ game developers, enabling them to focus on
   writing game code rather than engine code.
-* SGE2D is based around a game object design, where the coder adds a specialized game
+* MAGE2D is based around a game object design, where the coder adds a specialized game
   object that overloads virtual functions inherited from a generic game object which
   are then called by the engine at appropriate times.
 * Includes a hardware accelerated graphics pipeline for pixel perfect rendering.
@@ -55,6 +55,4 @@ NOTES
 * Because the code is in early development, the author might refactor and/or alter anything in
   the code that will break compatibility with older versions of the code.
 * Documentation is missing for now.
-* This engine will change name to MAGE2D at a later date to avoid confusion between the already
-  established SDL Game Engine 2D (SGE2D).
 
