@@ -1,8 +1,6 @@
 --------
 --TODO--
 --------
-Change name to MAGE2D (Minimal amateur game engine)
-	https://help.github.com/articles/renaming-a-repository
 Make SceneGraph (handles relations between transforms, that's all)
 Simple GUI
 Collision response
