@@ -87,9 +87,6 @@ Depending on the driver, font rendering is sometimes broken due to the fact that
 	<----> actual width
 
 Valgrind is warning about a 4 byte overwrite in Object::Draw and Image does not render properly (must be something about triangle strip rendering)
-mtlStringMap - Unit_StringMap
-	Only adding first entry (CreateEntry)?
-	Not finding other entries because only first entry is stored?
 
 --------------
 --ADDITIONAL--

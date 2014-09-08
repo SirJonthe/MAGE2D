@@ -62,11 +62,10 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 	mtlHash hash(name);
 	const mtlBranch<HashNode> *b = m_table.GetRoot();
 	if (b != NULL) {
-		b->Find(hash);
+        b = b->Find(hash);
 	}
-	typename HashNode::ListNode *n = NULL;
 	if (b != NULL) {
-		n = b->GetItem().entries.GetShared()->GetFirst();
+        typename HashNode::ListNode *n = b->GetItem().entries->GetFirst();
 		while (n != NULL) {
 			if (n->GetItem().name.Compare(name)) {
 				return n->GetItem().entry.GetShared();
@@ -82,8 +81,8 @@ type_t *mtlStringMap<type_t>::CreateEntry(const mtlChars &name)
 	Entry entry;
 	entry.name.Copy(name);
 	entry.entry.template New<derived_t>(); // Jesus...
-	b->GetItem().entries.GetShared()->AddLast(entry);
-	return b->GetItem().entries.GetShared()->GetLast()->GetItem().entry.GetShared(); // puke worthy
+    b->GetItem().entries->AddLast(entry);
+    return b->GetItem().entries->GetLast()->GetItem().entry.GetShared(); // puke worthy
 }
 
 template < typename type_t >
@@ -96,15 +95,15 @@ template < typename type_t >
 void mtlStringMap<type_t>::RemoveEntry(const mtlChars &name)
 {
 	mtlBranch<HashNode> *hashNode = GetNode(name);
-	const typename HashNode::ListNode *node = hashNode->GetItem()->entries.GetShared()->GetFirst();
+    const typename HashNode::ListNode *node = hashNode->GetItem()->entries->GetFirst();
 	while (node != NULL) {
-		if (node->GetItem().GetShared()->name.Compare(name)) {
+        if (node->GetItem()->name.Compare(name)) {
 			node->Remove();
 			break;
 		}
 		node = node->GetNext();
 	}
-	if (hashNode->GetItem()->entries.GetShared()->GetSize() == 0) {
+    if (hashNode->GetItem()->entries->GetSize() == 0) {
 		hashNode->Remove();
 	}
 }
@@ -120,7 +119,7 @@ const type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name) const
 {
 	mtlBranch<HashNode> *b = GetNode(name);
 	if (b == NULL) { return NULL; }
-	typename HashNode::ListNode *n = b->GetItem().entries.GetShared()->GetFirst();
+    typename HashNode::ListNode *n = b->GetItem().entries->GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().name.Compare(name)) {
 			return n->GetItem().entry.GetShared();
@@ -135,7 +134,7 @@ type_t *mtlStringMap<type_t>::GetEntry(const mtlChars &name)
 {
 	mtlBranch<HashNode> *b = GetNode(name);
 	if (b == NULL) { return NULL; }
-	typename HashNode::ListNode *n = b->GetItem().entries.GetShared()->GetFirst();
+    typename HashNode::ListNode *n = b->GetItem().entries->GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().name.Compare(name)) {
 			return n->GetItem().entry.GetShared();

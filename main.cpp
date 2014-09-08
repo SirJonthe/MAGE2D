@@ -60,10 +60,10 @@ int main(int argc, char **argv)
 	Engine engine;
 	engine.Init(800, 600, "Lots-o-tests", argc, argv);
 	Unit_RegisteredObjects();
-	Unit_Controllable(engine);
+    //Unit_Controllable(engine);
 	Unit_StringMap();
 	Unit_ArrayResize();
-	Unit_GUI(engine);
+    //Unit_GUI(engine);
 	Unit_RandomFloat(engine);
 	return 0;
 }
