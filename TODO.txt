@@ -13,8 +13,11 @@ mtlParser
 	// three floats separated by commas
 	// a closing brace
 	// a semi-colon
-	// NOTE: values will be returned in out
-	// NOTE: can specify if white spaces should be ignored - may even search multiple kines of text
+	// NOTE: %i, %f, %b, %s (int, float, bool, string)
+        // NOTE: values will be returned in 'out'
+        // NOTE: can specify if white spaces should be ignored - may even search multiple lines of text
+	// NOTE: strings are terminated by the following character in the search string, i.e. "{%s}" is terminated by '}'
+	// NOTE: does brace matching for strings, i.e. searching "function(function(), param)" with "function(%s)" returns "function(), param" rather than "function("
 	// NOTE: returns FALSE if no match was found
 	// NOTE: search always begins from current position forward (doesn't just look for match wherever it can find it)
 
