@@ -1,11 +1,13 @@
-#Temporary files
+# Temporary files
 *~
+*.DS_Store
+*.bak
 
-#Build paths
+# Build paths
 /Debug
 /Release
 /tmp
 
-#non-portable QtCreator files
-*.user
+# Non-portable QtCreator files
+*pro.user
 
