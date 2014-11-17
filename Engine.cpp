@@ -813,8 +813,9 @@ unsigned int Engine::GetRandomUint( void )
 
 unsigned int Engine::GetRandomUint(unsigned int min, unsigned int max)
 {
+	if (max == min) { return min; }
 	unsigned int r = GetRandomUint();
-	return (r % (max-min+1)) + min;
+	return (r % (max-min)) + min;
 }
 
 int Engine::GetRandomInt( void )
@@ -824,8 +825,9 @@ int Engine::GetRandomInt( void )
 
 int Engine::GetRandomInt(int min, int max)
 {
+	if (max == min) { return min; }
 	int r = GetRandomInt();
-	return (r % (max-min+1)) + min;
+	return abs(r % (max-min)) + min;
 }
 
 float Engine::GetRandomUniform( void )
