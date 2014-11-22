@@ -84,8 +84,8 @@ private:
 	ObjectRef			m_camera;
 	Timer				m_timer;
 	float				m_deltaSeconds;
-	unsigned int		m_rseed_z;
-	unsigned int		m_rseed_w;
+	unsigned long long	m_rand_state;
+	unsigned long long	m_rand_inc;
 	//CollisionSolver	m_collisionSolver;
 	GUI::Manager		m_guiManager;
 	bool				m_quit;
@@ -177,7 +177,7 @@ public:
 	void						SetUpdateFrequency(float updatesPerSecond);
 	float						GetElapsedTime( void ) const;
 
-	void						SetRandomizerSeeds(unsigned int z, unsigned int w);
+	void						SetRandomizerState(unsigned long long state, unsigned long long inc = 1);
 	unsigned int				GetRandomUint( void );
 	unsigned int				GetRandomUint(unsigned int min, unsigned int max);
 	int							GetRandomInt( void );

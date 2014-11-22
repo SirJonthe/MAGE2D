@@ -289,14 +289,14 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 Engine::Engine( void ) :
 	m_objects(), m_camera(),
 	m_timer(60.0f), m_deltaSeconds(0.0f),
-	m_rseed_z(0), m_rseed_w(0),
+	m_rand_state(0), m_rand_inc(1),
 	m_quit(false), m_inLoop(false),
 	m_destroyingAll(false),
 	m_occlusionMethod(None),
 	m_music(NULL),
 	m_clearColor(0.0f, 0.0f, 0.0f)
 {
-	SetRandomizerSeeds(0, 0); // grabs default values
+	SetRandomizerState(0); // grabs default values
 	m_mousePosition.x = 0;
 	m_mousePosition.y = 0;
 	m_prevMousePosition.x = 0;
@@ -773,7 +773,7 @@ void Engine::EndGame( void )
 
 void Engine::KillProgram( void )
 {
-	std::cout << "[KILL program]" << std::endl;
+	std::cout << "[KILL PROGRAM]" << std::endl;
 	if (SDL_GetVideoSurface() != NULL) {
 		SDL_FreeSurface(SDL_GetVideoSurface());
 	}
@@ -797,18 +797,27 @@ float Engine::GetElapsedTime( void ) const
 	return m_deltaSeconds;
 }
 
-void Engine::SetRandomizerSeeds(unsigned int z, unsigned int w)
+void Engine::SetRandomizerState(unsigned long long state, unsigned long long inc)
 {
-	// must be non-zero
-	m_rseed_z = z == 0 ? 0xfeedface : z;
-	m_rseed_w = w == 0 ? 0xdeadbeef : w;
+	m_rand_state = (state == 0) ? 0xe10df4c5d34db135 : state;
+	m_rand_inc = inc | 1;
 }
 
+// Based on minimal PCG32 algorithm implementation by M.E. O'Neill (pcg-random.org)
+// Licenced under Apache Licence 2.0
 unsigned int Engine::GetRandomUint( void )
 {
-	m_rseed_z = 36969 * (m_rseed_z & 65535) + (m_rseed_z >> 16);
+	/*m_rseed_z = 36969 * (m_rseed_z & 65535) + (m_rseed_z >> 16);
 	m_rseed_w = 18000 * (m_rseed_w & 65535) + (m_rseed_w >> 16);
-	return (m_rseed_z << 16) + m_rseed_w;
+	return (m_rseed_z << 16) + m_rseed_w;*/
+
+	unsigned long long oldstate = m_rand_state;
+	// Advance internal state
+	m_rand_state = oldstate * 6364136223846793005ull + m_rand_inc;
+	// Calculate output function (XSH RR), uses old state for max ILP
+	unsigned int xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
+	unsigned int rot = oldstate >> 59u;
+	return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
 }
 
 unsigned int Engine::GetRandomUint(unsigned int min, unsigned int max)
@@ -830,6 +839,7 @@ int Engine::GetRandomInt(int min, int max)
 	return abs(r % (max-min)) + min;
 }
 
+// Floating-point conversion magic by John D. Cook (http://www.codeproject.com/Articles/25172/Simple-Random-Number-Generation)
 float Engine::GetRandomUniform( void )
 {
 	return float((GetRandomUint() + 1) * 2.328306435454494e-10);
