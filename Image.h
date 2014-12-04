@@ -15,7 +15,7 @@ private:
 	int			m_height;
 
 private:
-	Image(const Image &) {}
+	Image(const Image &) : mtlInherit(this) {}
 	Image &operator=(const Image &) { return *this; }
 
 public:

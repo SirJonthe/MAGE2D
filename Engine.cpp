@@ -28,7 +28,7 @@ void Engine::UpdateInputBuffers( void )
 
 void Engine::UpdateObjects( void )
 {
-	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking()) {
 			node_ref(object)->OnUpdate();
@@ -40,7 +40,7 @@ void Engine::UpdateObjects( void )
 void Engine::CollideObjects( void )
 {
 	// construct a list of possible collisions and reset the colliders' state
-	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	mtlList<ObjectRef> colliders;
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
@@ -53,7 +53,7 @@ void Engine::CollideObjects( void )
 	// test for collisions (O(n^2))
 	object = colliders.GetFirst();
 	while (object != NULL) {
-		mtlNode<ObjectRef> *nextObject = object->GetNext();
+		mtlItem<ObjectRef> *nextObject = object->GetNext();
 		while (nextObject != NULL) {
 			flags_t abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
 			flags_t baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
@@ -92,7 +92,7 @@ void Engine::DrawObjects( void )
 		mtlArray<GraphicsContainer> graphics;
 		graphics.SetCapacity(m_objects.GetSize());
 
-		mtlNode<ObjectRef> *object = m_objects.GetFirst();
+		mtlItem<ObjectRef> *object = m_objects.GetFirst();
 		while (object != NULL) {
 			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
 				GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global), m_occlusionMethod };
@@ -119,7 +119,7 @@ void Engine::DrawObjects( void )
 		}
 
 	} else {
-		mtlNode<ObjectRef> *object = m_objects.GetFirst();
+		mtlItem<ObjectRef> *object = m_objects.GetFirst();
 		while (object != NULL) {
 			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
 
@@ -145,7 +145,7 @@ void Engine::DrawObjects( void )
 void Engine::DrawGUI( void )
 {
 	GUI::SetCaretXY(0, 0);
-	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking()) {
 			Engine::SetGUIProjection();
@@ -161,7 +161,7 @@ void Engine::DrawGUI( void )
 
 void Engine::FinalizeObjects( void )
 {
-	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking()) {
 			node_ref(object)->OnFinal();
@@ -185,7 +185,7 @@ void Engine::DestroyObjects( void )
 	// safe reference that will automatically
 	// turn to NULL when the parent is destroyed
 
-	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_destroy) {
 			if (m_camera.GetShared() == node_ref(object)) { m_camera.Delete(); }
@@ -196,7 +196,7 @@ void Engine::DestroyObjects( void )
 
 			// Now we need to remove any references to the transform
 			// that will dissapear as a result of calling Destroy
-			mtlNode<ObjectRef> *remaining = m_objects.GetFirst();
+			mtlItem<ObjectRef> *remaining = m_objects.GetFirst();
 			while (remaining != NULL) {
 				if (node_ref(remaining)->GetTransform().GetParent() == transform_addr) {
 					node_ref(remaining)->GetTransform().SetParent(Transform::Global, NULL);
@@ -223,7 +223,7 @@ void Engine::DestroyObjects( void )
 
 void Engine::InitPendingObjects( void )
 {
-	mtlNode<ObjectRef> *object = m_pending.GetFirst();
+	mtlItem<ObjectRef> *object = m_pending.GetFirst();
 	while (object != NULL) {
 		m_objects.AddLast(object->GetItem());
 		node_ref(object)->OnInit();
@@ -267,13 +267,13 @@ mtlBinaryTree<Engine::TypeNode> &Engine::GetTypeTree( void )
 	return typeTree;
 }
 
-void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types)
+void Engine::GetRegisteredTypes(const mtlNode<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types)
 {
 	if (branch == NULL) { return; }
-	if (branch->GetNegative() != NULL) {
-		GetRegisteredTypes(branch->GetNegative(), types);
+	if (branch->GetLeft() != NULL) {
+		GetRegisteredTypes(branch->GetLeft(), types);
 	}
-	mtlNode<Type> *node = branch->GetItem().types.GetShared()->GetFirst();
+	mtlItem<Type> *node = branch->GetItem().types.GetShared()->GetFirst();
 	while (node != NULL) {
 		mtlShared<mtlString> name;
 		name.New();
@@ -281,22 +281,21 @@ void Engine::GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlS
 		types.AddLast(name);
 		node = node->GetNext();
 	}
-	if (branch->GetPositive() != NULL) {
-		GetRegisteredTypes(branch->GetPositive(), types);
+	if (branch->GetRight() != NULL) {
+		GetRegisteredTypes(branch->GetRight(), types);
 	}
 }
 
 Engine::Engine( void ) :
 	m_objects(), m_camera(),
 	m_timer(60.0f), m_deltaSeconds(0.0f),
-	m_rand_state(0), m_rand_inc(1),
+	m_rand(),
 	m_quit(false), m_inLoop(false),
 	m_destroyingAll(false),
 	m_occlusionMethod(None),
 	m_music(NULL),
 	m_clearColor(0.0f, 0.0f, 0.0f)
 {
-	SetRandomizerState(0); // grabs default values
 	m_mousePosition.x = 0;
 	m_mousePosition.y = 0;
 	m_prevMousePosition.x = 0;
@@ -414,7 +413,7 @@ const mtlList<ObjectRef> &Engine::GetObjects( void ) const
 void Engine::FilterByName(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const mtlChars &name)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (node_ref(n)->GetName().Compare(name)) {
 			out.AddLast(n->GetItem());
@@ -426,7 +425,7 @@ void Engine::FilterByName(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out,
 void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, TypeID id)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (node_ref(n)->GetInstanceType() == id) {
 			out.AddLast(n->GetItem());
@@ -438,7 +437,7 @@ void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef>
 void Engine::FilterByObjectFlags(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (node_ref(n)->GetObjectFlags(mask) == mask) {
 			out.AddLast(n->GetItem());
@@ -450,7 +449,7 @@ void Engine::FilterByObjectFlags(const mtlList<ObjectRef> &in, mtlList<ObjectRef
 void Engine::FilterByCollisionMasks(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (node_ref(n)->GetCollisionMasks(mask) == mask) {
 			out.AddLast(n->GetItem());
@@ -462,7 +461,7 @@ void Engine::FilterByCollisionMasks(const mtlList<ObjectRef> &in, mtlList<Object
 void Engine::FilterByObjectFlagsInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (node_ref(n)->GetObjectFlags(mask) > 0) {
 			out.AddLast(n->GetItem());
@@ -474,7 +473,7 @@ void Engine::FilterByObjectFlagsInclusive(const mtlList<ObjectRef> &in, mtlList<
 void Engine::FilterByCollisionMasksInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (node_ref(n)->GetCollisionMasks(mask) > 0) {
 			out.AddLast(n->GetItem());
@@ -486,7 +485,7 @@ void Engine::FilterByCollisionMasksInclusive(const mtlList<ObjectRef> &in, mtlLi
 void Engine::FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t objectMask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *object = in.GetFirst();
+	const mtlItem<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		// we do not check if object can collide since this is not technically collisions
 		if ((node_ref(object)->m_objectFlags & objectMask) > 0) {
@@ -502,7 +501,7 @@ void Engine::FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out
 void Engine::FilterByPlane(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t objectMask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *object = in.GetFirst();
+	const mtlItem<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		// we do not check if object can collide since this is not technically collisions
 		if ((node_ref(object)->m_objectFlags & objectMask) > 0) {
@@ -519,7 +518,7 @@ void Engine::FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRe
 {
 	// BONUS: sort by distance, from shortest to greatest
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *object = in.GetFirst();
+	const mtlItem<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
 			UnaryCollisionInfo info = node_ref(object)->GetCollider()->Collides(ray);
@@ -534,7 +533,7 @@ void Engine::FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRe
 void Engine::FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t collisionMask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *object = in.GetFirst();
+	const mtlItem<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
 			UnaryCollisionInfo info = node_ref(object)->GetCollider()->Collides(range);
@@ -549,7 +548,7 @@ void Engine::FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<Object
 void Engine::FilterByPlaneCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t collisionMask)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *object = in.GetFirst();
+	const mtlItem<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		if (node_ref(object)->m_collisions && (node_ref(object)->m_objectFlags & collisionMask) > 0) {
 			UnaryCollisionInfo info = node_ref(object)->GetCollider()->Collides(plane);
@@ -572,12 +571,12 @@ ObjectRef Engine::AddObject( void )
 ObjectRef Engine::AddObject(const mtlChars &typeName)
 {
 	mtlHash h(typeName);
-	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	mtlNode<TypeNode> *b = GetTypeTree().GetRoot();
 	if (b != NULL) {
 		b = b->Find(h);
 	}
 	if (b != NULL) {
-		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
+		mtlItem<Type> *n = b->GetItem().types.GetShared()->GetFirst();
 		while (n != NULL) {
 			if (n->GetItem().name.Compare(typeName)) {
 				ObjectRef o = n->GetItem().creator_func();
@@ -601,12 +600,12 @@ ObjectRef Engine::AddObjectNow( void )
 ObjectRef Engine::AddObjectNow(const mtlChars &typeName)
 {
 	mtlHash h(typeName);
-	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	mtlNode<TypeNode> *b = GetTypeTree().GetRoot();
 	if (b != NULL) {
 		b = b->Find(h);
 	}
 	if (b != NULL) {
-		mtlNode<Type> *n = b->GetItem().types.GetShared()->GetFirst();
+		mtlItem<Type> *n = b->GetItem().types.GetShared()->GetFirst();
 		while (n != NULL) {
 			if (n->GetItem().name.Compare(typeName)) {
 				ObjectRef o = n->GetItem().creator_func();
@@ -624,7 +623,7 @@ void Engine::DestroyAllObjects( void )
 	if (m_destroyingAll) { return; }
 	m_destroyingAll = true;
 
-	mtlNode<ObjectRef> *object = m_objects.GetFirst();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	if (m_inLoop) {
 		while (object != NULL) {
 			node_ref(object)->Destroy();
@@ -799,50 +798,37 @@ float Engine::GetElapsedTime( void ) const
 
 void Engine::SetRandomizerState(unsigned long long state, unsigned long long inc)
 {
-	m_rand_state = (state == 0) ? 0xe10df4c5d34db135 : state;
-	m_rand_inc = inc | 1;
+	m_rand.SetSeed(state, inc);
 }
 
-// Based on minimal PCG32 algorithm implementation by M.E. O'Neill (pcg-random.org)
-// Licenced under Apache Licence 2.0
 unsigned int Engine::GetRandomUint( void )
 {
-	/*m_rseed_z = 36969 * (m_rseed_z & 65535) + (m_rseed_z >> 16);
-	m_rseed_w = 18000 * (m_rseed_w & 65535) + (m_rseed_w >> 16);
-	return (m_rseed_z << 16) + m_rseed_w;*/
-
-	unsigned long long oldstate = m_rand_state;
-	// Advance internal state
-	m_rand_state = oldstate * 6364136223846793005ull + m_rand_inc;
-	// Calculate output function (XSH RR), uses old state for max ILP
-	unsigned int xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
-	unsigned int rot = oldstate >> 59u;
-	return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+	return m_rand.GetUint();
 }
 
 unsigned int Engine::GetRandomUint(unsigned int min, unsigned int max)
 {
-	if (max == min) { return min; }
-	unsigned int r = GetRandomUint();
-	return (r % (max-min)) + min;
+	return m_rand.GetUint(min, max);
 }
 
 int Engine::GetRandomInt( void )
 {
-	return (int)GetRandomUint();
+	return m_rand.GetInt();
 }
 
 int Engine::GetRandomInt(int min, int max)
 {
-	if (max == min) { return min; }
-	int r = GetRandomInt();
-	return abs(r % (max-min)) + min;
+	return m_rand.GetInt(min, max);
 }
 
-// Floating-point conversion magic by John D. Cook (http://www.codeproject.com/Articles/25172/Simple-Random-Number-Generation)
 float Engine::GetRandomUniform( void )
 {
-	return float((GetRandomUint() + 1) * 2.328306435454494e-10);
+	return m_rand.GetFloat();
+}
+
+float Engine::GetRandomFloat(float min, float max)
+{
+	return m_rand.GetFloat(min, max);
 }
 
 float Engine::GetRandomRaisedCos( void )
@@ -1085,11 +1071,11 @@ void Engine::SetClearColor(mmlVector<3> color)
 bool Engine::RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)())
 {
 	mtlHash h(typeName);
-	mtlBranch<TypeNode> *b = GetTypeTree().GetRoot();
+	mtlNode<TypeNode> *b = GetTypeTree().GetRoot();
 	if (b != NULL) {
 		b = b->Find(h);
 	}
-	mtlNode<Type> *n = NULL;
+	mtlItem<Type> *n = NULL;
 	if (b != NULL) {
 		n = b->GetItem().types.GetShared()->GetFirst();
 		while (n != NULL) {

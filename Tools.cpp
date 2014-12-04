@@ -8,13 +8,13 @@ void KillPlane::OnUpdate( void )
 {
 	mtlList<ObjectRef> objects;
 	GetEngine()->FilterByPlaneCollision(GetEngine()->GetObjects(), objects, m_plane);
-	mtlNode<ObjectRef> *object = objects.GetFirst();
+	mtlItem<ObjectRef> *object = objects.GetFirst();
 	while (object != NULL) {
 		object->GetItem().GetShared()->Destroy();
 	}
 }
 
-KillPlane::KillPlane( void ) : mtlInherit<Object, KillPlane>()
+KillPlane::KillPlane( void ) : mtlInherit(this)
 {
 	ClearAllObjectFlags(); // other objects can not collide with us, *we* collide with *them*
 	SetName("tool_killplane");
@@ -46,7 +46,7 @@ void Console::OnDraw( void )
 
 	GUI::SetCaretXY(0, Engine::GetVideoHeight() - GUI::GetCharPixelHeight());
 
-	mtlNode<mtlString> *l = m_lines.GetLast();
+	mtlItem<mtlString> *l = m_lines.GetLast();
 	if (l != NULL) {
 		mmlVector<3> c = mmlVector<3>(0.0f, 0.0f, 0.0f);
 		GUI::SetColor(c[0], c[1], c[2]);
@@ -64,7 +64,7 @@ void Console::OnDraw( void )
 }
 
 Console::Console( void ) :
-	mtlInherit<Object, Console>(),
+	mtlInherit(this),
 	m_bgColor(0.0f, 0.0f, 0.0f),
 	m_lines(), m_maxHistory(10),
 	m_screenHeightRatio(0.5f),

@@ -70,7 +70,7 @@ void Graphics::DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei co
 	Unbind();
 }
 
-Graphics::Graphics( void )
+Graphics::Graphics( void ) : mtlBase(this)
 {
 	glGenBuffers(1, &m_id.vtx);
 	glGenBuffers(1, &m_id.uv);

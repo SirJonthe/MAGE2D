@@ -47,7 +47,7 @@ protected:
 	virtual void	OnFinal( void ) {}
 
 private:
-	Object(const Object&) : m_objectNumber(0) {}
+	Object(const Object&) : mtlBase(this), m_objectNumber(0) {}
 	Object &operator=(const Object&) { return *this; }
 
 public:

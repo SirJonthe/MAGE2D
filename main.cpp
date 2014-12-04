@@ -6,7 +6,11 @@
 #include "MTL/mtlStringMap.h"
 #include <iostream>
 
-class Controllable : public mtlInherit<Object>
+// Investigate if the font rendering is fixed by using unsigned ints as UVs rather than floats
+
+// Create a quick tool that allows you to make collision shapes with a sprite as background
+
+class Controllable : public mtlInherit<Object, Controllable>
 {
 protected:
 	void OnUpdate( void );
@@ -16,14 +20,17 @@ public:
 	Controllable( void );
 };
 
-class Anchor : public mtlInherit<Object>
+class Anchor : public mtlInherit<Object, Anchor>
 {
 protected:
 	void OnUpdate( void );
 	void OnDraw( void );
+
+public:
+	Anchor( void ) : mtlInherit(this) {}
 };
 
-class FollowCamera : public mtlInherit<Object>
+class FollowCamera : public mtlInherit<Object, FollowCamera>
 {
 private:
 	ObjectRef m_follow;
@@ -35,14 +42,52 @@ public:
 	FollowCamera( void );
 };
 
-class NPC : public mtlInherit<Object>
+class NPC : public mtlInherit<Object, NPC>
 {
+public:
+	NPC( void ) : mtlInherit(this) {}
+};
+
+class FontRenderer : public mtlInherit<Object, FontRenderer>
+{
+protected:
+	void OnGUI( void )
+	{
+		for (int i = 1; i < 4; ++i) {
+			GUI::Print("the quick brown fox jumps over the lazy dog", i);
+			GUI::NewLine();
+			GUI::Print("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG", i);
+			GUI::NewLine();
+			GUI::Print("1234567890", i);
+			GUI::NewLine();
+			GUI::Print(".,:;!?()<>[]{}\"\'#%&/", i);
+			GUI::NewLine();
+		}
+	}
+
+public:
+	FontRenderer( void ) : mtlInherit(this) {}
+};
+
+class Quitter : public mtlInherit<Object, Quitter>
+{
+protected:
+	void OnUpdate( void )
+	{
+		if (GetEngine()->IsPressed(SDLK_ESCAPE)) {
+			GetEngine()->EndGame();
+		}
+	}
+public:
+	Quitter( void ) : mtlInherit(this) {}
 };
 
 RegisterObject(Controllable);
 RegisterObject(Anchor);
 RegisterObject(FollowCamera);
 RegisterObject(NPC);
+RegisterObject(FontRenderer);
+RegisterObject(Quitter);
 
 void PrintString(const mtlChars &ch);
 
@@ -53,6 +98,7 @@ void Unit_StringMap( void );
 void Unit_ArrayResize( void );
 void Unit_GUI(Engine &engine);
 void Unit_RandomFloat(Engine &engine);
+void Unit_Font(Engine &engine);
 
 int main(int argc, char **argv)
 {
@@ -60,11 +106,12 @@ int main(int argc, char **argv)
 	Engine engine;
 	engine.Init(800, 600, "Lots-o-tests", argc, argv);
 	Unit_RegisteredObjects();
-    //Unit_Controllable(engine);
-	Unit_StringMap();
-	Unit_ArrayResize();
-    //Unit_GUI(engine);
+	//Unit_Controllable(engine);
+	//Unit_StringMap();
+	//Unit_ArrayResize();
+	//Unit_GUI(engine);
 	Unit_RandomFloat(engine);
+	Unit_Font(engine);
 	return 0;
 }
 
@@ -137,7 +184,7 @@ void Anchor::OnUpdate( void )
 	if (GetEngine()->IsPressed(SDLK_SPACE)) {
 		mtlList<ObjectRef> list;
 		GetEngine()->FilterByName(GetEngine()->GetObjects(), list, "object_controllable");
-		mtlNode<ObjectRef> *node = list.GetFirst();
+		mtlItem<ObjectRef> *node = list.GetFirst();
 		if (node != NULL) {
 			if (node->GetItem().GetShared()->GetTransform().GetParent() == NULL) {
 				node->GetItem().GetShared()->GetTransform().SetParent(Transform::Global, &GetTransform());
@@ -155,7 +202,7 @@ void Anchor::OnDraw( void )
 	GUI::Box(r);
 }
 
-Controllable::Controllable( void )
+Controllable::Controllable( void ) : mtlInherit(this)
 {
 	SetName("object_controllable");
 }
@@ -185,7 +232,7 @@ void FollowCamera::OnGUI( void )
 	GUI::NewLine();
 }
 
-FollowCamera::FollowCamera( void ) : m_follow()
+FollowCamera::FollowCamera( void ) : mtlInherit(this), m_follow()
 {
 	SetName("object_camera");
 }
@@ -256,7 +303,7 @@ void Unit_RegisteredObjects( void )
 	std::cout << "Unit_RegisteredObjects: " << std::endl;
 	mtlList< mtlShared<mtlString> > list;
 	Engine::GetRegisteredTypes(list);
-	mtlNode< mtlShared<mtlString> > *node = list.GetFirst();
+	mtlItem< mtlShared<mtlString> > *node = list.GetFirst();
 	while (node != NULL) {
 		std::cout << "\t" << node->GetItem().GetShared()->GetChars() << std::endl;
 		node = node->GetNext();
@@ -272,7 +319,7 @@ void Unit_Controllable(Engine &engine)
 	ObjectRef a = engine.AddObject("Controllable");
 	ObjectRef c = engine.AddObject("FollowCamera");
 	engine.SetCamera(c);
-	if (a.IsNull() || !a.GetShared()->LoadGraphics<Sprite>("test.sprite")) {
+	if (a.IsNull() || !a.GetShared()->LoadGraphics<Sprite>("../tmp/test.sprite")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
@@ -281,7 +328,7 @@ void Unit_Controllable(Engine &engine)
 
 	ObjectRef b = engine.AddObject<NPC>();
 	b.GetShared()->SetName("NPC");
-	if (b.IsNull() || !b.GetShared()->LoadGraphics<Image>("test.bmp")) {
+	if (b.IsNull() || !b.GetShared()->LoadGraphics<Image>("../tmp/test.png")) {
 		std::cout << "\tfailed to load" << std::endl;
 		return;
 	}
@@ -351,4 +398,12 @@ void Unit_RandomFloat(Engine &engine)
 	for (int i = 0; i < 10; ++i) {
 		std::cout << engine.GetRandomRaisedCos() << " ";
 	}
+	std::cout << std::endl;
+}
+
+void Unit_Font(Engine &engine)
+{
+	engine.AddObject("Quitter");
+	engine.AddObject("FontRenderer");
+	engine.RunGame();
 }

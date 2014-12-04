@@ -383,10 +383,14 @@ void GUI::Print(const mtlChars &text, int scale)
 
 	glBindTexture(GL_TEXTURE_2D, tId);
 
-	float ox = 0.0f;
-	float oy = 0.0f;
+	float ox = 0.5f / (float)SDL_GetVideoSurface()->w;
+	float oy = 0.5f / (float)SDL_GetVideoSurface()->h; // take into account that OpenGL samples from the middle of the pixel, not the edge
 	for (int i = 0; i < text.GetSize(); ++i) {
 		char ch = text.GetChars()[i];
+		if ((int)(CaretX() + ox + char_px_width * scale) >= (int)SDL_GetVideoSurface()->w) {
+			ch = '\n';
+			--i;
+		}
 		switch (ch) {
 		case '\n':
 		case '\r':
@@ -399,6 +403,7 @@ void GUI::Print(const mtlChars &text, int scale)
 		case '\t':
 			ox += char_tab_px_width * scale;
 			continue;
+		default: break;
 		}
 
 		vert[0] = CaretX() + ox;
@@ -420,8 +425,8 @@ void GUI::Print(const mtlChars &text, int scale)
 			ch = last_char + 1;
 		}
 		int index = ch - first_char;
-		float ux = char_uv_width * (index % char_count_width);
-		float uy = (char_uv_height * (index / char_count_width));
+		float ux = /*(0.5f / (float)font_width) +*/ char_uv_width * (index % char_count_width);
+		float uy = /*(0.5f / (float)font_height) +*/ (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
 
 		uv[0] = ux;
 		uv[1] = uy + char_uv_height;
@@ -564,6 +569,7 @@ GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
 }
 
 GUI::Control::Control( void ) :
+	mtlBase(this),
 	m_manager(NULL), m_parent(NULL),
 	m_children(),
 	m_rect(),
@@ -639,7 +645,7 @@ void GUI::Control::Draw(GUI::ContentRect rect) const
 {
 	rect = ClipRect(rect);
 	OnDraw(rect);
-	const mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	const mtlItem< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Draw(rect);
 		control = control->GetNext();
@@ -649,7 +655,7 @@ void GUI::Control::Draw(GUI::ContentRect rect) const
 void GUI::Control::Update( void )
 {
 	OnUpdate();
-	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	mtlItem< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Update();
 		control = control->GetNext();
@@ -659,7 +665,7 @@ void GUI::Control::Update( void )
 void GUI::Control::Init( void )
 {
 	OnInit();
-	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	mtlItem< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Init();
 		control = control->GetNext();
@@ -668,7 +674,7 @@ void GUI::Control::Init( void )
 
 void GUI::Control::Destroy( void )
 {
-	mtlNode< mtlShared<GUI::Control> > *control = m_children.GetFirst();
+	mtlItem< mtlShared<GUI::Control> > *control = m_children.GetFirst();
 	while (control != NULL) {
 		control->GetItem()->Destroy();
 		control = control->GetNext();
@@ -701,7 +707,7 @@ void GUI::Form::OnDraw(GUI::ContentRect rect) const
 	GUI::Box(m_rect);
 }
 
-GUI::Form::Form( void )
+GUI::Form::Form( void ) : mtlInherit(this)
 {
 	SetDimensionsXY(100, 70);
 	m_theme.blur = 0.0f;
@@ -715,7 +721,7 @@ GUI::Form::Form( void )
 
 void GUI::Manager::HandleInput( void )
 {
-	mtlNode< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
+	mtlItem< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
 	while (n != NULL) {
 		n = n->GetNext();
 	}
@@ -727,7 +733,7 @@ void GUI::Manager::DrawForms( void ) const
 	rect.cx	= rect.cy = rect.x = rect.y;
 	rect.cw = rect.w = SDL_GetVideoSurface()->w;
 	rect.ch = rect.h = SDL_GetVideoSurface()->h;
-	const mtlNode< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
+	const mtlItem< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
 	while (n != NULL) {
 		n->GetItem()->Draw(rect);
 		n = n->GetNext();
@@ -789,6 +795,10 @@ void GUI::Manager::Print(const mtlChars &text, int scale)
 	float oy = 0.0f;
 	for (int i = 0; i < text.GetSize(); ++i) {
 		char ch = text.GetChars()[i];
+		if ((int)(m_textCaretX + ox + char_px_width * scale) >= (int)SDL_GetVideoSurface()->w) {
+			ch = '\n';
+			--i;
+		}
 		switch (ch) {
 		case '\n':
 		case '\r':
@@ -801,6 +811,7 @@ void GUI::Manager::Print(const mtlChars &text, int scale)
 		case '\t': // fix so that tabs are at fixed intervals
 			ox += char_tab_px_width * scale;
 			continue;
+		default: break;
 		}
 
 		vert[0] = m_textCaretX + ox;

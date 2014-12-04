@@ -38,7 +38,7 @@ struct UnaryCollisionInfo
 {
 	const Collider				*collider;
 	ShallowArray(mmlVector<2>)	points; // intersections
-	//ShallowArray<Ray>			reflection;
+	//ShallowArray(Ray)			reflection;
 	bool						collision;
 };
 
@@ -108,8 +108,8 @@ typedef Collider NullCollider;
 class PolygonCollider : public mtlInherit<Collider, PolygonCollider>
 {
 private:
-	mtlArray< mmlVector<2> >	m_vert;
-	mtlArray< mmlVector<2> >	m_globalVert;
+	mtlArray< mmlVector<2> >	m_vert;			// original data
+	mtlArray< mmlVector<2> >	m_globalVert;	// rotated data
 	//mtlArray< bool >			m_collide;
 
 public:
@@ -127,8 +127,8 @@ protected:
 
 public:
 	PolygonCollider( void );
-	PolygonCollider(Shape shape);
-	PolygonCollider(const mtlArray< mmlVector<2> > &vert);
+	explicit PolygonCollider(Shape shape);
+	explicit PolygonCollider(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center);
 
 	void CreateShape(Shape shape);
 
@@ -137,6 +137,8 @@ public:
 	mmlVector<2>					&GetVertex(int i);
 	const mtlArray< mmlVector<2> >	&GetVertexArray( void ) const;
 	mtlArray< mmlVector<2> >		&GetVertexArray( void );
+
+	void							CopyVertexArray(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center);
 
 	mmlVector<2>					GetHalfExtents( void ) const;
 	void							SetHalfExtents(mmlVector<2> half);

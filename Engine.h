@@ -6,6 +6,7 @@
 #include "MTL/mtlString.h"
 #include "MTL/mtlList.h"
 #include "MTL/mtlType.h"
+#include "MTL/mtlRandom.h"
 #include "Timer.h"
 #include "Sound.h"
 #include "Common.h"
@@ -84,8 +85,7 @@ private:
 	ObjectRef			m_camera;
 	Timer				m_timer;
 	float				m_deltaSeconds;
-	unsigned long long	m_rand_state;
-	unsigned long long	m_rand_inc;
+	mtlRandom			m_rand;
 	//CollisionSolver	m_collisionSolver;
 	GUI::Manager		m_guiManager;
 	bool				m_quit;
@@ -114,7 +114,7 @@ private:
 	void							AddObjectNow(ObjectRef object);
 
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
-	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
+	static void						GetRegisteredTypes(const mtlNode<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
 
 private:
 	Engine(const Engine&) {}
@@ -183,6 +183,7 @@ public:
 	int							GetRandomInt( void );
 	int							GetRandomInt(int min, int max);
 	float						GetRandomUniform( void );
+	float						GetRandomFloat(float min, float max);
 	float						GetRandomRaisedCos( void );
 
 	bool						PlayMusic(const mtlChars &file);
@@ -277,7 +278,7 @@ template < typename type_t >
 void Engine::FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().GetShared()->IsDynamicType<type_t>()) { // have to call dynamic_cast rather than GetAsDynamicType because Object is not defined yet
 			out.AddLast(n->GetItem());
@@ -290,7 +291,7 @@ template < typename type_t >
 void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().GetShared()->IsStaticType<type_t>()) {
 			out.AddLast(n->GetItem());

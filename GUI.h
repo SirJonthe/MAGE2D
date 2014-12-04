@@ -90,6 +90,8 @@ private:
 
 private:
 	ContentRect ClipRect(ContentRect rect) const;
+	Control(const Control&) : mtlBase(this) {}
+	Control &operator=(const Control&) { return *this; }
 
 protected:
 	virtual void OnDraw(ContentRect rect) const {}
@@ -131,10 +133,16 @@ class Label : public mtlInherit<GUI::Control, GUI::Label>
 private:
 	mtlString m_text;
 
+private:
+	Label(const Label&) : mtlInherit(this) {}
+	Label &operator=(const Label&) { return *this; }
+
 protected:
 	void OnDraw(ContentRect rect) const;
 
 public:
+	Label( void ) : mtlInherit(this), m_text() {}
+
 	const mtlString &GetLabel( void ) const;
 	void SetLabel(const mtlChars &text);
 };
@@ -157,6 +165,10 @@ public:
 
 private:
 	GUI::Form::Theme m_theme;
+
+private:
+	Form(const Form&) : mtlInherit(this) {}
+	Form &operator=(const Form&) { return *this; }
 
 protected:
 	void OnDraw(ContentRect rect) const;

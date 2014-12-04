@@ -1,4 +1,5 @@
 #include "Object.h"
+#include <iostream>
 
 RegisterObject(Object);
 
@@ -9,6 +10,7 @@ unsigned long long int GetObjectNumber( void )
 }
 
 Object::Object( void ) :
+	mtlBase(this),
 	m_graphics(), m_name(),
 	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
 	m_collider(),
@@ -216,11 +218,17 @@ void Object::DrawGraphics( void )
 
 const Engine *Object::GetEngine( void ) const
 {
+	if (m_engine == NULL) {
+		std::cout << "ERROR: Engine null dereference via Object \"" << m_name.GetChars() << "\", 0x" << this << std::endl;
+	}
 	return m_engine;
 }
 
 Engine *Object::GetEngine( void )
 {
+	if (m_engine == NULL) {
+		std::cout << "ERROR: Engine null dereference via Object \"" << m_name.GetChars() << "\", 0x" << this << std::endl;
+	}
 	return m_engine;
 }
 

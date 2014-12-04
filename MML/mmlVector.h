@@ -169,7 +169,7 @@ public:
 	}
 	void Floor( void )
 	{
-		for (int i = 0; i <	n; ++i) {
+		for (int i = 0; i < n; ++i) {
 			e[i] = floor(e[i]);
 		}
 	}
@@ -367,7 +367,7 @@ mmlVector<n> mmlLerp(const mmlVector<n> &u, const mmlVector<n> &v, const mmlVect
 }
 
 //
-// mmlBilerp
+// Bilerp
 //
 template < int n >
 mmlVector<n> mmlBilerp(const mmlVector<n> &xy00, const mmlVector<n> &xy10, const mmlVector<n> &xy01, const mmlVector<n> &xy11, float x, float y)
@@ -507,7 +507,6 @@ inline mmlVector<2> mmlTangent(const mmlVector<2> &normal)
 	tan[1] = normal[0];
 	return tan;
 }
-
 //
 // mmlAbs
 //

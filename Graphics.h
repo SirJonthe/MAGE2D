@@ -19,7 +19,7 @@
 class Graphics : public mtlAssetInterface, public mtlBase
 {
 private:
-	Graphics(const Graphics&) {}
+	Graphics(const Graphics&) : mtlBase(this) {}
 	Graphics &operator=(const Graphics&) { return *this; }
 
 protected:
