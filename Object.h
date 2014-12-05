@@ -35,7 +35,7 @@ private:
 	flags_t						m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
 	Engine						*m_engine;
-	const ObjectRef				*m_objectRef;
+	//const ObjectRef				*m_objectRef;
 	float						m_depth;
 
 protected:
@@ -119,7 +119,7 @@ public:
 
 	void					MakeRulesetObject( void );
 
-	ObjectRef				GetObjectReference( void );
+	//ObjectRef				GetObjectReference( void );
 };
 
 #include "Engine.h"

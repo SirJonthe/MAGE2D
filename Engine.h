@@ -237,6 +237,8 @@ public:
 
 	static bool					RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);
+
+	ObjectRef					GetSelf(const Object *self) const;
 };
 
 /*class BaseProduct

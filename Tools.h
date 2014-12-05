@@ -54,11 +54,36 @@ public:
 ObjectDeclaration(SpriteEditor)
 {
 private:
-	mtlString m_currentFile;
+	class Button
+	{
+	private:
+		Point		m_position;
+		mtlString	m_label;
+		bool		m_active;
+		bool		m_hidden;
+
+	public:
+		Button( void );
+		void Draw(bool hover);
+		void Activate( void );
+		void Deactivate( void );
+		bool IsActive( void ) const;
+		bool IsHovering(int x, int y) const;
+		void SetPosition(int x, int y);
+		void SetLabel(const mtlChars &label);
+		void Hide( void );
+		void Show( void );
+	};
 
 private:
-	SpriteEditor(const SpriteEditor&) : mtlInherit(this) {}
-	SpriteEditor &operator=(const SpriteEditor&) { return *this; }
+	mtlString							m_currentFile;
+	ObjectRef							m_sprite;
+	//mtlList< mtlList< mmlVector<2> > >	m_colliders;
+	Button								m_file;
+
+private:
+	SpriteEditor(const SpriteEditor&);
+	SpriteEditor &operator=(const SpriteEditor&);
 
 protected:
 	void OnInit( void );
@@ -66,7 +91,7 @@ protected:
 	void OnGUI( void );
 
 public:
-	SpriteEditor( void ) : mtlInherit(this) {}
+	SpriteEditor( void );
 };
 
 #endif // TOOLS_H

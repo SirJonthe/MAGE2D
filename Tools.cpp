@@ -125,9 +125,83 @@ void Console::NewLine( void )
 	}
 }
 
+SpriteEditor::Button::Button( void ) : m_active(false), m_hidden(false)
+{
+	m_position.x = 0;
+	m_position.y = 0;
+	m_label.Copy("Button");
+}
+
+void SpriteEditor::Button::Draw(bool hover)
+{
+	if (m_hidden) { return; }
+	if (hover) {
+		GUI::SetColor(1.0f, 1.0f, 1.0f);
+	} else if (hover) {
+		GUI::SetColor(0.9f, 0.9f, 0.9f);
+	} else {
+		GUI::SetColor(0.5f, 0.5f, 0.5f);
+	}
+	GUI::SetCaretXY(m_position.x, m_position.y);
+	GUI::Print(m_label);
+}
+
+void SpriteEditor::Button::Activate( void )
+{
+	m_active = true;
+}
+
+void SpriteEditor::Button::Deactivate( void )
+{
+	m_active = false;
+}
+
+bool SpriteEditor::Button::IsActive( void ) const
+{
+	return m_active;
+}
+
+bool SpriteEditor::Button::IsHovering(int x, int y) const
+{
+	if (m_hidden) { return false; }
+	Point text_size = GUI::GetTextSize(m_label);
+	text_size.x += m_position.x;
+	text_size.y += m_position.y;
+	return (x >= m_position.x && x <= text_size.x && y >= m_position.y && y <= text_size.y);
+}
+
+void SpriteEditor::Button::SetPosition(int x, int y)
+{
+	m_position.x = x;
+	m_position.y = y;
+}
+
+void SpriteEditor::Button::SetLabel(const mtlChars &label)
+{
+	m_label.Copy(label);
+}
+
+void SpriteEditor::Button::Hide( void )
+{
+	m_hidden = true;
+}
+
+void SpriteEditor::Button::Show( void )
+{
+	m_hidden = false;
+}
+
+SpriteEditor::SpriteEditor(const SpriteEditor&) : mtlInherit(this) {}
+
+SpriteEditor &SpriteEditor::operator=(const SpriteEditor&) { return *this; }
+
 void SpriteEditor::OnInit( void )
 {
-	GetEngine()->SetCamera(GetObjectReference());
+	m_file.SetLabel("File");
+	SetName("tool_SpriteEditor");
+	GetEngine()->SetCamera(GetEngine()->GetSelf(this));
+	m_sprite = GetEngine()->AddObject<Object>();
+	m_sprite->SetGraphics(GetEngine()->LoadGraphics<Image>("../tmp/test.png"));
 }
 
 void SpriteEditor::OnUpdate( void )
@@ -141,9 +215,8 @@ void SpriteEditor::OnUpdate( void )
 
 	// GUI Controls
 	// Collider - make a collider for current frame (support for Ctrl-Z and Ctrl-Y)
-		// Free form
-		// Autofit
-		// Clear - remove current
+		// Free form - click this again to stop drawing collision shape
+		// Clear - remove current collider
 	// File - load an image file
 	// Animation
 		// various ways to set the animation (used in .sprite format)
@@ -152,26 +225,37 @@ void SpriteEditor::OnUpdate( void )
 	// sprite format file
 	// Wavefront OBJ file for collider
 
-	if (GetEngine()->IsPressed(SDLK_MINUS)) {
-		GetTransform().SetScale(Transform::Local, mmlMax2(1.0f, GetTransform().GetScaleX(Transform::Local) - 1.0f));
-	} else if (GetEngine()->IsPressed(SDLK_PLUS)) {
-		GetTransform().SetScale(Transform::Local, GetTransform().GetScaleX(Transform::Local) + 1.0f);
+	if (GetEngine()->IsPressed(SDLK_DOWN)) {
+		GetTransform().SetScale(Transform::Local, mmlMin2(1.0f, GetTransform().GetScaleX(Transform::Local) * 2.0f));
+	} else if (GetEngine()->IsPressed(SDLK_UP)) {
+		GetTransform().SetScale(Transform::Local, mmlMax2(1.0f / 16.0f, GetTransform().GetScaleX(Transform::Local) / 2.0f));
 	}
 
 	if (GetEngine()->IsDown(MouseButton::Right)) {
-		GetTransform().Translate(Transform::Local, GetEngine()->GetWorldMouseMovement());
+		GetTransform().Translate(Transform::Local, -GetEngine()->GetWorldMouseMovement());
 	}
 }
 
 void SpriteEditor::OnGUI( void )
 {
 	Point mouse = GetEngine()->GetMousePosition();
-	//mmlVector<2> mouseLocation = (mmlVector<2>((float)mouse.x, (float)mouse.y) - GetTransform().GetPosition(Transform::Local)) / GetTransform().GetScaleX(Transform::Local);
+	m_file.Draw(m_file.IsHovering(mouse.x, mouse.y));
+
+	GUI::SetColor(1.0f, 1.0f, 1.0f);
+
 	mmlVector<2> mouseLocation = GetEngine()->GetWorldMousePosition();
+	GUI::SetCaretXY(0, GetEngine()->GetVideoHeight() - GUI::GetCharPixelHeight());
 	GUI::Print((int)mouseLocation[0]);
 	GUI::Print(", ");
 	GUI::Print((int)mouseLocation[1]);
-	GUI::NewLine();
-	GUI::Print((int)GetTransform().GetScaleX(Transform::Local));
+
+	GUI::SetCaretXY(GetEngine()->GetVideoWidth() - GUI::GetCharPixelWidth()*5, GetEngine()->GetVideoHeight() - GUI::GetCharPixelHeight());
+	GUI::Print((int)(1.0f / GetTransform().GetScaleX(Transform::Local)));
 	GUI::Print("x");
 }
+
+SpriteEditor::SpriteEditor( void ) : mtlInherit(this)
+{
+}
+
+RegisterObject(SpriteEditor);

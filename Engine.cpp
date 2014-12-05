@@ -191,7 +191,7 @@ void Engine::DestroyObjects( void )
 			if (m_camera.GetShared() == node_ref(object)) { m_camera.Delete(); }
 			node_ref(object)->OnDestroy();
 			node_ref(object)->m_engine = NULL;
-			node_ref(object)->m_objectRef = NULL;
+			//node_ref(object)->m_objectRef = NULL;
 			const Transform *transform_addr = &node_ref(object)->GetTransform();
 			object = object->Remove();
 
@@ -227,7 +227,7 @@ void Engine::InitPendingObjects( void )
 	mtlItem<ObjectRef> *object = m_pending.GetFirst();
 	while (object != NULL) {
 		m_objects.AddLast(object->GetItem());
-		node_ref(object)->m_objectRef = &m_objects.GetLast()->GetItem();
+		//node_ref(object)->m_objectRef = &m_objects.GetLast()->GetItem();
 		node_ref(object)->OnInit();
 		object = object->Remove();
 	}
@@ -260,7 +260,7 @@ void Engine::AddObjectNow(ObjectRef object)
 	}
 	object.GetShared()->m_engine = this;
 	m_objects.AddLast(object);
-	object.GetShared()->m_objectRef = &m_objects.GetLast()->GetItem();
+	//object.GetShared()->m_objectRef = &m_objects.GetLast()->GetItem();
 	object.GetShared()->OnInit();
 }
 
@@ -633,12 +633,12 @@ void Engine::DestroyAllObjects( void )
 			object = object->GetNext();
 		}
 	} else {
-		mtlItem<ObjectRef> *object = m_objects.GetFirst();
+		/*mtlItem<ObjectRef> *object = m_objects.GetFirst();
 		while (object != NULL) {
 			node_ref(object)->m_engine = NULL;
 			node_ref(object)->m_objectRef = NULL;
 			object = object->GetNext();
-		}
+		}*/
 		m_objects.RemoveAll();
 	}
 
@@ -661,8 +661,10 @@ void Engine::SetCamera(ObjectRef camera)
 {
 	if (camera.IsNull() || camera.GetShared()->m_engine != this) {
 		m_camera.Delete();
+		std::cout << "Invalid camera set: Camera set to identity" << std::endl;
 	} else {
 		m_camera = camera;
+		std::cout << "New camera set to follow object " << camera->GetName().GetChars() << " @ 0x" << camera.GetShared() << std::endl;
 	}
 }
 
@@ -949,8 +951,8 @@ mmlVector<2> Engine::GetWorldMousePosition( void ) const
 	mmlVector<2> fMouse((float)iMouse.x, (float)iMouse.y);
 	if (!m_camera.IsNull()) {
 		mmlVector<2> camera_position = m_camera->GetTransform().GetPosition(Transform::Global);
-		fMouse[0] = (fMouse[0] - camera_position[0]) / m_camera->GetTransform().GetScaleX(Transform::Global);
-		fMouse[1] = (fMouse[1] - camera_position[1]) / m_camera->GetTransform().GetScaleY(Transform::Global);
+		fMouse[0] = (fMouse[0] - camera_position[0]) * m_camera->GetTransform().GetScaleX(Transform::Global);
+		fMouse[1] = (fMouse[1] - camera_position[1]) * m_camera->GetTransform().GetScaleY(Transform::Global);
 	}
 	return fMouse;
 }
@@ -960,8 +962,8 @@ mmlVector<2> Engine::GetWorldMouseMovement( void ) const
 	Point iMov = GetMouseMovement();
 	mmlVector<2> fMov((float)iMov.x, (float)iMov.y);
 	if (!m_camera.IsNull()) {
-		fMov[0] /= m_camera->GetTransform().GetScaleX(Transform::Global);
-		fMov[1] /= m_camera->GetTransform().GetScaleY(Transform::Global);
+		fMov[0] *= m_camera->GetTransform().GetScaleX(Transform::Global);
+		fMov[1] *= m_camera->GetTransform().GetScaleY(Transform::Global);
 	}
 	return fMov;
 }
@@ -1136,4 +1138,19 @@ void Engine::GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types)
 {
 	types.RemoveAll();
 	GetRegisteredTypes(GetTypeTree().GetRoot(), types);
+}
+
+ObjectRef Engine::GetSelf(const Object *self) const
+{
+	if (self == NULL || self->m_engine != this) {
+		return ObjectRef();
+	}
+	const mtlItem<ObjectRef> *i = m_objects.GetFirst();
+	while (i != NULL) {
+		if (i->GetItem().GetShared() == self) {
+			return i->GetItem();
+		}
+		i = i->GetNext();
+	}
+	return ObjectRef();
 }
