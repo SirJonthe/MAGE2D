@@ -15,7 +15,7 @@ Object::Object( void ) :
 	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
 	m_collider(),
 	m_objectFlags(0x0000000000000001), m_collisionMask(AllFlagsOn), m_objectNumber(GetObjectNumber()),
-	m_engine(NULL),
+	m_engine(NULL), m_objectRef(NULL),
 	m_depth(1.0f)
 {
 	m_name.Copy("object_generic");
@@ -241,4 +241,12 @@ void Object::MakeRulesetObject( void )
 	ClearAllCollisionMasks();
 	ClearAllObjectFlags();
 	SetObjectFlags(Object::ruleset_object);
+}
+
+ObjectRef Object::GetObjectReference( void )
+{
+	if (m_objectRef == NULL) {
+		return ObjectRef();
+	}
+	return *m_objectRef;
 }

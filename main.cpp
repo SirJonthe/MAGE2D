@@ -2,6 +2,7 @@
 #include "GUI.h"
 #include "Object.h"
 #include "Image.h"
+#include "Tools.h"
 #include "MTL/mtlString.h"
 #include "MTL/mtlStringMap.h"
 #include <iostream>
@@ -105,13 +106,15 @@ int main(int argc, char **argv)
 	//Unit_OpenGLTest();
 	Engine engine;
 	engine.Init(800, 600, "Lots-o-tests", argc, argv);
-	Unit_RegisteredObjects();
+	//Unit_RegisteredObjects();
 	//Unit_Controllable(engine);
 	//Unit_StringMap();
 	//Unit_ArrayResize();
 	//Unit_GUI(engine);
-	Unit_RandomFloat(engine);
-	Unit_Font(engine);
+	//Unit_RandomFloat(engine);
+	//Unit_Font(engine);
+	engine.AddObject<SpriteEditor>();
+	engine.RunGame();
 	return 0;
 }
 

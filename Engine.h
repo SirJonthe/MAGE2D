@@ -205,6 +205,9 @@ public:
 	void						SetMousePosition(int x, int y); // make sure to negate
 	void						SetMousePosition(Point p);
 
+	mmlVector<2>				GetWorldMousePosition( void ) const;
+	mmlVector<2>				GetWorldMouseMovement( void ) const;
+
 	bool						IsDown(SDLKey key) const;
 	bool						IsUp(SDLKey key) const;
 	bool						IsPressed(SDLKey key) const;

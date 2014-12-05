@@ -124,3 +124,54 @@ void Console::NewLine( void )
 		m_lines.RemoveFirst();
 	}
 }
+
+void SpriteEditor::OnInit( void )
+{
+	GetEngine()->SetCamera(GetObjectReference());
+}
+
+void SpriteEditor::OnUpdate( void )
+{
+	// Controls
+	// right arrow key for next frame
+	// left arrow key for prev frame
+	// Space for start/stop animation playback
+	// Ctrl-S for saving
+	// Ctrl-O for loading
+
+	// GUI Controls
+	// Collider - make a collider for current frame (support for Ctrl-Z and Ctrl-Y)
+		// Free form
+		// Autofit
+		// Clear - remove current
+	// File - load an image file
+	// Animation
+		// various ways to set the animation (used in .sprite format)
+
+	// Output:
+	// sprite format file
+	// Wavefront OBJ file for collider
+
+	if (GetEngine()->IsPressed(SDLK_MINUS)) {
+		GetTransform().SetScale(Transform::Local, mmlMax2(1.0f, GetTransform().GetScaleX(Transform::Local) - 1.0f));
+	} else if (GetEngine()->IsPressed(SDLK_PLUS)) {
+		GetTransform().SetScale(Transform::Local, GetTransform().GetScaleX(Transform::Local) + 1.0f);
+	}
+
+	if (GetEngine()->IsDown(MouseButton::Right)) {
+		GetTransform().Translate(Transform::Local, GetEngine()->GetWorldMouseMovement());
+	}
+}
+
+void SpriteEditor::OnGUI( void )
+{
+	Point mouse = GetEngine()->GetMousePosition();
+	//mmlVector<2> mouseLocation = (mmlVector<2>((float)mouse.x, (float)mouse.y) - GetTransform().GetPosition(Transform::Local)) / GetTransform().GetScaleX(Transform::Local);
+	mmlVector<2> mouseLocation = GetEngine()->GetWorldMousePosition();
+	GUI::Print((int)mouseLocation[0]);
+	GUI::Print(", ");
+	GUI::Print((int)mouseLocation[1]);
+	GUI::NewLine();
+	GUI::Print((int)GetTransform().GetScaleX(Transform::Local));
+	GUI::Print("x");
+}

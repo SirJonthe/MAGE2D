@@ -51,4 +51,22 @@ public:
 	void SetColor(const mmlVector<3> &color);
 };
 
+ObjectDeclaration(SpriteEditor)
+{
+private:
+	mtlString m_currentFile;
+
+private:
+	SpriteEditor(const SpriteEditor&) : mtlInherit(this) {}
+	SpriteEditor &operator=(const SpriteEditor&) { return *this; }
+
+protected:
+	void OnInit( void );
+	void OnUpdate( void );
+	void OnGUI( void );
+
+public:
+	SpriteEditor( void ) : mtlInherit(this) {}
+};
+
 #endif // TOOLS_H
