@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include "GUI.h"
 
+#include <fstream>
+
 RegisterObject(KillPlane);
 
 void KillPlane::OnUpdate( void )
@@ -137,8 +139,8 @@ void SpriteEditor::Button::Draw(bool hover)
 	if (m_hidden) { return; }
 	if (hover) {
 		GUI::SetColor(1.0f, 1.0f, 1.0f);
-	} else if (hover) {
-		GUI::SetColor(0.9f, 0.9f, 0.9f);
+	} else if (m_active) {
+		GUI::SetColor(0.8f, 0.8f, 0.8f);
 	} else {
 		GUI::SetColor(0.5f, 0.5f, 0.5f);
 	}
@@ -154,6 +156,11 @@ void SpriteEditor::Button::Activate( void )
 void SpriteEditor::Button::Deactivate( void )
 {
 	m_active = false;
+}
+
+void SpriteEditor::Button::ToggleActive( void )
+{
+	m_active = !m_active;
 }
 
 bool SpriteEditor::Button::IsActive( void ) const
@@ -191,17 +198,101 @@ void SpriteEditor::Button::Show( void )
 	m_hidden = false;
 }
 
+int SpriteEditor::Button::GetWidth( void ) const
+{
+	return GUI::GetTextSize(m_label).x;
+}
+
+int SpriteEditor::Button::GetHeight( void ) const
+{
+	return GUI::GetTextSize(m_label).y;
+}
+
+int SpriteEditor::Button::GetEndX( void ) const
+{
+	return GetWidth() + m_position.x;
+}
+
+int SpriteEditor::Button::GetEndY( void ) const
+{
+	return GetHeight() + m_position.y;
+}
+
+void SpriteEditor::Button::ToggleHidden( void )
+{
+	m_hidden = !m_hidden;
+}
+
+int SpriteEditor::Button::GetStartX( void ) const
+{
+	return m_position.x;
+}
+
+int SpriteEditor::Button::GetStartY( void ) const
+{
+	return m_position.y;
+}
+
+bool SpriteEditor::Save(const mtlChars &out_file)
+{
+	m_unsavedChanges = false;
+	return SaveCollider(out_file) && SaveSprite(out_file);
+}
+
+bool SpriteEditor::SaveCollider(const mtlChars &out_file) const
+{
+	mtlString file_name;
+	file_name.Copy(out_file);
+	file_name.Append(".obj");
+	std::ofstream fout(file_name.GetChars());
+	if (!fout.is_open()) {
+		return false;
+	}
+	fout << "# OBJ file created by MAGE2D SpriteEditor" << std::endl;
+	fout << "o polygon_collider" << std::endl << std::endl;
+	fout << "v " << "0.0";
+	fout.close();
+	return true;
+}
+
+bool SpriteEditor::SaveSprite(const mtlChars &out_file) const
+{
+	return true;
+}
+
 SpriteEditor::SpriteEditor(const SpriteEditor&) : mtlInherit(this) {}
 
 SpriteEditor &SpriteEditor::operator=(const SpriteEditor&) { return *this; }
 
 void SpriteEditor::OnInit( void )
 {
-	m_file.SetLabel("File");
 	SetName("tool_SpriteEditor");
+	DisableCollisions();
+	SetObjectFlags(0);
+	SetCollisionMasks(0);
 	GetEngine()->SetCamera(GetEngine()->GetSelf(this));
+
+	m_btnFile.SetLabel("File");
+	m_btnLoad.SetLabel("Load");
+	m_btnLoad.SetPosition(0, m_btnFile.GetEndY());
+	m_btnLoad.Hide();
+	m_btnSave.SetLabel("Save");
+	m_btnSave.SetPosition(0, m_btnLoad.GetEndY());
+	m_btnSave.Hide();
+
+	m_btnCollider.SetLabel("Collider");
+	m_btnCollider.SetPosition(m_btnFile.GetEndX() + GUI::GetCharPixelWidth(), 0);
+	m_btnClear.SetLabel("Clear");
+	m_btnClear.SetPosition(m_btnCollider.GetStartX(), m_btnCollider.GetEndY());
+	m_btnClear.Hide();
+
+	m_btnAnimation.SetLabel("Animation");
+	m_btnAnimation.SetPosition(m_btnCollider.GetEndX() + GUI::GetCharPixelWidth(), 0);
+
 	m_sprite = GetEngine()->AddObject<Object>();
 	m_sprite->SetGraphics(GetEngine()->LoadGraphics<Image>("../tmp/test.png"));
+
+	m_colliders.AddFirst();
 }
 
 void SpriteEditor::OnUpdate( void )
@@ -210,6 +301,7 @@ void SpriteEditor::OnUpdate( void )
 	// right arrow key for next frame
 	// left arrow key for prev frame
 	// Space for start/stop animation playback
+	// Backspace for restart animation
 	// Ctrl-S for saving
 	// Ctrl-O for loading
 
@@ -225,6 +317,9 @@ void SpriteEditor::OnUpdate( void )
 	// sprite format file
 	// Wavefront OBJ file for collider
 
+	Point iMouse = GetEngine()->GetMousePosition();
+	mmlVector<2> wMouse = GetEngine()->GetWorldMousePosition();
+
 	if (GetEngine()->IsPressed(SDLK_DOWN)) {
 		GetTransform().SetScale(Transform::Local, mmlMin2(1.0f, GetTransform().GetScaleX(Transform::Local) * 2.0f));
 	} else if (GetEngine()->IsPressed(SDLK_UP)) {
@@ -234,12 +329,107 @@ void SpriteEditor::OnUpdate( void )
 	if (GetEngine()->IsDown(MouseButton::Right)) {
 		GetTransform().Translate(Transform::Local, -GetEngine()->GetWorldMouseMovement());
 	}
+
+	if (GetEngine()->IsPressed(MouseButton::Left)) {
+		if (m_btnFile.IsHovering(iMouse.x, iMouse.y)) {
+			m_btnFile.ToggleActive();
+			m_btnLoad.Deactivate();
+			m_btnLoad.ToggleHidden();
+			m_btnSave.Deactivate();
+			m_btnSave.ToggleHidden();
+
+			m_btnCollider.Deactivate();
+			m_btnClear.Deactivate();
+			m_btnClear.Hide();
+
+			m_btnAnimation.Deactivate();
+		} else if (m_btnCollider.IsHovering(iMouse.x, iMouse.y)) {
+			m_btnFile.Deactivate();
+			m_btnLoad.Deactivate();
+			m_btnLoad.Hide();
+			m_btnSave.Deactivate();
+			m_btnSave.Hide();
+
+			m_btnCollider.ToggleActive();
+			m_btnClear.Deactivate();
+			m_btnClear.ToggleHidden();
+
+			m_btnAnimation.Deactivate();
+		} else if (m_btnAnimation.IsHovering(iMouse.x, iMouse.y)) {
+			m_btnFile.Deactivate();
+			m_btnLoad.Deactivate();
+			m_btnLoad.Hide();
+			m_btnSave.Deactivate();
+			m_btnSave.Hide();
+
+			m_btnCollider.Deactivate();
+			m_btnClear.Deactivate();
+			m_btnClear.Hide();
+
+			m_btnAnimation.ToggleActive();
+		} else if (m_btnClear.IsHovering(iMouse.x, iMouse.y)) {
+			m_colliders.GetLast()->GetItem().RemoveAll();
+		} else if (m_btnCollider.IsActive()) {
+			m_colliders.GetLast()->GetItem().AddLast(wMouse);
+			m_unsavedChanges = true;
+		}
+	}
+
+	if (GetEngine()->IsHeld(SDLK_LCTRL) || GetEngine()->IsHeld(SDLK_RCTRL)) {
+		if (GetEngine()->IsPressed(SDLK_z)) {
+			if (m_colliders.GetLast()->GetItem().GetSize() > 0) {
+				m_colliders.GetLast()->GetItem().RemoveLast();
+				m_unsavedChanges = true;
+			}
+		}
+	}
+}
+
+void SpriteEditor::OnDraw( void )
+{
+
 }
 
 void SpriteEditor::OnGUI( void )
 {
+	if ((m_colliders.GetLast()->GetItem().GetSize() > 0 && m_btnCollider.IsActive()) || m_colliders.GetLast()->GetItem().GetSize() > 1) {
+		mtlItem< mmlVector<2> > *point = m_colliders.GetLast()->GetItem().GetFirst();
+		mmlVector<2> first =GetTransform().InverseTransformPoint(Transform::Local, point->GetItem());
+		first = GetEngine()->GetScreenPoint(first);
+		mmlVector<2> last = GetTransform().InverseTransformPoint(Transform::Local, m_colliders.GetLast()->GetItem().GetLast()->GetItem());
+		last = GetEngine()->GetScreenPoint(last);
+		mmlVector<2> p = first;
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glBegin(GL_LINES);
+		while (point != NULL) {
+			glVertex2f(p[0], p[1]);
+			point = point->GetNext();
+			if (point == NULL) {
+				glVertex2f(first[0], first[1]);
+			} else {
+				p = GetTransform().InverseTransformPoint(Transform::Local, point->GetItem());
+				p = GetEngine()->GetScreenPoint(p);
+				glVertex2f(p[0], p[1]);
+			}
+		}
+		if (m_btnCollider.IsActive()) {
+			glColor3f(1.0f, 0.0f, 0.0);
+			mmlVector<2> wMouse = GetEngine()->GetScreenPoint(GetEngine()->GetWorldMousePosition());
+			glVertex2f(first[0], first[1]);
+			glVertex2f(wMouse[0], wMouse[1]);
+			glVertex2f(last[0], last[1]);
+			glVertex2f(wMouse[0], wMouse[1]);
+		}
+		glEnd();
+	}
+
 	Point mouse = GetEngine()->GetMousePosition();
-	m_file.Draw(m_file.IsHovering(mouse.x, mouse.y));
+	m_btnFile.Draw(m_btnFile.IsHovering(mouse.x, mouse.y));
+	m_btnLoad.Draw(m_btnLoad.IsHovering(mouse.x, mouse.y));
+	m_btnSave.Draw(m_btnSave.IsHovering(mouse.x, mouse.y));
+	m_btnCollider.Draw(m_btnCollider.IsHovering(mouse.x, mouse.y));
+	m_btnClear.Draw(m_btnClear.IsHovering(mouse.x, mouse.y));
+	m_btnAnimation.Draw(m_btnAnimation.IsHovering(mouse.x, mouse.y));
 
 	GUI::SetColor(1.0f, 1.0f, 1.0f);
 
@@ -252,10 +442,25 @@ void SpriteEditor::OnGUI( void )
 	GUI::SetCaretXY(GetEngine()->GetVideoWidth() - GUI::GetCharPixelWidth()*5, GetEngine()->GetVideoHeight() - GUI::GetCharPixelHeight());
 	GUI::Print((int)(1.0f / GetTransform().GetScaleX(Transform::Local)));
 	GUI::Print("x");
+
+	GUI::SetCaretXY(0, GetEngine()->GetVideoHeight() - GUI::GetCharPixelHeight() * 2);
+	GUI::Print("Frame: ");
+	GUI::Print(m_currentFrame);
+
+	if (m_btnCollider.IsActive()) {
+		mtlItem< mmlVector<2> > *point = m_colliders.GetLast()->GetItem().GetFirst();
+		GUI::SetColor(0.0, 1.0f, 0.0f);
+		GUI::SetCaretXY(0, GUI::GetCharPixelHeight()*2);
+		while (point != NULL) {
+			GUI::Print(point->GetItem()[0]);
+			GUI::Print(", ");
+			GUI::Print(point->GetItem()[1]);
+			GUI::NewLine();
+			point = point->GetNext();
+		}
+	}
 }
 
-SpriteEditor::SpriteEditor( void ) : mtlInherit(this)
-{
-}
+SpriteEditor::SpriteEditor( void ) : mtlInherit(this), m_currentFrame(0) {}
 
 RegisterObject(SpriteEditor);

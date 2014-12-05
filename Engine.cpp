@@ -664,7 +664,7 @@ void Engine::SetCamera(ObjectRef camera)
 		std::cout << "Invalid camera set: Camera set to identity" << std::endl;
 	} else {
 		m_camera = camera;
-		std::cout << "New camera set to follow object " << camera->GetName().GetChars() << " @ 0x" << camera.GetShared() << std::endl;
+		std::cout << "New camera set to follow object " << camera->GetName().GetChars() << " @ " << camera.GetShared() << std::endl;
 	}
 }
 
@@ -954,6 +954,8 @@ mmlVector<2> Engine::GetWorldMousePosition( void ) const
 		fMouse[0] = (fMouse[0] - camera_position[0]) * m_camera->GetTransform().GetScaleX(Transform::Global);
 		fMouse[1] = (fMouse[1] - camera_position[1]) * m_camera->GetTransform().GetScaleY(Transform::Global);
 	}
+	fMouse[0] -= float(SDL_GetVideoSurface()->w) / 2.0f;
+	fMouse[1] -= float(SDL_GetVideoSurface()->h) / 2.0f;
 	return fMouse;
 }
 
@@ -1153,4 +1155,9 @@ ObjectRef Engine::GetSelf(const Object *self) const
 		i = i->GetNext();
 	}
 	return ObjectRef();
+}
+
+mmlVector<2> Engine::GetScreenPoint(const mmlVector<2> &world_point) const
+{
+	return world_point + mmlVector<2>((float)GetVideoWidth() / 2.0f, (float)GetVideoHeight() / 2.0f);
 }

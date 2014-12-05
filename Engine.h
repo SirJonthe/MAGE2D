@@ -239,6 +239,8 @@ public:
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);
 
 	ObjectRef					GetSelf(const Object *self) const;
+
+	mmlVector<2>				GetScreenPoint(const mmlVector<2> &world_point) const;
 };
 
 /*class BaseProduct

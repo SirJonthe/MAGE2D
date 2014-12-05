@@ -92,6 +92,8 @@ public:
 	
 	mmlVector<2> TransformPoint(Space space, mmlVector<2> point) const;
 	mmlVector<2> TransformPoint(Space space, float x, float y) const;
+	mmlVector<2> InverseTransformPoint(Space space, mmlVector<2> point) const;
+	mmlVector<2> InverseTransformPoint(Space space, float x, float y) const;
 	
 	Transform GetIndependentTransform(Space space) const;
 

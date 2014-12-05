@@ -67,27 +67,49 @@ private:
 		void Draw(bool hover);
 		void Activate( void );
 		void Deactivate( void );
+		void ToggleActive( void );
 		bool IsActive( void ) const;
 		bool IsHovering(int x, int y) const;
 		void SetPosition(int x, int y);
 		void SetLabel(const mtlChars &label);
 		void Hide( void );
 		void Show( void );
+		int GetWidth( void ) const;
+		int GetHeight( void ) const;
+		int GetEndX( void ) const;
+		int GetEndY( void ) const;
+		void ToggleHidden( void );
+		int GetStartX( void ) const;
+		int GetStartY( void ) const;
 	};
 
 private:
 	mtlString							m_currentFile;
 	ObjectRef							m_sprite;
-	//mtlList< mtlList< mmlVector<2> > >	m_colliders;
-	Button								m_file;
+	mtlList< mtlList< mmlVector<2> > >	m_colliders;
+	Button								m_btnFile;
+	Button								m_btnLoad;
+	Button								m_btnSave;
+	Button								m_btnCollider;
+	Button								m_btnClear;
+	Button								m_btnAnimation;
+	int									m_currentFrame;
+	mtlList< mmlVector<2> >				m_currentCollider;
+	bool								m_unsavedChanges;
 
 private:
 	SpriteEditor(const SpriteEditor&);
 	SpriteEditor &operator=(const SpriteEditor&);
 
+private:
+	bool Save(const mtlChars &out_file);
+	bool SaveCollider(const mtlChars &out_file) const;
+	bool SaveSprite(const mtlChars &out_file) const;
+
 protected:
 	void OnInit( void );
 	void OnUpdate( void );
+	void OnDraw( void );
 	void OnGUI( void );
 
 public:
