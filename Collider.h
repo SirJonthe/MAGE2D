@@ -92,6 +92,8 @@ public:
 	const Transform				&GetTransform( void ) const;
 	void						SetTransform(Transform *transform);
 
+	virtual bool				Load(const mtlDirectory &file)			{ return false; }
+
 	virtual void				SetHalfExtents(float w, float h)	{ SetHalfExtents(mmlVector<2>(w, h)); }
 	virtual void				SetHalfExtents(mmlVector<2>)		{} // exactly what this does is left undefined, hopefully something reasonable
 	virtual mmlVector<2>		GetHalfExtents( void ) const		{ return mmlVector<2>(0.0f, 0.0f); }
@@ -131,6 +133,8 @@ public:
 	explicit PolygonCollider(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center);
 
 	void CreateShape(Shape shape);
+
+	bool							Load(const mtlDirectory &file);
 
 	int								GetVertexCount( void ) const;
 	const mmlVector<2>				&GetVertex(int i) const;

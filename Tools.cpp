@@ -3,6 +3,7 @@
 #include "GUI.h"
 
 #include <fstream>
+#include <iostream>
 
 RegisterObject(KillPlane);
 
@@ -233,35 +234,130 @@ int SpriteEditor::Button::GetStartY( void ) const
 	return m_position.y;
 }
 
-bool SpriteEditor::Save(const mtlChars &out_file)
+/*SpriteEditor::InputBox::InputBox( void ) : Button(), m_caret(0)
 {
-	m_unsavedChanges = false;
-	return SaveCollider(out_file) && SaveSprite(out_file);
 }
 
-bool SpriteEditor::SaveCollider(const mtlChars &out_file) const
+void SpriteEditor::InputBox::Draw(bool hover)
 {
-	mtlString file_name;
-	if (out_file.GetSize() > 0) {
-		file_name.Copy(out_file);
+	if (hover) {
+		GUI::SetColor(1.0f, 1.0f, 1.0f);
+	} else if (m_active) {
+		GUI::SetColor(0.8f, 0.8f, 0.8f);
 	} else {
-		file_name.Copy("temp");
+		GUI::SetColor(0.5f, 0.5f, 0.5f);
 	}
-	file_name.Append(".obj");
-	std::ofstream fout(file_name.GetChars());
+	GUI::SetCaretXY(m_position.x, m_position.y);
+	GUI::Print(m_label);
+	GUI::Print(m_input);
+	m_btnOK.SetPosition(m_position.x, m_position.y + GUI::GetCharPixelHeight());
+	m_btnOK.Draw(hover);
+	m_btnCancel.SetPosition(m_btnOK.GetEndX() + GUI::GetCharPixelWidth(), m_btnOK.GetStartY());
+	m_btnCancel.Draw(hover);
+}*/
+
+void SpriteEditor::EditableSprite::OnDraw( void )
+{
+	m_sprite.Draw(m_timer.GetTimeDeltaTick());
+}
+
+SpriteEditor::EditableSprite::EditableSprite( void ) : mtlInherit(this)
+{
+	m_timer.Stop();
+}
+
+bool SpriteEditor::EditableSprite::LoadImage(const mtlChars &file)
+{
+	m_image_filename.Copy(file);
+	return m_sprite.LoadSpriteSheet(file);
+}
+
+bool SpriteEditor::EditableSprite::LoadSprite(const mtlChars &file)
+{
+	return m_sprite.Load(file);
+}
+
+bool SpriteEditor::EditableSprite::SaveSprite(const mtlChars &file) const
+{
+	mtlString c_file(file);
+	std::ofstream fout(c_file.GetChars());
 	if (!fout.is_open()) {
+		std::cout << "Failed to save sprite." << std::endl;
 		return false;
 	}
-	fout << "# OBJ file created by MAGE2D SpriteEditor" << std::endl;
-	fout << "o polygon_collider" << std::endl << std::endl;
-	fout << "v " << "0.0";
+	fout << "image_file = " << m_image_filename.GetChars() << std::endl;
+	fout << "frame_width = " << m_sprite.GetWidth() << std::endl;
+	fout << "frame_height = " << m_sprite.GetHeight() << std::endl;
+	fout << "frame_count = " << m_sprite.GetFrameCount() << std::endl;
+	fout << "frames_per_second = " << m_sprite.GetFramesPerSecond() << std::endl;
+	fout << "loopback_frame = " << m_sprite.GetLoopbackFrame() << std::endl;
 	fout.close();
 	return true;
 }
 
+void SpriteEditor::EditableSprite::TogglePlayback( void )
+{
+	if (m_timer.IsStopped()) {
+		m_timer.Start();
+	} else {
+		m_timer.Stop();
+	}
+}
+
+bool SpriteEditor::Save(const mtlChars &out_file)
+{
+	m_unsavedChanges = false;
+	if (out_file.GetSize() == 0) {
+		std::string file;
+		std::cout << "> Output file: ";
+		std::cin >> file;
+		if (file.size() > 0) {
+			m_currentFile.Copy(mtlChars::FromDynamic(file.c_str()));
+		} else {
+			m_currentFile.Copy("unnamed");
+		}
+	} else {
+		m_currentFile.Copy(out_file);
+	}
+	return SaveCollider(m_currentFile) && SaveSprite(m_currentFile);
+}
+
+bool SpriteEditor::SaveCollider(const mtlChars &out_file) const
+{
+	const mtlItem< mtlList< mmlVector<2> > > *collider = m_colliders.GetFirst();
+	int file_number = 0;
+	bool success = true;
+	while (collider != NULL) {
+		mtlString file;
+		file.Copy(out_file);
+		mtlString number_str;
+		number_str.FromInt(file_number);
+		file.Append(number_str);
+		file.Append(".obj");
+
+		std::ofstream fout(file.GetChars());
+		if (!fout.is_open()) {
+			success = false;
+		} else {
+			fout << "o poly_collider" << std::endl;
+			const mtlItem< mmlVector<2> > *point = collider->GetItem().GetFirst();
+			while (point != NULL) {
+				fout << "v " << point->GetItem()[0] << " " << point->GetItem()[1] << " 0.0" << std::endl;
+				point = point->GetNext();
+			}
+			fout.close();
+		}
+
+		collider = collider->GetNext();
+	}
+	return success;
+}
+
 bool SpriteEditor::SaveSprite(const mtlChars &out_file) const
 {
-	return true;
+	mtlString file(out_file);
+	file.Append(".sprite");
+	return m_sprite->SaveSprite(file);
 }
 
 SpriteEditor::SpriteEditor(const SpriteEditor&) : mtlInherit(this) {}
@@ -277,8 +373,11 @@ void SpriteEditor::OnInit( void )
 	GetEngine()->SetCamera(GetEngine()->GetSelf(this));
 
 	m_btnFile.SetLabel("File");
+	m_btnNew.SetLabel("New");
+	m_btnNew.SetPosition(0, m_btnFile.GetEndY());
+	m_btnNew.Hide();
 	m_btnLoad.SetLabel("Load");
-	m_btnLoad.SetPosition(0, m_btnFile.GetEndY());
+	m_btnLoad.SetPosition(0, m_btnNew.GetEndY());
 	m_btnLoad.Hide();
 	m_btnSave.SetLabel("Save");
 	m_btnSave.SetPosition(0, m_btnLoad.GetEndY());
@@ -292,11 +391,22 @@ void SpriteEditor::OnInit( void )
 
 	m_btnAnimation.SetLabel("Animation");
 	m_btnAnimation.SetPosition(m_btnCollider.GetEndX() + GUI::GetCharPixelWidth(), 0);
+	m_btnImage.SetLabel("Image");
+	m_btnImage.SetPosition(m_btnAnimation.GetStartX(), m_btnAnimation.GetEndY());
+	m_btnImage.Hide();
 
-	m_sprite = GetEngine()->AddObject<Object>();
-	m_sprite->SetGraphics(GetEngine()->LoadGraphics<Image>("../tmp/test.png"));
+	m_sprite = GetEngine()->AddObject<EditableSprite>()->GetAsDynamicType<EditableSprite>();
+	if (m_sprite == NULL) {
+		std::cout << "Critical error: sprite failed to convert to EditableSprite" << std::endl;
+		GetEngine()->DestroyAllObjects();
+	} else {
+		m_sprite->DisableCollisions();
+		m_sprite->SetCollisionMasks(0);
+		m_sprite->SetObjectFlags(0);
+	}
 
-	m_colliders.AddFirst();
+	m_colliders.AddFirst(); // there's always one
+	m_currentCollider = &m_colliders.GetFirst()->GetItem();
 }
 
 void SpriteEditor::OnUpdate( void )
@@ -331,6 +441,8 @@ void SpriteEditor::OnUpdate( void )
 	if (GetEngine()->IsPressed(MouseButton::Left)) {
 		if (m_btnFile.IsHovering(iMouse.x, iMouse.y)) {
 			m_btnFile.ToggleActive();
+			m_btnNew.Deactivate();
+			m_btnNew.ToggleHidden();
 			m_btnLoad.Deactivate();
 			m_btnLoad.ToggleHidden();
 			m_btnSave.Deactivate();
@@ -341,8 +453,12 @@ void SpriteEditor::OnUpdate( void )
 			m_btnClear.Hide();
 
 			m_btnAnimation.Deactivate();
+			m_btnImage.Deactivate();
+			m_btnImage.Hide();
 		} else if (m_btnCollider.IsHovering(iMouse.x, iMouse.y)) {
 			m_btnFile.Deactivate();
+			m_btnNew.Deactivate();
+			m_btnNew.Hide();
 			m_btnLoad.Deactivate();
 			m_btnLoad.Hide();
 			m_btnSave.Deactivate();
@@ -353,8 +469,12 @@ void SpriteEditor::OnUpdate( void )
 			m_btnClear.ToggleHidden();
 
 			m_btnAnimation.Deactivate();
+			m_btnImage.Deactivate();
+			m_btnImage.Hide();
 		} else if (m_btnAnimation.IsHovering(iMouse.x, iMouse.y)) {
 			m_btnFile.Deactivate();
+			m_btnNew.Deactivate();
+			m_btnNew.Hide();
 			m_btnLoad.Deactivate();
 			m_btnLoad.Hide();
 			m_btnSave.Deactivate();
@@ -365,22 +485,32 @@ void SpriteEditor::OnUpdate( void )
 			m_btnClear.Hide();
 
 			m_btnAnimation.ToggleActive();
+			m_btnImage.Deactivate();
+			m_btnImage.ToggleHidden();
 		} else if (m_btnLoad.IsHovering(iMouse.x, iMouse.y)) {
-			// Load();
+			std::cout << "Input file: ";
+			std::string file;
+			std::cin >> file;
+			m_sprite->LoadSprite(mtlChars::FromDynamic(file.c_str()));
 		} else if (m_btnSave.IsHovering(iMouse.x, iMouse.y)) {
 			Save(m_currentFile);
 		} else if (m_btnClear.IsHovering(iMouse.x, iMouse.y)) {
-			m_colliders.GetLast()->GetItem().RemoveAll();
+			m_currentCollider->RemoveAll();
+		} else if (m_btnImage.IsHovering(iMouse.x, iMouse.y)) {
+			std::cout << "> Image file: ";
+			std::string file;
+			std::cin >> file;
+			m_sprite->LoadImage(mtlChars::FromDynamic(file.c_str()));
 		} else if (m_btnCollider.IsActive()) {
-			m_colliders.GetLast()->GetItem().AddLast(wMouse);
+			m_currentCollider->AddLast(wMouse);
 			m_unsavedChanges = true;
 		}
 	}
 
 	if (GetEngine()->IsHeld(SDLK_LCTRL) || GetEngine()->IsHeld(SDLK_RCTRL)) {
 		if (GetEngine()->IsPressed(SDLK_z)) {
-			if (m_colliders.GetLast()->GetItem().GetSize() > 0) {
-				m_colliders.GetLast()->GetItem().RemoveLast();
+			if (m_currentCollider->GetSize() > 0) {
+				m_currentCollider->RemoveLast();
 				m_unsavedChanges = true;
 			}
 		} else if (GetEngine()->IsPressed(SDLK_s)) {
@@ -393,11 +523,26 @@ void SpriteEditor::OnUpdate( void )
 
 void SpriteEditor::OnGUI( void )
 {
-	if ((m_colliders.GetLast()->GetItem().GetSize() > 0 && m_btnCollider.IsActive()) || m_colliders.GetLast()->GetItem().GetSize() > 1) {
-		mtlItem< mmlVector<2> > *point = m_colliders.GetLast()->GetItem().GetFirst();
+	if (m_btnCollider.IsActive()) {
+		Point iMouse = GetEngine()->GetMousePosition();
+		glColor3f(0.0f, 1.0f, 1.0f);
+
+		glBegin(GL_LINES);
+
+		glVertex2f((GLfloat)iMouse.x, (GLfloat)0);
+		glVertex2f((GLfloat)iMouse.x, (GLfloat)GetEngine()->GetVideoHeight());
+
+		glVertex2f((GLfloat)0, (GLfloat)iMouse.y);
+		glVertex2f((GLfloat)GetEngine()->GetVideoWidth(), (GLfloat)iMouse.y);
+
+		glEnd();
+	}
+
+	if ((m_currentCollider->GetSize() > 0 && m_btnCollider.IsActive()) || m_currentCollider->GetSize() > 1) {
+		mtlItem< mmlVector<2> > *point = m_currentCollider->GetFirst();
 		mmlVector<2> first =GetTransform().InverseTransformPoint(Transform::Local, point->GetItem());
 		first = GetEngine()->GetScreenPoint(first);
-		mmlVector<2> last = GetTransform().InverseTransformPoint(Transform::Local, m_colliders.GetLast()->GetItem().GetLast()->GetItem());
+		mmlVector<2> last = GetTransform().InverseTransformPoint(Transform::Local, m_currentCollider->GetLast()->GetItem());
 		last = GetEngine()->GetScreenPoint(last);
 		mmlVector<2> p = first;
 		glBegin(GL_LINES);
@@ -426,11 +571,13 @@ void SpriteEditor::OnGUI( void )
 
 	Point mouse = GetEngine()->GetMousePosition();
 	m_btnFile.Draw(m_btnFile.IsHovering(mouse.x, mouse.y));
+	m_btnNew.Draw(m_btnNew.IsHovering(mouse.x, mouse.y));
 	m_btnLoad.Draw(m_btnLoad.IsHovering(mouse.x, mouse.y));
 	m_btnSave.Draw(m_btnSave.IsHovering(mouse.x, mouse.y));
 	m_btnCollider.Draw(m_btnCollider.IsHovering(mouse.x, mouse.y));
 	m_btnClear.Draw(m_btnClear.IsHovering(mouse.x, mouse.y));
 	m_btnAnimation.Draw(m_btnAnimation.IsHovering(mouse.x, mouse.y));
+	m_btnImage.Draw(m_btnImage.IsHovering(mouse.x, mouse.y));
 
 	GUI::SetColor(1.0f, 1.0f, 1.0f);
 
@@ -449,7 +596,7 @@ void SpriteEditor::OnGUI( void )
 	GUI::Print(m_currentFrame);
 
 	if (m_btnCollider.IsActive()) {
-		mtlItem< mmlVector<2> > *point = m_colliders.GetLast()->GetItem().GetFirst();
+		mtlItem< mmlVector<2> > *point = m_currentCollider->GetFirst();
 		GUI::SetColor(0.0, 1.0f, 0.0f);
 		GUI::SetCaretXY(0, GUI::GetCharPixelHeight()*2);
 		while (point != NULL) {

@@ -153,6 +153,36 @@ int Sprite::GetLoopbackFrame( void ) const
 	return m_loopBack;
 }
 
+void Sprite::SetFrameWidth(int width)
+{
+	m_frameWidth = mmlMax2(0, width);
+}
+
+void Sprite::SetFrameHeight(int height)
+{
+	m_frameHeight = mmlMax2(0, height);
+}
+
+void Sprite::SetFrameCount(int count)
+{
+	m_numFrames = mmlMax2(0, count);
+}
+
+void Sprite::SetFramesPerSecond(float frames)
+{
+	m_framesPerSecond = mmlMax2(0.0f, frames);
+}
+
+void Sprite::SetLoopbackFrame(int frame)
+{
+	m_loopBack = frame;
+}
+
+bool Sprite::LoadSpriteSheet(const mtlChars &file)
+{
+	m_sheet = mtlAsset<Graphics>::Load<Image>(file);
+}
+
 /*int Sprite::GetStartFrame( void ) const
 {
 	return m_startFrame;

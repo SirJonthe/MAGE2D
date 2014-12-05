@@ -1,4 +1,6 @@
 #include "Collider.h"
+#include "MTL/mtlParser.h"
+#include <iostream>
 
 #define RoundErr 0.001f
 
@@ -408,6 +410,45 @@ void PolygonCollider::CreateShape(PolygonCollider::Shape shape)
 	/*for (int i = 0; i < m_collide.GetSize(); ++i) {
 		m_collide[i] = false;
 	}*/
+}
+
+bool PolygonCollider::Load(const mtlDirectory &file)
+{
+	std::cout << "PolygonCollider::Load: " << file.GetDirectory().GetChars() << std::endl;
+
+	m_vert.Free();
+
+	mtlList< mmlVector<2> > vert;
+
+	mtlString file_contents;
+	if (!mtlParser::BufferFile(file, file_contents)) {
+		std::cout << "\tfailed to open/read file" << std::endl;
+		return false;
+	}
+	mtlParser parser(file_contents);
+	while (!parser.IsEnd()) {
+		mtlChars word = parser.ReadWord();
+		if (word.Compare("v")) {
+			mmlVector<2> v;
+			if (!parser.ReadWord().ToFloat(v[0]) || !parser.ReadWord().ToFloat(v[1])) {
+				std::cout << "\tfailed to convert param to float" << std::endl;
+				return false;
+			}
+			vert.AddLast(v);
+		}
+	}
+
+	m_vert.Create(vert.GetSize());
+	int i = 0;
+	mtlItem< mmlVector<2> > *p = vert.GetFirst();
+	while (p != NULL) {
+		m_vert[i] = p->GetItem();
+		p = p->GetNext();
+		++i;
+	}
+
+	std::cout << "\tdone" << std::endl;
+	return true;
 }
 
 int PolygonCollider::GetVertexCount( void ) const
