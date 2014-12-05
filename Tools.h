@@ -109,7 +109,6 @@ private:
 protected:
 	void OnInit( void );
 	void OnUpdate( void );
-	void OnDraw( void );
 	void OnGUI( void );
 
 public:

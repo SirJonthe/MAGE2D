@@ -242,7 +242,11 @@ bool SpriteEditor::Save(const mtlChars &out_file)
 bool SpriteEditor::SaveCollider(const mtlChars &out_file) const
 {
 	mtlString file_name;
-	file_name.Copy(out_file);
+	if (out_file.GetSize() > 0) {
+		file_name.Copy(out_file);
+	} else {
+		file_name.Copy("temp");
+	}
 	file_name.Append(".obj");
 	std::ofstream fout(file_name.GetChars());
 	if (!fout.is_open()) {
@@ -302,14 +306,8 @@ void SpriteEditor::OnUpdate( void )
 	// left arrow key for prev frame
 	// Space for start/stop animation playback
 	// Backspace for restart animation
-	// Ctrl-S for saving
-	// Ctrl-O for loading
 
 	// GUI Controls
-	// Collider - make a collider for current frame (support for Ctrl-Z and Ctrl-Y)
-		// Free form - click this again to stop drawing collision shape
-		// Clear - remove current collider
-	// File - load an image file
 	// Animation
 		// various ways to set the animation (used in .sprite format)
 
@@ -367,6 +365,10 @@ void SpriteEditor::OnUpdate( void )
 			m_btnClear.Hide();
 
 			m_btnAnimation.ToggleActive();
+		} else if (m_btnLoad.IsHovering(iMouse.x, iMouse.y)) {
+			// Load();
+		} else if (m_btnSave.IsHovering(iMouse.x, iMouse.y)) {
+			Save(m_currentFile);
 		} else if (m_btnClear.IsHovering(iMouse.x, iMouse.y)) {
 			m_colliders.GetLast()->GetItem().RemoveAll();
 		} else if (m_btnCollider.IsActive()) {
@@ -381,13 +383,12 @@ void SpriteEditor::OnUpdate( void )
 				m_colliders.GetLast()->GetItem().RemoveLast();
 				m_unsavedChanges = true;
 			}
+		} else if (GetEngine()->IsPressed(SDLK_s)) {
+			Save(m_currentFile);
+		} else if (GetEngine()->IsPressed(SDLK_o)) {
+			// Load();
 		}
 	}
-}
-
-void SpriteEditor::OnDraw( void )
-{
-
 }
 
 void SpriteEditor::OnGUI( void )
@@ -399,8 +400,16 @@ void SpriteEditor::OnGUI( void )
 		mmlVector<2> last = GetTransform().InverseTransformPoint(Transform::Local, m_colliders.GetLast()->GetItem().GetLast()->GetItem());
 		last = GetEngine()->GetScreenPoint(last);
 		mmlVector<2> p = first;
-		glColor3f(0.0f, 1.0f, 0.0f);
 		glBegin(GL_LINES);
+		if (m_btnCollider.IsActive()) {
+			glColor3f(1.0f, 0.0f, 0.0);
+			Point iMouse = GetEngine()->GetMousePosition();
+			glVertex2f(first[0], first[1]);
+			glVertex2f((GLfloat)iMouse.x, (GLfloat)iMouse.y);
+			glVertex2f(last[0], last[1]);
+			glVertex2f((GLfloat)iMouse.x, (GLfloat)iMouse.y);
+		}
+		glColor3f(0.0f, 1.0f, 0.0f);
 		while (point != NULL) {
 			glVertex2f(p[0], p[1]);
 			point = point->GetNext();
@@ -411,14 +420,6 @@ void SpriteEditor::OnGUI( void )
 				p = GetEngine()->GetScreenPoint(p);
 				glVertex2f(p[0], p[1]);
 			}
-		}
-		if (m_btnCollider.IsActive()) {
-			glColor3f(1.0f, 0.0f, 0.0);
-			mmlVector<2> wMouse = GetEngine()->GetScreenPoint(GetEngine()->GetWorldMousePosition());
-			glVertex2f(first[0], first[1]);
-			glVertex2f(wMouse[0], wMouse[1]);
-			glVertex2f(last[0], last[1]);
-			glVertex2f(wMouse[0], wMouse[1]);
 		}
 		glEnd();
 	}

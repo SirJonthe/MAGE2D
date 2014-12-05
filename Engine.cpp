@@ -659,9 +659,10 @@ const ObjectRef Engine::GetCamera( void ) const
 
 void Engine::SetCamera(ObjectRef camera)
 {
+	std::cout << "Engine::SetCamera: ";
 	if (camera.IsNull() || camera.GetShared()->m_engine != this) {
 		m_camera.Delete();
-		std::cout << "Invalid camera set: Camera set to identity" << std::endl;
+		std::cout << "Invalid camera; Camera set to identity" << std::endl;
 	} else {
 		m_camera = camera;
 		std::cout << "New camera set to follow object " << camera->GetName().GetChars() << " @ " << camera.GetShared() << std::endl;
@@ -948,14 +949,10 @@ void Engine::SetMousePosition(Point p)
 mmlVector<2> Engine::GetWorldMousePosition( void ) const
 {
 	Point iMouse = GetMousePosition();
-	mmlVector<2> fMouse((float)iMouse.x, (float)iMouse.y);
+	mmlVector<2> fMouse((float)iMouse.x - (float)GetVideoWidth() / 2.0f, (float)iMouse.y - (float)GetVideoHeight() / 2.0f);
 	if (!m_camera.IsNull()) {
-		mmlVector<2> camera_position = m_camera->GetTransform().GetPosition(Transform::Global);
-		fMouse[0] = (fMouse[0] - camera_position[0]) * m_camera->GetTransform().GetScaleX(Transform::Global);
-		fMouse[1] = (fMouse[1] - camera_position[1]) * m_camera->GetTransform().GetScaleY(Transform::Global);
+		fMouse = m_camera->GetTransform().TransformPoint(Transform::Global, fMouse);
 	}
-	fMouse[0] -= float(SDL_GetVideoSurface()->w) / 2.0f;
-	fMouse[1] -= float(SDL_GetVideoSurface()->h) / 2.0f;
 	return fMouse;
 }
 
@@ -964,8 +961,7 @@ mmlVector<2> Engine::GetWorldMouseMovement( void ) const
 	Point iMov = GetMouseMovement();
 	mmlVector<2> fMov((float)iMov.x, (float)iMov.y);
 	if (!m_camera.IsNull()) {
-		fMov[0] *= m_camera->GetTransform().GetScaleX(Transform::Global);
-		fMov[1] *= m_camera->GetTransform().GetScaleY(Transform::Global);
+		fMov *= m_camera->GetTransform().GetRotation(Transform::Global);
 	}
 	return fMov;
 }
