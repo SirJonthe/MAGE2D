@@ -181,6 +181,7 @@ void Sprite::SetLoopbackFrame(int frame)
 bool Sprite::LoadSpriteSheet(const mtlChars &file)
 {
 	m_sheet = mtlAsset<Graphics>::Load<Image>(file);
+	return !m_sheet.IsNull();
 }
 
 /*int Sprite::GetStartFrame( void ) const

@@ -88,9 +88,9 @@ float Timer::GetTimeDeltaTick( void ) const
 
 float Timer::GetTimeDeltaNow( void ) const
 {
-	if (m_interval > 0.0f) {
+	if (IsTicking() && m_interval > 0.0f) {
 		float now = GetProgramTimeSeconds();
-		return (now - m_timeLast) / m_interval;
+		return (now - m_timeNow) / m_interval;
 	}
 	return 0.0f;
 }

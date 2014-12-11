@@ -259,6 +259,15 @@ void Collider::SetTransform(Transform *transform)
 	}
 }
 
+void Collider::TrackPreviousTransform( void )
+{
+	if (m_transform != NULL) {
+		m_prevTransform = *m_transform;
+	} else {
+		m_prevTransform.SetParent(Transform::Local, NULL); m_prevTransform.SetIdentity(Transform::Local);
+	}
+}
+
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 {
 	CollisionInfo info;

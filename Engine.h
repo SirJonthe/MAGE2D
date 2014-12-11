@@ -93,6 +93,7 @@ private:
 	bool				m_destroyingAll;
 	OcclusionMethod		m_occlusionMethod;
 	Mix_Music			*m_music;
+	float				m_musicVolume;
 	Point				m_mousePosition;
 	Point				m_prevMousePosition;
 	mmlVector<3>		m_clearColor;
@@ -188,6 +189,8 @@ public:
 
 	bool						PlayMusic(const mtlChars &file);
 	void						StopMusic( void );
+	float						GetMusicVolume( void ) const;
+	void						SetMusicVolume(float volume);
 
 	void						UpdateVideo( void ) const;
 	static int					GetVideoWidth( void );

@@ -272,7 +272,7 @@ void GUI::SetColor(float r, float g, float b, float a)
 
 void GUI::SetColor(mmlVector<3> color)
 {
-	glColor3f(color[0], color[1], color[1]);
+	glColor3f(color[0], color[1], color[2]);
 }
 
 void GUI::SetColor(mmlVector<4> color)
@@ -383,14 +383,15 @@ void GUI::Print(const mtlChars &text, int scale)
 
 	glBindTexture(GL_TEXTURE_2D, tId);
 
+#ifdef __linux__
 	float ox = 0.5f / (float)SDL_GetVideoSurface()->w;
 	float oy = 0.5f / (float)SDL_GetVideoSurface()->h; // take into account that OpenGL samples from the middle of the pixel, not the edge
+#else
+	float ox = 0.0f;
+	float oy = 0.0f;
+#endif
 	for (int i = 0; i < text.GetSize(); ++i) {
 		char ch = text.GetChars()[i];
-		if ((int)(CaretX() + ox + char_px_width * scale) >= (int)SDL_GetVideoSurface()->w) {
-			ch = '\n';
-			--i;
-		}
 		switch (ch) {
 		case '\n':
 		case '\r':
@@ -425,8 +426,8 @@ void GUI::Print(const mtlChars &text, int scale)
 			ch = last_char + 1;
 		}
 		int index = ch - first_char;
-		float ux = /*(0.5f / (float)font_width) +*/ char_uv_width * (index % char_count_width);
-		float uy = /*(0.5f / (float)font_height) +*/ (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
+		float ux = /*(0.5f / (float)font_width)*/ + char_uv_width * (index % char_count_width);
+		float uy = /*(0.5f / (float)font_height)*/ + (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
 
 		uv[0] = ux;
 		uv[1] = uy + char_uv_height;

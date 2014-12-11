@@ -74,16 +74,16 @@ void Engine::CollideObjects( void )
 			}
 			nextObject = nextObject->GetNext();
 		}
+		object->GetItem()->GetCollider()->TrackPreviousTransform();
 		object = object->GetNext();
 	}
 }
 
 struct GraphicsContainer
 {
-	ObjectRef				object;
-	Transform				transform;
-	Engine::OcclusionMethod	term;
-	bool operator<(const GraphicsContainer &c) const { return transform.GetPosition(Transform::Local)[(int)term] < c.transform.GetPosition(Transform::Local)[(int)term]; }
+	ObjectRef	object;
+	float		z;
+	bool operator<(const GraphicsContainer &c) const { return z < c.z; }
 };
 
 void Engine::DrawObjects( void )
@@ -94,8 +94,15 @@ void Engine::DrawObjects( void )
 
 		mtlItem<ObjectRef> *object = m_objects.GetFirst();
 		while (object != NULL) {
-			if (node_ref(object)->IsTicking() && node_ref(object)->IsVisible()) {
-				GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global), m_occlusionMethod };
+			if (!node_ref(object)->IsDestroyed() && node_ref(object)->IsVisible()) {
+				//GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global), m_occlusionMethod };
+				GraphicsContainer c;
+				c.object = object->GetItem();
+				if (m_occlusionMethod == SortByX || m_occlusionMethod == SortByY) {
+					c.z = c.object->GetTransform().GetPosition(Transform::Global)[(int)m_occlusionMethod];
+				} else {
+					c.z = c.object->GetDepth();
+				}
 				graphics.Add(c);
 			}
 			object = object->GetNext();
@@ -296,7 +303,7 @@ Engine::Engine( void ) :
 	m_quit(false), m_inLoop(false),
 	m_destroyingAll(false),
 	m_occlusionMethod(None),
-	m_music(NULL),
+	m_music(NULL), m_musicVolume(1.0f),
 	m_clearColor(0.0f, 0.0f, 0.0f)
 {
 	m_mousePosition.x = 0;
@@ -331,15 +338,13 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 		int fullscreen;
 	};
 
-	srand(1); // make things predictably random
-
 	Args args;
 	args.width = width;
 	args.height = height;
 	args.fullscreen = false;
 
 	for (int i = 1; i < argc; ++i) {
-		std::cout << "Argument " << argc << ": " << argv[i] << std::endl;
+		std::cout << "Argument " << i << ": " << argv[i] << std::endl;
 		if (strcmp(argv[i], "-width") == 0 && i < argc-1) {
 			args.width = mmlMax2(atoi(argv[++i]), 0);
 		}
@@ -348,6 +353,10 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 		}
 		else if (strcmp(argv[i], "-fullscreen") == 0 && i < argc-1) {
 			args.fullscreen = mmlClamp(0, atoi(argv[++i]), 1);
+		}
+		else if (strcmp(argv[i], "-freq") && i < argc-1) {
+			float freq = mmlMax2(1.0f, (float)atof(argv[++i]));
+			SetUpdateFrequency(freq);
 		}
 	}
 
@@ -589,6 +598,8 @@ ObjectRef Engine::AddObject(const mtlChars &typeName)
 			n = n->GetNext();
 		}
 	}
+	mtlString name(typeName);
+	std::cout << "Engine::AddObject: Object \"" << name.GetChars() << "\" not registered" << std::endl;
 	return ObjectRef();
 }
 
@@ -633,12 +644,6 @@ void Engine::DestroyAllObjects( void )
 			object = object->GetNext();
 		}
 	} else {
-		/*mtlItem<ObjectRef> *object = m_objects.GetFirst();
-		while (object != NULL) {
-			node_ref(object)->m_engine = NULL;
-			node_ref(object)->m_objectRef = NULL;
-			object = object->GetNext();
-		}*/
 		m_objects.RemoveAll();
 	}
 
@@ -854,9 +859,12 @@ bool Engine::PlayMusic(const mtlChars &file)
 	std::cout << "Engine::PlayMusic: " << file.GetChars() << std::endl;
 	StopMusic();
 	m_music = Mix_LoadMUS(file.GetChars());
+	m_musicVolume = 1.0f;
 	if (m_music == NULL || Mix_PlayMusic(m_music, -1) == -1) {
 		std::cout << "\tfailed: " << Mix_GetError() << std::endl;
 		return false;
+	} else {
+		Mix_VolumeMusic(MIX_MAX_VOLUME);
 	}
 	return true;
 }
@@ -867,6 +875,19 @@ void Engine::StopMusic( void )
 		Mix_HaltMusic();
 		Mix_FreeMusic(m_music);
 		m_music = NULL;
+	}
+}
+
+float Engine::GetMusicVolume( void ) const
+{
+	return m_musicVolume;
+}
+
+void Engine::SetMusicVolume(float volume)
+{
+	volume = mmlClamp(0.0f, volume, 1.0f);
+	if (m_music != NULL) {
+		Mix_VolumeMusic((int)(volume*MIX_MAX_VOLUME));
 	}
 }
 
