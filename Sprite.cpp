@@ -115,7 +115,7 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 	return true;
 }
 
-Sprite::Sprite( void ) : mtlInherit(this), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
+Sprite::Sprite( void ) : mtlInherit<Graphics, Sprite>(this), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
 {}
 
 int Sprite::GetFrameCount( void ) const
@@ -181,7 +181,6 @@ void Sprite::SetLoopbackFrame(int frame)
 bool Sprite::LoadSpriteSheet(const mtlChars &file)
 {
 	m_sheet = mtlAsset<Graphics>::Load<Image>(file);
-	return !m_sheet.IsNull();
 }
 
 /*int Sprite::GetStartFrame( void ) const

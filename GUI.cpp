@@ -426,8 +426,8 @@ void GUI::Print(const mtlChars &text, int scale)
 			ch = last_char + 1;
 		}
 		int index = ch - first_char;
-		float ux = /*(0.5f / (float)font_width)*/ + char_uv_width * (index % char_count_width);
-		float uy = /*(0.5f / (float)font_height)*/ + (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
+		float ux = /*(0.5f / (float)font_width) +*/ char_uv_width * (index % char_count_width);
+		float uy = /*(0.5f / (float)font_height) +*/ (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
 
 		uv[0] = ux;
 		uv[1] = uy + char_uv_height;
@@ -708,7 +708,7 @@ void GUI::Form::OnDraw(GUI::ContentRect rect) const
 	GUI::Box(m_rect);
 }
 
-GUI::Form::Form( void ) : mtlInherit(this)
+GUI::Form::Form( void ) : mtlInherit<GUI::Control, GUI::Form>(this)
 {
 	SetDimensionsXY(100, 70);
 	m_theme.blur = 0.0f;

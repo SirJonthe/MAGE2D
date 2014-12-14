@@ -15,11 +15,11 @@ const Uint32 bmask = 0x00ff0000;
 const Uint32 amask = 0xff000000;
 #endif
 
-Image::Image( void ) : mtlInherit(this), m_image(NULL), m_width(0), m_height(0)
+Image::Image( void ) : mtlInherit<Graphics, Image>(this), m_image(NULL), m_width(0), m_height(0)
 {
 }
 
-Image::Image(const mtlDirectory &file) : mtlInherit(this), m_image(NULL), m_width(0), m_height(0)
+Image::Image(const mtlDirectory &file) : mtlInherit<Graphics, Image>(this), m_image(NULL), m_width(0), m_height(0)
 {
 	Load(file);
 }

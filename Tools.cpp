@@ -4,7 +4,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <string>
 
 RegisterObject(KillPlane);
 
@@ -18,7 +17,7 @@ void KillPlane::OnUpdate( void )
 	}
 }
 
-KillPlane::KillPlane( void ) : mtlInherit(this)
+KillPlane::KillPlane( void ) : mtlInherit<Object, KillPlane>(this)
 {
 	ClearAllObjectFlags(); // other objects can not collide with us, *we* collide with *them*
 	SetName("tool_killplane");
@@ -68,7 +67,7 @@ void Console::OnDraw( void )
 }
 
 Console::Console( void ) :
-	mtlInherit(this),
+	mtlInherit<Object, Console>(this),
 	m_bgColor(0.0f, 0.0f, 0.0f),
 	m_lines(), m_maxHistory(10),
 	m_screenHeightRatio(0.5f),
@@ -262,7 +261,7 @@ void SpriteEditor::EditableSprite::OnDraw( void )
 	m_sprite.Draw(m_timer.GetTimeDeltaTick());
 }
 
-SpriteEditor::EditableSprite::EditableSprite( void ) : mtlInherit(this)
+SpriteEditor::EditableSprite::EditableSprite( void ) : mtlInherit<Object, EditableSprite>(this)
 {
 	m_timer.Stop();
 }
@@ -361,7 +360,7 @@ bool SpriteEditor::SaveSprite(const mtlChars &out_file) const
 	return m_sprite->SaveSprite(file);
 }
 
-SpriteEditor::SpriteEditor(const SpriteEditor&) : mtlInherit(this) {}
+SpriteEditor::SpriteEditor(const SpriteEditor&) : mtlInherit<Object, SpriteEditor>(this) {}
 
 SpriteEditor &SpriteEditor::operator=(const SpriteEditor&) { return *this; }
 
@@ -610,6 +609,6 @@ void SpriteEditor::OnGUI( void )
 	}
 }
 
-SpriteEditor::SpriteEditor( void ) : mtlInherit(this), m_currentFrame(0) {}
+SpriteEditor::SpriteEditor( void ) : mtlInherit<Object, SpriteEditor>(this), m_currentFrame(0) {}
 
 RegisterObject(SpriteEditor);

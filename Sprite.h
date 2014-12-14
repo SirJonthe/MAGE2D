@@ -34,7 +34,7 @@ private:
 	int					m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
 
 private:
-	Sprite(const Sprite&) : mtlInherit(this) {}
+	Sprite(const Sprite&) : mtlInherit<Graphics, Sprite>(this) {}
 	Sprite &operator=(const Sprite&) { return *this; }
 	bool LoadMetadata(Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened);
 

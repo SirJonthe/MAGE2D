@@ -365,16 +365,16 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 	return info;
 }
 
-PolygonCollider::PolygonCollider( void ) : mtlInherit(this), m_vert(), m_globalVert()
+PolygonCollider::PolygonCollider( void ) : mtlInherit<Collider, PolygonCollider>(this), m_vert(), m_globalVert()
 {
 }
 
-PolygonCollider::PolygonCollider(PolygonCollider::Shape shape) : mtlInherit(this), m_vert(), m_globalVert()
+PolygonCollider::PolygonCollider(PolygonCollider::Shape shape) : mtlInherit<Collider, PolygonCollider>(this), m_vert(), m_globalVert()
 {
 	CreateShape(shape);
 }
 
-PolygonCollider::PolygonCollider(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center) : mtlInherit(this), m_vert(), m_globalVert()
+PolygonCollider::PolygonCollider(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center) : mtlInherit<Collider, PolygonCollider>(this), m_vert(), m_globalVert()
 {
 	CopyVertexArray(vert, center);
 }
