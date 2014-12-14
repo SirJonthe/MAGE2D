@@ -5,27 +5,37 @@
 #include "mtlList.h"
 
 class mtlString;
-//class mtlSubstring;
-
-// Merge mtlChars and mtlSubstring to mtlChars?
 
 class mtlChars
 {
 private:
 	const char	*m_str;
 	int			m_size;
+
 private:
 	static int				GetSizeActual(int stringSize, int targetSize = -1) { return (targetSize < 0 || targetSize > stringSize) ? stringSize : targetSize; }
 	static int				GetSizeActual(int stringSize, int start, int end) { return (end < 0 || (end - start) > stringSize) ? stringSize : (end - start); }
+
 public:
 	static bool				SameAsAny(char a, const char *b, int num = -1);
+	static int				SameAsWhich(char a, const char *b, int num = -1);
 	static bool				SameAsAll(const char *a, const char *b, int num);
 	static int				GetDynamicSize(const char *str);
 	template < int t_size >
 	static int				GetStaticSize(const char (&str)[t_size]) { return t_size - 1; }
 	static void				ToLower(char *str, int num = -1);
+	static void				ToUpper(char *str, int num = -1);
 	inline static mtlChars	FromDynamic(const char *p_str, int p_size = -1);
 	inline static mtlChars	FromDynamic(const char *p_str, int p_start, int p_end);
+	inline static char		ToLower(char ch);
+	inline static char		ToUpper(char ch);
+	inline static bool		IsAlpha(char ch);
+	inline static bool		IsNumeric(char ch);
+	inline static bool		IsAlphanumeric(char ch);
+	inline static bool		IsMath(char ch);
+	inline static bool		IsWhitespace(char ch);
+	inline static bool		IsNewline(char ch);
+
 public:
 	inline					mtlChars( void );
 	template < int t_size >
@@ -63,6 +73,8 @@ public:
 	inline char				operator[](int i) const;
 
 	bool					Compare(const mtlChars &p_str, bool p_caseSensitive = true) const;
+	inline bool				SameAsAny(char ch) const;
+	inline int				SameAsWhich(char ch) const;
 	inline bool				operator==(const mtlChars &str) const;
 	inline bool				operator!=(const mtlChars &str) const;
 };
@@ -74,6 +86,7 @@ private:
 	int		m_size;
 	int		m_pool;
 	int		m_growth;
+	
 private:
 				mtlString(const mtlString&) {}
 	mtlString	&operator=(const mtlString&) { return *this; }
@@ -81,6 +94,7 @@ private:
 	char		*NewPool(int p_size);
 	void		NewPoolDelete(int p_size);
 	void		NewPoolPreserve(int p_size);
+	
 public:
 	inline				mtlString( void );
 	inline explicit		mtlString(const mtlChars &p_str);
@@ -99,6 +113,7 @@ public:
 	void				Copy(const mtlChars &p_str);
 
 	inline void			ToLower( void );
+	inline void			ToUpper( void );
 	inline mtlChars		GetTrimmed( void ) const;
 	inline mtlChars		GetSubstring(int p_start, int p_end = -1) const;
 
@@ -174,6 +189,52 @@ mtlChars mtlChars::FromDynamic(const char *p_str, int p_start, int p_end)
 	return ch;
 }
 
+char mtlChars::ToLower(char ch)
+{
+	if (ch >= 'A' && ch <= 'Z') {
+		ch += 'a' - 'A';
+	}
+	return ch;
+}
+
+char mtlChars::ToUpper(char ch)
+{
+	if (ch >= 'a' && ch <= 'z') {
+		ch -= 'a' - 'Z';
+	}
+	return ch;
+}
+
+bool mtlChars::IsAlpha(char ch)
+{
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+}
+
+bool mtlChars::IsNumeric(char ch)
+{
+	return (ch >= '0' && ch <= '9');
+}
+
+bool mtlChars::IsAlphanumeric(char ch)
+{
+	return IsAlpha(ch) || IsNumeric(ch);
+}
+
+bool mtlChars::IsMath(char ch)
+{
+	return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^';
+}
+
+bool mtlChars::IsWhitespace(char ch)
+{
+	return ch == ' ' || ch == '\t' || IsNewline(ch);
+}
+
+bool mtlChars::IsNewline(char ch)
+{
+	return ch == '\n' || ch == '\r';
+}
+
 mtlChars::mtlChars( void ) :
 	m_str(NULL), m_size(0)
 {}
@@ -229,6 +290,16 @@ char mtlChars::operator[](int i) const
 	return m_str[i];
 }
 
+bool mtlChars::SameAsAny(char ch) const
+{
+	return SameAsAny(ch, m_str, m_size);
+}
+
+int mtlChars::SameAsWhich(char ch) const
+{
+	return SameAsWhich(ch, m_str, m_size);
+}
+
 bool mtlChars::operator==(const mtlChars &p_str) const
 {
 	return Compare(p_str);
@@ -267,6 +338,11 @@ void mtlString::SetPoolGrowth(int p_growth)
 void mtlString::ToLower( void )
 {
 	mtlChars::ToLower(m_str, m_size);
+}
+
+void mtlString::ToUpper( void )
+{
+	mtlChars::ToUpper(m_str, m_size);
 }
 
 mtlChars mtlString::GetTrimmed( void ) const

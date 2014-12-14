@@ -353,6 +353,18 @@ mmlVector<2> Transform::TransformPoint(Space space, float x, float y) const
 	return TransformPoint(space, mmlVector<2>(x, y));
 }
 
+mmlVector<2> Transform::InverseTransformPoint(Space space, mmlVector<2> point) const
+{
+	mmlMatrix<2,2> rot = mmlInv(GetRotation(space));
+	mmlVector<2> pos = GetPosition(space);
+	return (point - pos) * rot;
+}
+
+mmlVector<2> Transform::InverseTransformPoint(Space space, float x, float y) const
+{
+	return InverseTransformPoint(space, mmlVector<2>(x, y));
+}
+
 Transform Transform::GetIndependentTransform(Transform::Space space) const
 {
 	Transform t;

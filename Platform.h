@@ -26,6 +26,7 @@
 	#pragma comment(lib, "SDL_image.lib")
 	#pragma comment(lib, "SDL_mixer.lib")
 
+	#include <Windows.h>
 	#include <GL\glew.h> // download install in GL folder (remember to put .dll and .lib files in appropriate places as well)
 	#include <GL\gl.h> // only core profile (1.1), need glew/glext/glee (I chose glew)
 

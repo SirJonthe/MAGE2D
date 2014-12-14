@@ -27,6 +27,14 @@ public:
 	void			Tick( void );
 	static float	GetProgramTimeSeconds( void );
 	float			GetProgramTimeInterval( void );
+
+	/*void New_Mark( void ) { Tick(); }
+	float New_GetLastMark( void ) { return GetTimeDelta(); }
+	float New_GetLap( void ) { return GetTimeDeltaNow(); }
+	void New_Lap( void ); // starts the timer over, saving the fractions
+	void New_Reset( void ); // starts the timer over, not saving fractions
+	void New_Pause( void ); // pauses a timer
+	void New_Resume( void ); // starts where it was last stopped*/
 };
 
 #endif // TIMER_H

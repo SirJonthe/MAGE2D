@@ -14,6 +14,17 @@ bool mtlChars::SameAsAny(char a, const char *b, int num)
 	return false;
 }
 
+int mtlChars::SameAsWhich(char a, const char *b, int num)
+{
+	if (num < 0) { num = mtlChars::GetDynamicSize(b); }
+	for (int i = 0; i < num; ++i) {
+		if (a == b[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 bool mtlChars::SameAsAll(const char *a, const char *b, int num)
 {
 	for (int i = 0; i < num; ++i) {
@@ -38,6 +49,16 @@ void mtlChars::ToLower(char *str, int num)
 	for (int i = 0; i < num; ++i) {
 		if (str[i] >= 'A' && str[i] <= 'Z') {
 			str[i] += 'a' - 'A';
+		}
+	}
+}
+
+void mtlChars::ToUpper(char *str, int num)
+{
+	if (num < 0) { num = mtlChars::GetDynamicSize(str); }
+	for (int i = 0; i < num; ++i) {
+		if (str[i] >= 'a' && str[i] <= 'z') {
+			str[i] -= 'a' - 'A';
 		}
 	}
 }
@@ -305,7 +326,9 @@ char *mtlString::NewPool(int p_size)
 	const int actualSize = p_size + 1;
 	if (actualSize > m_pool) {
 		m_pool = ((actualSize / m_growth) + 1) * m_growth;
-		return new char[m_pool];
+		char *chars = new char[m_pool];
+		chars[m_pool-1] = '\0';
+		return chars;
 	}
 	return NULL;
 }
@@ -326,7 +349,6 @@ void mtlString::NewPoolPreserve(int p_size)
 		for (int i = 0; i < m_size; ++i) {
 			newPool[i] = m_str[i];
 		}
-		newPool[m_size] = '\0';
 		delete [] m_str;
 		m_str = newPool;
 	}
@@ -335,7 +357,7 @@ void mtlString::NewPoolPreserve(int p_size)
 void mtlString::SetSize(int p_size)
 {
 	NewPoolPreserve(p_size);
-	m_size = p_size;
+	m_size = p_size >= 0 ? p_size : 0;
 }
 
 void mtlString::Insert(const mtlChars &p_str, int p_at)
@@ -373,9 +395,7 @@ void mtlString::Insert(const mtlChars &p_str, int p_at)
 
 mtlString &mtlString::Append(const mtlChars &p_str)
 {
-	if (m_size + p_str.GetSize() > m_pool) {
-		NewPoolPreserve(m_size + p_str.GetSize());
-	}
+	NewPoolPreserve(m_size + p_str.GetSize());
 	for (int i = 0; i < p_str.GetSize(); ++i) {
 		m_str[i + m_size] = p_str.GetChars()[i];
 	}
@@ -386,21 +406,15 @@ mtlString &mtlString::Append(const mtlChars &p_str)
 
 void mtlString::Overwrite(const mtlChars &p_str, int p_at)
 {
-	const int p_num = p_str.GetSize();
-	const int newSize = p_at + p_num;
-	char *newPool = NewPool(newSize);
-	if (newPool != NULL) {
-		const int to = m_size < p_at ? m_size : p_at;
-		for (int i = 0; i < to; ++i) {
-			newPool[i] = m_str[i];
-		}
-		delete [] m_str;
-		m_str = newPool;
-		m_size = newSize;
+	if (p_at > m_size) { return; }
+	const int num = p_str.GetSize();
+	const int newSize = num + p_at;
+	const char *str = p_str.GetChars();
+	NewPoolPreserve(newSize);
+	for (int i = 0; i < num; ++i) {
+		m_str[p_at+i] = str[i];
 	}
-	for (int i = 0; i < p_num; ++i) {
-		m_str[i + p_at] = p_str.GetChars()[i];
-	}
+	m_size = m_size > newSize ? m_size : newSize;
 	m_str[m_size] = '\0';
 }
 
@@ -410,6 +424,7 @@ void mtlString::Remove(int p_begin, int p_num)
 		m_str[i] = m_str[i + p_num];
 	}
 	m_size -= p_num;
+	m_str[m_size] = '\0';
 }
 
 void mtlString::Free( void )

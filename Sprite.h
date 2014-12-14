@@ -34,7 +34,7 @@ private:
 	int					m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
 
 private:
-	Sprite(const Sprite&) {}
+	Sprite(const Sprite&) : mtlInherit(this) {}
 	Sprite &operator=(const Sprite&) { return *this; }
 	bool LoadMetadata(Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened);
 
@@ -49,6 +49,14 @@ public:
 	float	GetAnimationTime( void ) const;
 	int		GetLoopbackFrame( void ) const;
 	//int		GetStartFrame( void ) const;
+
+	void	SetFrameWidth(int width);
+	void	SetFrameHeight(int height);
+	void	SetFrameCount(int count);
+	void	SetFramesPerSecond(float frames);
+	void	SetLoopbackFrame(int frame);
+
+	bool	LoadSpriteSheet(const mtlChars &file);
 
 	int		GetFrameIndex(float time) const;
 

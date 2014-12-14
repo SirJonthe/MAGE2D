@@ -6,6 +6,7 @@
 #include "MTL/mtlString.h"
 #include "MTL/mtlList.h"
 #include "MTL/mtlType.h"
+#include "MTL/mtlRandom.h"
 #include "Timer.h"
 #include "Sound.h"
 #include "Common.h"
@@ -84,8 +85,7 @@ private:
 	ObjectRef			m_camera;
 	Timer				m_timer;
 	float				m_deltaSeconds;
-	unsigned long long	m_rand_state;
-	unsigned long long	m_rand_inc;
+	mtlRandom			m_rand;
 	//CollisionSolver	m_collisionSolver;
 	GUI::Manager		m_guiManager;
 	bool				m_quit;
@@ -93,6 +93,7 @@ private:
 	bool				m_destroyingAll;
 	OcclusionMethod		m_occlusionMethod;
 	Mix_Music			*m_music;
+	float				m_musicVolume;
 	Point				m_mousePosition;
 	Point				m_prevMousePosition;
 	mmlVector<3>		m_clearColor;
@@ -114,7 +115,7 @@ private:
 	void							AddObjectNow(ObjectRef object);
 
 	static mtlBinaryTree<TypeNode>	&GetTypeTree( void );
-	static void						GetRegisteredTypes(const mtlBranch<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
+	static void						GetRegisteredTypes(const mtlNode<TypeNode> *branch, mtlList< mtlShared<mtlString> > &types);
 
 private:
 	Engine(const Engine&) {}
@@ -183,10 +184,13 @@ public:
 	int							GetRandomInt( void );
 	int							GetRandomInt(int min, int max);
 	float						GetRandomUniform( void );
+	float						GetRandomFloat(float min, float max);
 	float						GetRandomRaisedCos( void );
 
 	bool						PlayMusic(const mtlChars &file);
 	void						StopMusic( void );
+	float						GetMusicVolume( void ) const;
+	void						SetMusicVolume(float volume);
 
 	void						UpdateVideo( void ) const;
 	static int					GetVideoWidth( void );
@@ -203,6 +207,9 @@ public:
 	Point						GetMouseMovement( void ) const;
 	void						SetMousePosition(int x, int y); // make sure to negate
 	void						SetMousePosition(Point p);
+
+	mmlVector<2>				GetWorldMousePosition( void ) const;
+	mmlVector<2>				GetWorldMouseMovement( void ) const;
 
 	bool						IsDown(SDLKey key) const;
 	bool						IsUp(SDLKey key) const;
@@ -233,6 +240,10 @@ public:
 
 	static bool					RegisterType(const mtlChars &typeName, ObjectRef (*creator_func)()); // don't call this manually
 	static void					GetRegisteredTypes(mtlList< mtlShared<mtlString> > &types);
+
+	ObjectRef					GetSelf(const Object *self) const;
+
+	mmlVector<2>				GetScreenPoint(const mmlVector<2> &world_point) const;
 };
 
 /*class BaseProduct
@@ -277,7 +288,7 @@ template < typename type_t >
 void Engine::FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().GetShared()->IsDynamicType<type_t>()) { // have to call dynamic_cast rather than GetAsDynamicType because Object is not defined yet
 			out.AddLast(n->GetItem());
@@ -290,7 +301,7 @@ template < typename type_t >
 void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out)
 {
 	out.RemoveAll();
-	const mtlNode<ObjectRef> *n = in.GetFirst();
+	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
 		if (n->GetItem().GetShared()->IsStaticType<type_t>()) {
 			out.AddLast(n->GetItem());

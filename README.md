@@ -47,6 +47,8 @@ Compiling
   - OpenGL
 * Also depends on MiniLib
   - Source code included, no need to download separately.
+* When using G++, whenever you alter a class do a clean rebuild. I often get heap corruptions
+  in the binary if I do not. I'm not sure why this is...
 
 NOTES
 -----
@@ -55,4 +57,3 @@ NOTES
 * Because the code is in early development, the author might refactor and/or alter anything in
   the code that will break compatibility with older versions of the code.
 * Documentation is missing for now.
-

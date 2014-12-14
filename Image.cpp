@@ -15,11 +15,11 @@ const Uint32 bmask = 0x00ff0000;
 const Uint32 amask = 0xff000000;
 #endif
 
-Image::Image( void ) : m_image(NULL), m_width(0), m_height(0)
+Image::Image( void ) : mtlInherit(this), m_image(NULL), m_width(0), m_height(0)
 {
 }
 
-Image::Image(const mtlDirectory &file) : m_image(NULL), m_width(0), m_height(0)
+Image::Image(const mtlDirectory &file) : mtlInherit(this), m_image(NULL), m_width(0), m_height(0)
 {
 	Load(file);
 }
@@ -77,7 +77,7 @@ const SDL_Surface *Image::GetSurface( void ) const
 	return m_image;
 }
 
-bool Image::SetSurface(SDL_Surface *image)
+bool Image::SetSurface(SDL_Surface *&image)
 {
 	std::cout << "Image::SetSurface: " << std::endl;
 
@@ -90,6 +90,7 @@ bool Image::SetSurface(SDL_Surface *image)
 
 	m_image = SDL_DisplayFormatAlpha(image);
 	SDL_FreeSurface(image);
+	image = NULL;
 	if (m_image == NULL) {
 		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
 		return false;
@@ -149,6 +150,18 @@ bool Image::SetSurface(SDL_Surface *image)
 
 	std::cout << "\tdone" << std::endl;
 	return true;
+}
+
+bool Image::SetSurface(unsigned int *pixels, int width, int height)
+{
+	SDL_Surface *surf = SDL_CreateRGBSurface(SDL_HWSURFACE, width, height, 32, rmask, gmask, bmask, amask);
+	if (SDL_MUSTLOCK(surf)) { SDL_LockSurface(surf); }
+	unsigned int *s_pixels = (unsigned int*)surf->pixels;
+	for (int i = 0; i < width*height; ++i) {
+		s_pixels[i] = pixels[i];
+	}
+	if (SDL_MUSTLOCK(surf)) { SDL_UnlockSurface(surf); }
+	return SetSurface(surf);
 }
 
 bool Image::IsColorKey(int x, int y) const

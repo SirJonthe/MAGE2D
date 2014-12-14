@@ -35,6 +35,7 @@ private:
 	flags_t						m_collisionMask;	// what can the object collide with?
 	const unsigned long long	m_objectNumber;
 	Engine						*m_engine;
+	//const ObjectRef				*m_objectRef;
 	float						m_depth;
 
 protected:
@@ -47,7 +48,7 @@ protected:
 	virtual void	OnFinal( void ) {}
 
 private:
-	Object(const Object&) : m_objectNumber(0) {}
+	Object(const Object&) : mtlBase(this), m_objectNumber(0) {}
 	Object &operator=(const Object&) { return *this; }
 
 public:
@@ -117,6 +118,8 @@ public:
 	Engine					*GetEngine( void );
 
 	void					MakeRulesetObject( void );
+
+	//ObjectRef				GetObjectReference( void );
 };
 
 #include "Engine.h"
@@ -163,5 +166,6 @@ bool Object::LoadGraphics(const mtlChars &file)
 }
 
 #define ObjectDeclaration(ObjectName) class ObjectName : public mtlInherit<Object, ObjectName>
+#define InheritedObjectDeclaration(ObjectName, Inherited) class ObjectName : public mtlInherit<Inherited, ObjectName>
 
 #endif // OBJECT_H

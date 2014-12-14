@@ -15,7 +15,7 @@ private:
 	int			m_height;
 
 private:
-	Image(const Image &) {}
+	Image(const Image &) : mtlInherit(this) {}
 	Image &operator=(const Image &) { return *this; }
 
 public:
@@ -32,7 +32,8 @@ public:
 	int					GetHeight( void ) const;
 
 	const SDL_Surface	*GetSurface( void ) const;
-	bool				SetSurface(SDL_Surface *image);
+	bool				SetSurface(SDL_Surface *&image);
+	bool				SetSurface(unsigned int *pixels, int width, int height);
 
 	bool				IsColorKey(int x, int y) const;
 	bool				IsColorKey(Uint32 pixel) const;

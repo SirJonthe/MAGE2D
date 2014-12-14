@@ -26,7 +26,7 @@ bool Sound::Load(const mtlDirectory &file)
 	return IsGood();
 }
 
-void Sound::Play( void )
+void Sound::Play( void ) const
 {
 	if (IsGood()) {
 		Mix_PlayChannel(-1, m_chunk, 0);

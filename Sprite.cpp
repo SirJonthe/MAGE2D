@@ -5,7 +5,7 @@
 
 bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened)
 {
-	mtlNode<mtlDirectory> *node = filesOpened.GetFirst();
+	mtlItem<mtlDirectory> *node = filesOpened.GetFirst();
 	while (node != NULL) {
 		if (node->GetItem().GetDirectory().Compare(file.GetDirectory())) {
 			SetError("Recursive file meta data");
@@ -23,7 +23,7 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 	mtlParser read;
 	read.SetBuffer(fileContents);
 	int lineNumber = 0;
-	while (!read.IsEndOfFile()) {
+	while (!read.IsEnd()) {
 		++lineNumber;
 		mtlList<mtlChars> param_val;
 		read.ReadLine().SplitByChar(param_val, "=");
@@ -115,7 +115,7 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 	return true;
 }
 
-Sprite::Sprite( void ) : mtlInherit<Graphics, Sprite>(), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
+Sprite::Sprite( void ) : mtlInherit(this), m_sheet(), m_frameWidth(0), m_frameHeight(0), m_numFrames(0), m_framesPerSecond(0.0f), /*m_startFrame(0),*/ m_loopBack(0)
 {}
 
 int Sprite::GetFrameCount( void ) const
@@ -151,6 +151,37 @@ float Sprite::GetAnimationTime( void ) const
 int Sprite::GetLoopbackFrame( void ) const
 {
 	return m_loopBack;
+}
+
+void Sprite::SetFrameWidth(int width)
+{
+	m_frameWidth = mmlMax2(0, width);
+}
+
+void Sprite::SetFrameHeight(int height)
+{
+	m_frameHeight = mmlMax2(0, height);
+}
+
+void Sprite::SetFrameCount(int count)
+{
+	m_numFrames = mmlMax2(0, count);
+}
+
+void Sprite::SetFramesPerSecond(float frames)
+{
+	m_framesPerSecond = mmlMax2(0.0f, frames);
+}
+
+void Sprite::SetLoopbackFrame(int frame)
+{
+	m_loopBack = frame;
+}
+
+bool Sprite::LoadSpriteSheet(const mtlChars &file)
+{
+	m_sheet = mtlAsset<Graphics>::Load<Image>(file);
+	return !m_sheet.IsNull();
 }
 
 /*int Sprite::GetStartFrame( void ) const

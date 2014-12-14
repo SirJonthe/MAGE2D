@@ -51,4 +51,101 @@ public:
 	void SetColor(const mmlVector<3> &color);
 };
 
+ObjectDeclaration(SpriteEditor)
+{
+private:
+	class Button
+	{
+	protected:
+		Point		m_position;
+		mtlString	m_label;
+		bool		m_active;
+		bool		m_hidden;
+
+	public:
+		Button( void );
+		virtual void Draw(bool hover);
+		void Activate( void );
+		void Deactivate( void );
+		void ToggleActive( void );
+		bool IsActive( void ) const;
+		bool IsHovering(int x, int y) const;
+		void SetPosition(int x, int y);
+		void SetLabel(const mtlChars &label);
+		void Hide( void );
+		void Show( void );
+		int GetWidth( void ) const;
+		int GetHeight( void ) const;
+		int GetEndX( void ) const;
+		int GetEndY( void ) const;
+		void ToggleHidden( void );
+		int GetStartX( void ) const;
+		int GetStartY( void ) const;
+	};
+
+	/*class InputBox : public Button
+	{
+	protected:
+		mtlString	m_input;
+		Button		m_btnOK;
+		Button		m_btnCancel;
+		int			m_caret;
+	public:
+		InputBox( void );
+		void Draw(bool hover);
+		void Input(const mtlChars &input);
+		void Delete( void );
+	};*/
+
+	ObjectDeclaration(EditableSprite)
+	{
+	private:
+		Sprite		m_sprite;
+		Timer		m_timer;
+		mtlString	m_image_filename;
+	protected:
+		void OnDraw( void );
+	public:
+		EditableSprite( void );
+		bool LoadImage(const mtlChars &file);
+		bool LoadSprite(const mtlChars &file);
+		bool SaveSprite(const mtlChars &file) const;
+		void TogglePlayback( void );
+		Sprite &GetSprite( void );
+	};
+
+private:
+	mtlString							m_currentFile;
+	EditableSprite						*m_sprite;
+	mtlList< mtlList< mmlVector<2> > >	m_colliders;
+	Button								m_btnFile;
+	Button								m_btnNew;
+	Button								m_btnLoad;
+	Button								m_btnSave;
+	Button								m_btnCollider;
+	Button								m_btnClear;
+	Button								m_btnAnimation;
+	Button								m_btnImage;
+	int									m_currentFrame;
+	mtlList< mmlVector<2> >				*m_currentCollider;
+	bool								m_unsavedChanges;
+
+private:
+	SpriteEditor(const SpriteEditor&);
+	SpriteEditor &operator=(const SpriteEditor&);
+
+private:
+	bool Save(const mtlChars &out_file);
+	bool SaveCollider(const mtlChars &out_file) const;
+	bool SaveSprite(const mtlChars &out_file) const;
+
+protected:
+	void OnInit( void );
+	void OnUpdate( void );
+	void OnGUI( void );
+
+public:
+	SpriteEditor( void );
+};
+
 #endif // TOOLS_H

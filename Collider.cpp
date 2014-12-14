@@ -1,4 +1,6 @@
 #include "Collider.h"
+#include "MTL/mtlParser.h"
+#include <iostream>
 
 #define RoundErr 0.001f
 
@@ -235,7 +237,7 @@ bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly)
 	return c;
 }
 
-Collider::Collider( void ) : m_transform(NULL)
+Collider::Collider( void ) : mtlBase(this), m_transform(NULL)
 {
 }
 
@@ -254,6 +256,15 @@ void Collider::SetTransform(Transform *transform)
 	m_transform = transform;
 	if (m_transform != NULL) {
 		m_prevTransform = *m_transform;
+	}
+}
+
+void Collider::TrackPreviousTransform( void )
+{
+	if (m_transform != NULL) {
+		m_prevTransform = *m_transform;
+	} else {
+		m_prevTransform.SetParent(Transform::Local, NULL); m_prevTransform.SetIdentity(Transform::Local);
 	}
 }
 
@@ -335,7 +346,7 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 		info.c2_points.New();
 		info.c2_points.GetShared()->Create(points2.GetSize());
 
-		mtlNode< mmlVector<2> > *node = points1.GetFirst();
+		mtlItem< mmlVector<2> > *node = points1.GetFirst();
 		for (int i = 0; i < info.c1_points.GetShared()->GetSize(); ++i) {
 			(*info.c1_points.GetShared())[i] = node->GetItem();
 			node = node->GetNext();
@@ -354,18 +365,18 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 	return info;
 }
 
-PolygonCollider::PolygonCollider( void ) : m_vert(), m_globalVert()
+PolygonCollider::PolygonCollider( void ) : mtlInherit(this), m_vert(), m_globalVert()
 {
 }
 
-PolygonCollider::PolygonCollider(PolygonCollider::Shape shape) : m_vert(), m_globalVert()
+PolygonCollider::PolygonCollider(PolygonCollider::Shape shape) : mtlInherit(this), m_vert(), m_globalVert()
 {
 	CreateShape(shape);
 }
 
-PolygonCollider::PolygonCollider(const mtlArray< mmlVector<2> > &vert) : m_vert(), m_globalVert()
+PolygonCollider::PolygonCollider(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center) : mtlInherit(this), m_vert(), m_globalVert()
 {
-	m_vert.Copy(vert);
+	CopyVertexArray(vert, center);
 }
 
 void PolygonCollider::CreateShape(PolygonCollider::Shape shape)
@@ -389,25 +400,64 @@ void PolygonCollider::CreateShape(PolygonCollider::Shape shape)
 		case Hexagon:
 			m_vert.Create(6);
 			//m_collide.Create(6);
-			m_vert[0] = mmlVector<2>(-0.5f, -1.0f);
-			m_vert[1] = mmlVector<2>( 0.5f, -1.0f);
-			m_vert[2] = mmlVector<2>( 1.0f,	 0.0f);
-			m_vert[3] = mmlVector<2>( 0.5f,  1.0f);
-			m_vert[4] = mmlVector<2>(-0.5f,  1.0f);
-			m_vert[5] = mmlVector<2>(-1.0f,	 0.0f);
+			m_vert[0] = mmlVector<2>( 0.866f,  0.5f);
+			m_vert[1] = mmlVector<2>( 0.0f,    1.0f);
+			m_vert[2] = mmlVector<2>(-0.866f,  0.5f);
+			m_vert[3] = mmlVector<2>(-0.866f, -0.5f);
+			m_vert[4] = mmlVector<2>( 0.0f,   -1.0f);
+			m_vert[5] = mmlVector<2>( 0.866f, -0.5f);
 			break;
 		case Rhombus:
 			m_vert.Create(4);
 			//m_collide.Create(4);
-			m_vert[0] = mmlVector<2>( 0.0f, -0.5f);
+			m_vert[0] = mmlVector<2>( 0.0f, -1.0f);
 			m_vert[1] = mmlVector<2>( 1.0f,  0.0f);
-			m_vert[2] = mmlVector<2>( 0.0f,  0.5f);
+			m_vert[2] = mmlVector<2>( 0.0f,  1.0f);
 			m_vert[3] = mmlVector<2>(-1.0f,  0.0f);
 			break;
 	}
 	/*for (int i = 0; i < m_collide.GetSize(); ++i) {
 		m_collide[i] = false;
 	}*/
+}
+
+bool PolygonCollider::Load(const mtlDirectory &file)
+{
+	std::cout << "PolygonCollider::Load: " << file.GetDirectory().GetChars() << std::endl;
+
+	m_vert.Free();
+
+	mtlList< mmlVector<2> > vert;
+
+	mtlString file_contents;
+	if (!mtlParser::BufferFile(file, file_contents)) {
+		std::cout << "\tfailed to open/read file" << std::endl;
+		return false;
+	}
+	mtlParser parser(file_contents);
+	while (!parser.IsEnd()) {
+		mtlChars word = parser.ReadWord();
+		if (word.Compare("v")) {
+			mmlVector<2> v;
+			if (!parser.ReadWord().ToFloat(v[0]) || !parser.ReadWord().ToFloat(v[1])) {
+				std::cout << "\tfailed to convert param to float" << std::endl;
+				return false;
+			}
+			vert.AddLast(v);
+		}
+	}
+
+	m_vert.Create(vert.GetSize());
+	int i = 0;
+	mtlItem< mmlVector<2> > *p = vert.GetFirst();
+	while (p != NULL) {
+		m_vert[i] = p->GetItem();
+		p = p->GetNext();
+		++i;
+	}
+
+	std::cout << "\tdone" << std::endl;
+	return true;
 }
 
 int PolygonCollider::GetVertexCount( void ) const
@@ -435,6 +485,14 @@ mtlArray< mmlVector<2> > &PolygonCollider::GetVertexArray( void )
 	return m_vert;
 }
 
+void PolygonCollider::CopyVertexArray(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center)
+{
+	m_vert.Copy(vert);
+	for (int i = 0; i < m_vert.GetSize(); ++i) {
+		m_vert[i] -= center;
+	}
+}
+
 mmlVector<2> PolygonCollider::GetHalfExtents( void ) const
 {
 	mmlVector<2> max = mmlVector<2>(0.0f, 0.0f);
@@ -457,9 +515,13 @@ void PolygonCollider::ResetState( void )
 	/*for (int i = 0; i < m_collide.GetSize(); ++i) {
 		m_collide[i] = false;
 	}*/
-	if (m_vert.GetSize() != m_globalVert.GetSize()) { m_globalVert.Create(m_vert.GetSize()); }
-	for (int i = 0; i < m_globalVert.GetSize(); ++i) {
-		m_globalVert[i] = GetTransform().TransformPoint(Transform::Global, m_vert[i]);
+	if (m_transform == NULL) {
+		m_globalVert.Copy(m_vert);
+	} else {
+		if (m_vert.GetSize() != m_globalVert.GetSize()) { m_globalVert.Create(m_vert.GetSize()); }
+		for (int i = 0; i < m_globalVert.GetSize(); ++i) {
+			m_globalVert[i] = GetTransform().TransformPoint(Transform::Global, m_vert[i]);
+		}
 	}
 	Collider::ResetState();
 }
