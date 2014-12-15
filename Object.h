@@ -167,5 +167,7 @@ bool Object::LoadGraphics(const mtlChars &file)
 
 #define ObjectDeclaration(ObjectName) class ObjectName : public mtlInherit<Object, ObjectName>
 #define InheritedObjectDeclaration(ObjectName, Inherited) class ObjectName : public mtlInherit<Inherited, ObjectName>
+#define ConstructObject(ObjectName) mtlInherit<Object, ObjectName>(this)
+#define ConstructInheritedObject(ObjectName, Inherited) mtlInherit<Inherited, ObjectName>(this)
 
 #endif // OBJECT_H
