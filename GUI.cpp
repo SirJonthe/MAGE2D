@@ -489,7 +489,7 @@ void GUI::Box(Rect rect)
 
 	glDrawArrays(GL_QUADS, 0, 4);
 
-	Newl() = mmlMax2(Newl(), rect.h);
+	//Newl() = mmlMax2(Newl(), rect.h);
 }
 
 void GUI::Box(mmlVector<2> min, mmlVector<2> max)

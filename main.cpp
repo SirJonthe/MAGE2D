@@ -9,8 +9,6 @@
 
 // Investigate if the font rendering is fixed by using unsigned ints as UVs rather than floats
 
-// Create a quick tool that allows you to make collision shapes with a sprite as background
-
 class Controllable : public mtlInherit<Object, Controllable>
 {
 protected:
@@ -70,6 +68,44 @@ public:
 	FontRenderer( void ) : mtlInherit(this) {}
 };
 
+ObjectDeclaration(GridRender)
+{
+public:
+	GridRender( void ) : ConstructObject(GridRender) {}
+	void OnGUI( void )
+	{
+		int num = 10;
+		Rect rect;
+		rect.w = GetEngine()->GetVideoWidth() / num;
+		rect.h = GetEngine()->GetVideoHeight() / num;
+
+		Ray r;
+		r.origin[0] = GetEngine()->GetVideoWidth() / (2 * num);
+		r.origin[1] = GetEngine()->GetVideoHeight() / (2 * num);
+		Point mouse = GetEngine()->GetMousePosition();
+		mmlVector<2> vMouse = mmlVector<2>(float(mouse.x/num), float(mouse.y/num)) - r.origin;
+		r.direction = mmlNormalize(vMouse);
+		r.length = vMouse.Len();
+		GridWalker walker(r);
+		GUI::SetCaretXY(0, 0);
+		for (int i = 0; i < num; ++i) {
+
+			rect.x = walker.GetX()*rect.w;
+			rect.y = walker.GetY()*rect.h;
+			GUI::SetColor(0.0f, 0.0f, 0.5f);
+			GUI::Box(rect);
+
+			GUI::SetColor(0.0f, 1.0f, 0.0f);
+			GUI::Print(walker.GetX());
+			GUI::Print(", ");
+			GUI::Print(walker.GetY());
+			GUI::NewLine();
+
+			walker.Step();
+		}
+	}
+};
+
 class Quitter : public mtlInherit<Object, Quitter>
 {
 protected:
@@ -89,6 +125,7 @@ RegisterObject(FollowCamera);
 RegisterObject(NPC);
 RegisterObject(FontRenderer);
 RegisterObject(Quitter);
+RegisterObject(GridRender);
 
 void PrintString(const mtlChars &ch);
 
@@ -113,7 +150,8 @@ int main(int argc, char **argv)
 	//Unit_GUI(engine);
 	//Unit_RandomFloat(engine);
 	//Unit_Font(engine);
-	engine.AddObject<SpriteEditor>();
+	//engine.AddObject<SpriteEditor>();
+	engine.AddObject<GridRender>();
 	engine.RunGame();
 	return 0;
 }

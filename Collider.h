@@ -48,6 +48,35 @@ UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b);
 UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a);
 UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a, mmlVector<2> b);
 
+class GridWalker
+{
+private:
+	mmlVector<2>	m_origin;
+	mmlVector<2>	m_lengths;
+	mmlVector<2>	m_direction;
+	mmlVector<2>	m_delta;
+	int				m_xy[2];
+	int				m_step[2];
+	int				m_side;
+
+public:
+						GridWalker( void ) : m_side(0) {}
+	explicit			GridWalker(const Ray &p_ray) { SetInitialState(p_ray); }
+
+	void				SetInitialState(const Ray &p_ray);
+
+	void				Step( void );
+	int					GetX( void ) const { return m_xy[0]; }
+	int					GetY( void ) const { return m_xy[1]; }
+
+	int					GetImpactAxis( void ) const { return m_side; }
+	float				GetImpactDistance( void ) const { return fabs((m_xy[m_side] - m_origin[m_side] + (1 - m_step[m_side]) / 2) / m_direction[m_side]); }
+	mmlVector<2>		GetImpactPosition( void ) const { return m_origin + m_direction * GetImpactDistance(); }
+	mmlVector<2>		GetImpactUV( void ) const;
+
+	const mmlVector<2>	&GetOrigin( void ) const { return m_origin; }
+};
+
 class Collider;
 class PolygonCollider;
 
