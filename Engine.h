@@ -246,40 +246,6 @@ public:
 	mmlVector<2>				GetScreenPoint(const mmlVector<2> &world_point) const;
 };
 
-/*class BaseProduct
-{
-public:
-	virtual ObjectRef Create( void ) const = 0;
-};
-
-template < typename type_t >
-class Product : public BaseProduct
-{
-public:
-	ObjectRef Create( void ) const { return ObjectRef::Create<type_t>(); }
-};
-
-#define get_str(x) #x
-template < typename type_t >
-bool Engine::RegisterObject( void )
-{
-	mtlShared<BaseProduct> product = mtlShared<BaseProduct>::Create< Product<type_t> >();
-	Engine::GetObjectFactory().Add(product, get_str(type_t));
-	return true;
-}
-#undef get_str
-
-ObjectRef Engine::AddObject(const mtlChars &name)
-{
-	mtlShared<BaseProduct> product = Engine::GetObjectFactory().Find(name);
-	if (!product.IsNull()) {
-		return product.GetShared()->Create();
-	}
-	return ObjectRef();
-}
-
-#define RegisterObject(ObjectName) static const bool ObjectName##_Registered = Engine::RegisterObject<ObjectName>();*/
-
 #define RegisterObject(ObjectTypeName) \
 	ObjectRef Create_##ObjectTypeName( void ) { return ObjectRef::Create<ObjectTypeName>(); } \
 	static const bool ObjectTypeName##_Registered = Engine::RegisterType(#ObjectTypeName, Create_##ObjectTypeName)
@@ -290,7 +256,7 @@ void Engine::FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef
 	out.RemoveAll();
 	const mtlItem<ObjectRef> *n = in.GetFirst();
 	while (n != NULL) {
-		if (n->GetItem().GetShared()->IsDynamicType<type_t>()) { // have to call dynamic_cast rather than GetAsDynamicType because Object is not defined yet
+		if (n->GetItem().GetShared()->IsDynamicType<type_t>()) {
 			out.AddLast(n->GetItem());
 		}
 		n = n->GetNext();

@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "GUI.h"
 #include "MML/mmlMath.h"
+#include "Tools.h"
 
 #define node_ref(x) x->GetItem().GetShared()
 #define ptr_ref(x) x.GetShared()
@@ -344,20 +345,32 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 	args.fullscreen = false;
 
 	for (int i = 1; i < argc; ++i) {
-		std::cout << "Argument " << i << ": " << argv[i] << std::endl;
+		std::cout << "Argument " << i << ": ";
 		if (strcmp(argv[i], "-width") == 0 && i < argc-1) {
 			args.width = mmlMax2(atoi(argv[++i]), 0);
+			std::cout << "Window width set (" << args.width << ")";
 		}
 		else if (strcmp(argv[i], "-height") == 0 && i < argc-1) {
 			args.height = mmlMax2(atoi(argv[++i]), 0);
+			std::cout << "Window height set (" << args.height << ")";
 		}
 		else if (strcmp(argv[i], "-fullscreen") == 0 && i < argc-1) {
 			args.fullscreen = mmlClamp(0, atoi(argv[++i]), 1);
+			std::cout << "Window mode set (" << args.fullscreen << ")";
 		}
-		else if (strcmp(argv[i], "-freq") && i < argc-1) {
+		else if (strcmp(argv[i], "-freq") == 0 && i < argc-1) {
 			float freq = mmlMax2(1.0f, (float)atof(argv[++i]));
 			SetUpdateFrequency(freq);
+			std::cout << "Update frequency set (" << freq << ")";
 		}
+		else if (strcmp(argv[i], "-console") == 0) {
+			AddObject<Console>();
+			std::cout << "Console enabled";
+		}
+		else {
+			std::cout << "UNKNOWN ARGUMENT (" << argv[i] << ")";
+		}
+		std::cout << std::endl;
 	}
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {

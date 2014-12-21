@@ -452,6 +452,11 @@ void GUI::Print(const mtlChars &text, int scale)
 	CaretY() += int(oy);
 }
 
+void GUI::Print(char ch, int scale)
+{
+	Print(mtlChars::FromDynamic(&ch, 0, 1), scale);
+}
+
 void GUI::Print(int number, int scale)
 {
 	mtlString text;
@@ -464,6 +469,24 @@ void GUI::Print(float number, int scale)
 	mtlString text;
 	text.FromFloat(number);
 	Print(text, scale);
+}
+
+void GUI::Print(Point p, int scale)
+{
+	GUI::Print(p.x, scale);
+	GUI::Print(", ", scale);
+	GUI::Print(p.y, scale);
+}
+
+void GUI::Print(Rect r, int scale)
+{
+	GUI::Print(r.x, scale);
+	GUI::Print(", ", scale);
+	GUI::Print(r.y, scale);
+	GUI::Print("; ", scale);
+	GUI::Print(r.w, scale);
+	GUI::Print(", ", scale);
+	GUI::Print(r.h, scale);
 }
 
 void GUI::Box(Rect rect)

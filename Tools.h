@@ -26,14 +26,20 @@ private:
 	int						m_maxHistory;
 	float					m_screenHeightRatio;
 	SDLKey					m_envokationKey;
+	mtlString				m_userInput;
+	bool					m_addNewLine;
 	// format for altering color in text
 	// \{0,255,128}
 	// not printed, only alters color
 	// each new line starts off as white
 
+private:
+	void SubmitInput( void );
+
 protected:
 	void OnUpdate( void );
-	void OnDraw( void );
+	void OnGUI( void );
+	void OnInit( void );
 
 public:
 	Console( void ); // no collisions, toggle visibility on key press
@@ -46,6 +52,7 @@ public:
 	void Print(const mtlChars &text);
 	void Print(int num);
 	void Print(float num);
+	void PrintRaw(const mtlChars &str);
 	void NewLine( void );
 	void SetColor(float r, float g, float b); // appends \{r,g,b}
 	void SetColor(const mmlVector<3> &color);

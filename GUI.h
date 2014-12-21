@@ -37,8 +37,20 @@ float GetCaretV( void );
 void NewLine(int scale = 1);
 
 void Print(const mtlChars &text, int scale = 1);
+void Print(char ch, int scale = 1);
 void Print(int number, int scale = 1);
 void Print(float number, int scale = 1);
+void Print(Point p, int scale = 1);
+void Print(Rect r, int scale = 1);
+template < int n >
+void Print(const mmlVector<n> &vec, int scale = 1)
+{
+	for (int i = 0; i < n-1; ++i) {
+		GUI::Print(vec[n], scale);
+		GUI::Print(", ", scale);
+	}
+	GUI::Print(vec[n-1], scale);
+}
 
 void Box(Rect rect);
 void Box(mmlVector<2> min, mmlVector<2> max);

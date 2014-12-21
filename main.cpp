@@ -9,7 +9,7 @@
 
 // Investigate if the font rendering is fixed by using unsigned ints as UVs rather than floats
 
-class Controllable : public mtlInherit<Object, Controllable>
+ObjectDeclaration(Controllable)
 {
 protected:
 	void OnUpdate( void );
@@ -19,17 +19,17 @@ public:
 	Controllable( void );
 };
 
-class Anchor : public mtlInherit<Object, Anchor>
+ObjectDeclaration(Anchor)
 {
 protected:
 	void OnUpdate( void );
 	void OnDraw( void );
 
 public:
-	Anchor( void ) : mtlInherit(this) {}
+	Anchor( void ) : ConstructObject(Anchor) {}
 };
 
-class FollowCamera : public mtlInherit<Object, FollowCamera>
+ObjectDeclaration(FollowCamera)
 {
 private:
 	ObjectRef m_follow;
@@ -41,13 +41,13 @@ public:
 	FollowCamera( void );
 };
 
-class NPC : public mtlInherit<Object, NPC>
+ObjectDeclaration(NPC)
 {
 public:
-	NPC( void ) : mtlInherit(this) {}
+	NPC( void ) : ConstructObject(NPC) {}
 };
 
-class FontRenderer : public mtlInherit<Object, FontRenderer>
+ObjectDeclaration(FontRenderer)
 {
 protected:
 	void OnGUI( void )
@@ -65,7 +65,7 @@ protected:
 	}
 
 public:
-	FontRenderer( void ) : mtlInherit(this) {}
+	FontRenderer( void ) : ConstructObject(FontRenderer) {}
 };
 
 ObjectDeclaration(GridRender)
@@ -80,14 +80,18 @@ public:
 		rect.h = GetEngine()->GetVideoHeight() / num;
 
 		Ray r;
-		r.origin[0] = GetEngine()->GetVideoWidth() / (2 * num);
-		r.origin[1] = GetEngine()->GetVideoHeight() / (2 * num);
-		Point mouse = GetEngine()->GetMousePosition();
-		mmlVector<2> vMouse = mmlVector<2>(float(mouse.x/num), float(mouse.y/num)) - r.origin;
-		r.direction = mmlNormalize(vMouse);
-		r.length = vMouse.Len();
-		GridWalker walker(r);
+		r.origin[0] = GetEngine()->GetVideoWidth() / 2.0f;
+		r.origin[1] = GetEngine()->GetVideoHeight() / 2.0f;
 		GUI::SetCaretXY(0, 0);
+		GUI::SetColor(1.0f, 0.0f, 0.0f);
+		GUI::Print(GetEngine()->GetMousePosition());
+		GUI::NewLine();
+		Point mouse = GetEngine()->GetMousePosition();
+		mmlVector<2> vMouse = mmlVector<2>(float(mouse.x), float(mouse.y)) - r.origin;
+		r.direction = mmlNormalize(vMouse);
+		r.origin[0] /= rect.w;
+		r.origin[1] /= rect.h;
+		GridWalker walker(r);
 		for (int i = 0; i < num; ++i) {
 
 			rect.x = walker.GetX()*rect.w;
@@ -99,6 +103,10 @@ public:
 			GUI::Print(walker.GetX());
 			GUI::Print(", ");
 			GUI::Print(walker.GetY());
+			GUI::Print(" - ");
+			GUI::Print(rect.x);
+			GUI::Print(", ");
+			GUI::Print(rect.y);
 			GUI::NewLine();
 
 			walker.Step();
@@ -106,7 +114,7 @@ public:
 	}
 };
 
-class Quitter : public mtlInherit<Object, Quitter>
+ObjectDeclaration(Quitter)
 {
 protected:
 	void OnUpdate( void )
@@ -116,7 +124,7 @@ protected:
 		}
 	}
 public:
-	Quitter( void ) : mtlInherit(this) {}
+	Quitter( void ) : ConstructObject(Quitter) {}
 };
 
 RegisterObject(Controllable);
@@ -150,8 +158,8 @@ int main(int argc, char **argv)
 	//Unit_GUI(engine);
 	//Unit_RandomFloat(engine);
 	//Unit_Font(engine);
-	//engine.AddObject<SpriteEditor>();
-	engine.AddObject<GridRender>();
+	engine.AddObject<SpriteEditor>();
+	//engine.AddObject<GridRender>();
 	engine.RunGame();
 	return 0;
 }
@@ -243,7 +251,7 @@ void Anchor::OnDraw( void )
 	GUI::Box(r);
 }
 
-Controllable::Controllable( void ) : mtlInherit(this)
+Controllable::Controllable( void ) : ConstructObject(Controllable)
 {
 	SetName("object_controllable");
 }
@@ -273,7 +281,7 @@ void FollowCamera::OnGUI( void )
 	GUI::NewLine();
 }
 
-FollowCamera::FollowCamera( void ) : mtlInherit(this), m_follow()
+FollowCamera::FollowCamera( void ) : ConstructObject(FollowCamera), m_follow()
 {
 	SetName("object_camera");
 }

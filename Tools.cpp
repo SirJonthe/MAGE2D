@@ -1,3 +1,5 @@
+#include "../MTL/mtlParser.h"
+
 #include "Tools.h"
 #include "Engine.h"
 #include "GUI.h"
@@ -17,7 +19,7 @@ void KillPlane::OnUpdate( void )
 	}
 }
 
-KillPlane::KillPlane( void ) : mtlInherit<Object, KillPlane>(this)
+KillPlane::KillPlane( void ) : ConstructObject(KillPlane)
 {
 	ClearAllObjectFlags(); // other objects can not collide with us, *we* collide with *them*
 	SetName("tool_killplane");
@@ -32,50 +34,190 @@ void KillPlane::SetPlane(mmlVector<2> point, mmlVector<2> normal)
 
 RegisterObject(Console);
 
+void Console::SubmitInput( void )
+{
+	// commands:
+	// destroy type [type]
+	// id [type]
+	// count name [name]
+	// count type [type]
+	// count id [id]
+	// info name [name]
+	// info type [type]
+	// info id [id]
+	// quit // call EndGame()
+	// clear // removes everything except console
+	// camera position x, y
+	// camera rotation r
+	// camera zoom z
+	// pause name [name]
+	// pause id [id]
+	// pause all
+	// resume name name
+	// resume id id
+	// resume all
+	if (m_lines.GetLast()->GetItem().GetSize() != 0) {
+		NewLine();
+	}
+	Print(m_userInput);
+	NewLine();
+
+	mtlParser parser(m_userInput);
+
+	while (!parser.IsEnd()) {
+		mtlChars cmd = parser.ReadWord();
+		if (cmd.Compare("spawn")) {
+			mtlChars object = parser.ReadWord();
+			if (GetEngine()->AddObject(object).IsNull()) {
+				PrintRaw("{0.796,1.0,0.094}No such object");
+			}
+		} else if (cmd.Compare("destroy")) {
+			cmd = parser.ReadWord();
+			mtlChars destroy_type = parser.ReadLine();
+			mtlList<ObjectRef> objects;
+			if (cmd.Compare("name")) {
+				GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, destroy_type);
+			} else if (cmd.Compare("id")) {
+				mtlString id(destroy_type);
+				GetEngine()->FilterByStaticType(GetEngine()->GetObjects(), objects, atoi(id.GetChars()));
+			} else {
+				PrintRaw("{0.796,1.0,0.094}No such command");
+				NewLine();
+			}
+			mtlItem<ObjectRef> *i = objects.GetFirst();
+			while (i != NULL) {
+				i->GetItem()->Destroy();
+				i = i->GetNext();
+			}
+		} else if (cmd.Compare("info")) {
+			cmd = parser.ReadWord();
+			mtlList<ObjectRef> objects;
+			if (cmd.Compare("name")) {
+				mtlChars info_type = parser.ReadLine();
+				GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, info_type);
+			} else if (cmd.Compare("id")) {
+				mtlChars info_type = parser.ReadLine();
+				mtlString id(info_type);
+				GetEngine()->FilterByStaticType(GetEngine()->GetObjects(), objects, atoi(id.GetChars()));
+			} if (cmd.Compare("all")) {
+				GetEngine()->FilterByDynamicType<Object>(GetEngine()->GetObjects(), objects);
+			} else {
+				PrintRaw("{0.796,1.0,0.094}No such command");
+				NewLine();
+			}
+			mtlItem<ObjectRef> *i = objects.GetFirst();
+			while (i != NULL) {
+				Print(i->GetItem()->GetName());
+				Print("    ");
+				Print((int)i->GetItem()->GetInstanceType());
+				NewLine();
+				i = i->GetNext();
+			}
+		} else if (cmd.Compare("quit")) {
+			GetEngine()->EndGame();
+		} else if (cmd.Compare("echo")) {
+			PrintRaw(parser.ReadLine());
+		} else {
+			PrintRaw("{0.796,1.0,0.094}No such command");
+			NewLine();
+		}
+	}
+
+	m_userInput.Free();
+}
+
 void Console::OnUpdate( void )
 {
 	if (GetEngine()->IsPressed(m_envokationKey)) {
 		ToggleGraphics();
 	}
-}
-
-void Console::OnDraw( void )
-{
-	Engine::SetGUIProjection();
-	Engine::SetGUIView();
-
-	GUI::SetColor(m_bgColor);
-	GUI::Box(mmlVector<2>(0.0f, 0.0f), mmlVector<2>(Engine::GetVideoWidth(), Engine::GetVideoHeight() * m_screenHeightRatio));
-
-	GUI::SetCaretXY(0, Engine::GetVideoHeight() - GUI::GetCharPixelHeight());
-
-	mtlItem<mtlString> *l = m_lines.GetLast();
-	if (l != NULL) {
-		mmlVector<3> c = mmlVector<3>(0.0f, 0.0f, 0.0f);
-		GUI::SetColor(c[0], c[1], c[2]);
-		int i = 0;
-		while (i < l->GetItem().GetSize()) {
-			int end = l->GetItem().FindFirstChar("\\");
-			if (end >= 0 && end < l->GetItem().GetSize()-1) {
-				// color definition!
-				GUI::SetColor(c[0], c[1], c[2]);
+	if (IsVisible()) {
+		if (GetEngine()->IsPressed(SDLK_RETURN)) {
+			SubmitInput();
+		} else {
+			char ch[2] = {0,0};
+			bool shift = GetEngine()->IsDown(SDLK_LSHIFT) || GetEngine()->IsDown(SDLK_RSHIFT);
+			for (int i = (int)SDLK_a; i <= (int)SDLK_z; ++i) {
+				if (GetEngine()->IsPressed((SDLKey)i)) {
+					ch[0] = (i - (int)SDLK_a) + 'a';
+					if (shift) { ch[0] = mtlChars::ToUpper(ch[0]); }
+					m_userInput.Append(ch);
+				}
 			}
-			GUI::Print(l->GetItem().GetSubstring(i, end));
-			i = end;
+			for (int i = (int)SDLK_0; i <= (int)SDLK_9; ++i) {
+				if (GetEngine()->IsPressed((SDLKey)i)) {
+					ch[0] = (i - (int)SDLK_0) + '0';
+					m_userInput.Append(ch);
+				}
+			}
+			if (GetEngine()->IsPressed(SDLK_SPACE)) {
+				m_userInput.Append(" ");
+			}
+			if (GetEngine()->IsPressed(SDLK_BACKSPACE) && m_userInput.GetSize() > 0) {
+				m_userInput.Remove(m_userInput.GetSize()-1, 1);
+			}
 		}
 	}
 }
 
+void Console::OnGUI( void )
+{
+	if (IsVisible()) {
+		GUI::SetColor(m_bgColor);
+		GUI::Box(mmlVector<2>(0.0f, 0.0f), mmlVector<2>(Engine::GetVideoWidth(), Engine::GetVideoHeight() * m_screenHeightRatio));
+
+		GUI::SetCaretXY(0, Engine::GetVideoHeight() - GUI::GetCharPixelHeight());
+
+		mtlItem<mtlString> *l = m_lines.GetLast();
+		int start_y = GetEngine()->GetVideoHeight() * m_screenHeightRatio - GUI::GetCharPixelHeight();
+		int y = start_y - GUI::GetCharPixelHeight();
+		while (l != NULL) {
+			if (y + GUI::GetCharPixelHeight() < 0) { break; }
+
+			mmlVector<3> c = mmlVector<3>(0.76f, 0.8f, 0.87f);
+			GUI::SetColor(c[0], c[1], c[2]);
+			GUI::SetCaretXY(0, y);
+
+			GUI::Print(l->GetItem());
+
+			y -= GUI::GetCharPixelHeight();
+			l = l->GetPrev();
+		}
+		GUI::SetCaretXY(0, start_y);
+		GUI::SetColor(0.796f, 1.0f, 0.094f);
+		GUI::Print(m_userInput);
+	}
+}
+
+void Console::OnInit( void )
+{
+	SetName("tool_console");
+	// prevent more than one console
+	const mtlItem<ObjectRef> *items = GetEngine()->GetObjects().GetFirst();
+	while (items != NULL) {
+		if (items->GetItem()->IsInstanceType<Console>() && items->GetItem().GetShared() != this) {
+			Destroy();
+			break;
+		}
+		items = items->GetNext();
+	}
+}
+
 Console::Console( void ) :
-	mtlInherit<Object, Console>(this),
-	m_bgColor(0.0f, 0.0f, 0.0f),
-	m_lines(), m_maxHistory(10),
+	ConstructObject(Console),
+	m_bgColor(43.0f/255.0f, 56.0f/255.0f, 88.0f/255.0f),
+	m_lines(), m_maxHistory(20),
 	m_screenHeightRatio(0.5f),
-	m_envokationKey(SDLK_HOME)
+	m_envokationKey(SDLK_HOME),
+	m_addNewLine(false)
 {
 	ClearAllCollisionMasks();
 	ClearAllObjectFlags();
 	DisableCollisions();
+	DisableGraphics();
+	for (int i = 0; i < m_maxHistory; ++i) {
+		m_lines.AddLast();
+	}
 }
 
 void Console::SetBackgroundColor(float r, float g, float b, float a)
@@ -100,32 +242,46 @@ void Console::SetEnvokationKey(SDLKey key)
 
 void Console::Print(const mtlChars &text)
 {
-	if (m_lines.GetSize() == 0) {
-		NewLine();
-	}
-	m_lines.GetLast()->GetItem().Append(text);
+	PrintRaw("{0.76,0.8,0.87}");
+	PrintRaw(text);
 }
 
 void Console::Print(int num)
 {
 	mtlString s;
 	s.FromInt(num);
-	Print(s);
+	mtlString final("{0.78,0.58,0.77}");
+	final.Append(s);
+	PrintRaw(final);
 }
 
 void Console::Print(float num)
 {
 	mtlString s;
 	s.FromFloat(num);
-	Print(s);
+	mtlString final("{0.78,0.58,0.77}");
+	final.Append(s);
+	PrintRaw(final);
+}
+
+void Console::PrintRaw(const mtlChars &str)
+{
+	if (m_lines.GetSize() == 0) {
+		return;
+	}
+	if (m_addNewLine) {
+		m_lines.AddLast();
+		while (m_lines.GetSize() > m_maxHistory) {
+			m_lines.RemoveFirst();
+		}
+		m_addNewLine = false;
+	}
+	m_lines.GetLast()->GetItem().Append(str);
 }
 
 void Console::NewLine( void )
 {
-	m_lines.AddLast();
-	while (m_lines.GetSize() > m_maxHistory) {
-		m_lines.RemoveFirst();
-	}
+	m_addNewLine = true;
 }
 
 SpriteEditor::Button::Button( void ) : m_active(false), m_hidden(false)

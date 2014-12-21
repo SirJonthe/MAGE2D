@@ -99,7 +99,7 @@ bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly);
 // so we can later apply calculations that will
 // accurately alter trajectory and rotational angle.
 // This penalty can be seen as a spring that compresses
-// more the more two objects interpenetrate meaning
+// more the more as two objects interpenetrate meaning
 // there are forces that are trying to separate them.
 
 class Collider : public mtlBase
