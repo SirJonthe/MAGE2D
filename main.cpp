@@ -127,6 +127,31 @@ public:
 	Quitter( void ) : ConstructObject(Quitter) {}
 };
 
+ObjectDeclaration(TimerObject)
+{
+private:
+	NewTimer m_timer;
+protected:
+	void OnUpdate( void )
+	{
+		if (GetEngine()->IsPressed(SDLK_SPACE)) {
+			m_timer.Toggle();
+		}
+	}
+	void OnGUI( void )
+	{
+		GUI::Print(m_timer.GetTime());
+	}
+	void OnInit( void )
+	{
+		MakeRulesetObject();
+		SetName("object_timer");
+		m_timer.SetInterval(4.0f);
+	}
+public:
+	TimerObject( void ) : ConstructObject(TimerObject) {}
+};
+
 RegisterObject(Controllable);
 RegisterObject(Anchor);
 RegisterObject(FollowCamera);
@@ -134,6 +159,7 @@ RegisterObject(NPC);
 RegisterObject(FontRenderer);
 RegisterObject(Quitter);
 RegisterObject(GridRender);
+RegisterObject(TimerObject);
 
 void PrintString(const mtlChars &ch);
 

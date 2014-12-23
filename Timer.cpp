@@ -123,3 +123,98 @@ float Timer::GetProgramTimeInterval( void )
 {
 	return float(SDL_GetTicks()) / m_interval;
 }
+
+void NewTimer::UpdateTimer( void )
+{
+	if (m_ticking) {
+		float time = GetProgramTimeSeconds();
+		m_accumulated_time += time - m_time_last;
+		m_time_last = time;
+	}
+}
+
+NewTimer::NewTimer(float intervals_per_second) : m_intervals_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
+{
+	SetIntervalsPerSecond(intervals_per_second);
+}
+
+void NewTimer::SetInterval(float frac_of_second)
+{
+	if (frac_of_second != 0.0f) {
+		SetIntervalsPerSecond(1.0f / frac_of_second);
+	} else {
+		SetIntervalsPerSecond(0.0f);
+	}
+}
+
+float NewTimer::GetInterval( void ) const
+{
+	return m_intervals_per_second != 0.0f ? 1.0f / m_intervals_per_second : 0.0f;
+}
+
+void NewTimer::SetIntervalsPerSecond(float intervals_per_second)
+{
+	m_intervals_per_second = intervals_per_second;
+}
+
+float NewTimer::GetIntervalsPerSecond( void ) const
+{
+	return m_intervals_per_second;
+}
+
+void NewTimer::Start( void )
+{
+	m_time_last = GetProgramTimeSeconds();
+	m_ticking = true;
+}
+
+void NewTimer::Stop( void )
+{
+	UpdateTimer();
+	m_ticking = false;
+}
+
+void NewTimer::Toggle( void )
+{
+	if (IsTicking()) {
+		Stop();
+	} else {
+		Start();
+	}
+}
+
+void NewTimer::Reset( void )
+{
+	m_accumulated_time = 0.0f;
+}
+
+void NewTimer::Truncate( void )
+{
+	m_accumulated_time -= int(m_accumulated_time);
+}
+
+bool NewTimer::IsTicking( void ) const
+{
+	return m_ticking;
+}
+
+bool NewTimer::IsStopped( void ) const
+{
+	return !m_ticking;
+}
+
+float NewTimer::GetTime( void )
+{
+	UpdateTimer();
+	return m_accumulated_time * m_intervals_per_second;
+}
+
+float NewTimer::GetProgramTimeSeconds( void )
+{
+	return float(SDL_GetTicks()) / 1000.0f;
+}
+
+float NewTimer::GetProgramTime( void )
+{
+	return GetProgramTimeSeconds() * m_intervals_per_second;
+}
