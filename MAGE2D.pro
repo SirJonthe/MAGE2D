@@ -18,7 +18,8 @@ SOURCES += main.cpp \
 	Transform.cpp \
 	Collider.cpp \
     MTL/mtlExpression.cpp \
-    MTL/mtlRandom.cpp
+    MTL/mtlRandom.cpp \
+    Schedule.cpp
 
 HEADERS += \
 	Timer.h \
@@ -53,7 +54,8 @@ HEADERS += \
 	Collider.h \
     MTL/mtlExpression.h \
     MTL/mtlHashTable.h \
-    MTL/mtlRandom.h
+    MTL/mtlRandom.h \
+    Schedule.h
 
 OTHER_FILES += \
 	TODO.txt \

@@ -133,6 +133,11 @@ void NewTimer::UpdateTimer( void )
 	}
 }
 
+float NewTimer::GetStaticTime(float time_seconds) const
+{
+	return time_seconds * m_intervals_per_second;
+}
+
 NewTimer::NewTimer(float intervals_per_second) : m_intervals_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
 {
 	SetIntervalsPerSecond(intervals_per_second);
@@ -190,7 +195,20 @@ void NewTimer::Reset( void )
 
 void NewTimer::Truncate( void )
 {
-	m_accumulated_time -= int(m_accumulated_time);
+	if (m_intervals_per_second > 0.0f) {
+		float rel_time = GetStaticTime(m_accumulated_time);
+		m_accumulated_time -= (rel_time - int(rel_time)) / m_intervals_per_second;
+	}
+}
+
+void NewTimer::TruncateOnce( void )
+{
+	if (m_intervals_per_second > 0.0f) {
+		float rel_time = GetStaticTime(m_accumulated_time);
+		if (rel_time >= 1.0f) {
+			m_accumulated_time = (rel_time - 1.0f) / m_intervals_per_second;
+		}
+	}
 }
 
 bool NewTimer::IsTicking( void ) const
@@ -206,7 +224,7 @@ bool NewTimer::IsStopped( void ) const
 float NewTimer::GetTime( void )
 {
 	UpdateTimer();
-	return m_accumulated_time * m_intervals_per_second;
+	return GetStaticTime(m_accumulated_time);
 }
 
 float NewTimer::GetProgramTimeSeconds( void )
@@ -216,5 +234,5 @@ float NewTimer::GetProgramTimeSeconds( void )
 
 float NewTimer::GetProgramTime( void )
 {
-	return GetProgramTimeSeconds() * m_intervals_per_second;
+	return GetStaticTime(GetProgramTimeSeconds());
 }
