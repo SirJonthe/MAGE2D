@@ -9,37 +9,52 @@
 class Schedule
 {
 public:
-	struct Item
+	struct Task
 	{
-		float m_wait_seconds;
+		friend class Schedule;
+
+	private:
+		float m_delay_sec;
+
+	public:
+		float GetDelay( void ) const { return m_delay_sec; }
 		virtual void operator()(Object *object) = 0;
 	};
 private:
 	NewTimer					m_timer;
-	mtlList< mtlShared<Item> >	m_items;
-	mtlItem< mtlShared<Item> >	*m_current_function;
+	mtlList< mtlShared<Task> >	m_tasks;
+	mtlItem< mtlShared<Task> >	*m_current_task;
 	bool						m_loop;
 public:
 	Schedule( void );
-	template < typename type_t >
-	void AddItem(float wait_seconds);
+
+	template < typename task_t >
+	void AddTask(float wait_seconds);
+
+	bool IsComplete( void ) const;
 	void Execute(Object *object);
+
 	void StartTimer( void );
 	void StopTimer( void );
 	void RestartTimer( void );
-	// a list of things to do in order
-	// set up a list of things to do at given times
-	// call execute at every update - Schedule will call a function (or more) if the time is up, will do nothing if time is not up
+
+	void LoopSchedule(bool loop);
+	bool IsLooping( void ) const;
+
+	bool IsTicking( void ) const;
+	bool IsStopped( void ) const;
 };
 
-template < typename type_t >
-void Schedule::AddItem(float wait_seconds)
+template < typename task_t >
+void Schedule::AddTask(float delay_sec)
 {
-	mtlShared<Item> item = mtlShared<type_t>::Create();
-	item->m_wait_seconds = wait_seconds;
-	m_items.AddLast(item);
-	if (m_current_function == NULL) {
-		m_current_function = m_items.GetFirst();
+	mtlShared<Task> task;
+	task.New<task_t>();
+	task->m_delay_sec = delay_sec;
+	m_tasks.AddLast(task);
+	if (m_current_task == NULL) {
+		m_current_task = m_tasks.GetFirst();
+		m_timer.SetBeatInterval(task->GetDelay());
 	}
 }
 

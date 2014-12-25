@@ -3,10 +3,12 @@
 #include "Object.h"
 #include "Image.h"
 #include "Tools.h"
+#include "Schedule.h"
 #include "MTL/mtlString.h"
 #include "MTL/mtlStringMap.h"
 #include <iostream>
 
+// BUG: mtlShared<a> = mtlShared<b> (can't access the other class' private members)
 // Investigate if the font rendering is fixed by using unsigned ints as UVs rather than floats
 
 ObjectDeclaration(Controllable)
@@ -137,6 +139,14 @@ protected:
 		if (GetEngine()->IsPressed(SDLK_SPACE)) {
 			m_timer.Toggle();
 		}
+		if (GetEngine()->IsPressed(SDLK_RETURN)) {
+			m_timer.Beat();
+		}
+		if (GetEngine()->IsPressed(SDLK_UP)) {
+			m_timer.SetBeatInterval(m_timer.GetBeatInterval() + 1.0f);
+		} else if (GetEngine()->IsPressed(SDLK_DOWN) && m_timer.GetBeatInterval() >= 1.0f) {
+			m_timer.SetBeatInterval(m_timer.GetBeatInterval() - 1.0f);
+		}
 	}
 	void OnGUI( void )
 	{
@@ -146,7 +156,7 @@ protected:
 	{
 		MakeRulesetObject();
 		SetName("object_timer");
-		m_timer.SetInterval(4.0f);
+		m_timer.SetBeatInterval(1.0f);
 	}
 public:
 	TimerObject( void ) : ConstructObject(TimerObject) {}
@@ -171,6 +181,7 @@ void Unit_ArrayResize( void );
 void Unit_GUI(Engine &engine);
 void Unit_RandomFloat(Engine &engine);
 void Unit_Font(Engine &engine);
+void Unit_Schedule( void );
 
 int main(int argc, char **argv)
 {
@@ -184,8 +195,10 @@ int main(int argc, char **argv)
 	//Unit_GUI(engine);
 	//Unit_RandomFloat(engine);
 	//Unit_Font(engine);
-	engine.AddObject<SpriteEditor>();
 	//engine.AddObject<GridRender>();
+	//Unit_Schedule();
+	engine.AddObject<SpriteEditor>();
+	//engine.AddObject<TimerObject>();
 	engine.RunGame();
 	return 0;
 }
@@ -481,4 +494,50 @@ void Unit_Font(Engine &engine)
 	engine.AddObject("Quitter");
 	engine.AddObject("FontRenderer");
 	engine.RunGame();
+}
+
+struct Task1 : public Schedule::Task
+{
+	virtual void operator()(Object*)
+	{
+		std::cout << "\t1" << std::endl;
+	}
+};
+
+struct Task2 : public Schedule::Task
+{
+	virtual void operator()(Object*)
+	{
+		std::cout << "\t2" << std::endl;
+	}
+};
+
+struct Task3 : public Schedule::Task
+{
+	virtual void operator()(Object*)
+	{
+		std::cout << "\t3" << std::endl;
+	}
+};
+
+void Unit_Schedule( void )
+{
+	std::cout << "Unit_schedule: " << std::endl;
+
+	Schedule schedule;
+	schedule.AddTask<Task1>(0.5f);
+	schedule.AddTask<Task2>(1.0f);
+	schedule.AddTask<Task3>(2.0f);
+	schedule.LoopSchedule(false);
+
+	SDL_Event event;
+
+	schedule.StartTimer();
+	while (!schedule.IsComplete()) {
+		if (SDL_PollEvent(&event) && event.key.keysym.sym == SDLK_ESCAPE) {
+			break;
+		}
+		schedule.Execute(NULL);
+	}
+	std::cout << " [done]" << std::endl;
 }

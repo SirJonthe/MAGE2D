@@ -35,38 +35,39 @@ public:
 class NewTimer
 {
 private:
-	float	m_intervals_per_second;
-	float	m_accumulated_time;
-	float	m_time_last;
-	bool	m_ticking;
+	float			m_beats_per_second;
+	mutable float	m_accumulated_time;
+	mutable float	m_time_last;
+	bool			m_ticking;
 
 private:
-	void UpdateTimer( void );
+	void UpdateTimer( void ) const;
 	float GetStaticTime(float time_seconds) const;
 
 public:
-	explicit NewTimer(float intervals_per_second=1.0f);
+	explicit NewTimer(float beats_per_second=1.0f);
 
-	void			SetInterval(float frac_of_second);
-	float			GetInterval( void ) const;
+	void			SetBeatInterval(float frac_of_second);
+	float			GetBeatInterval( void ) const;
 
-	void			SetIntervalsPerSecond(float intervals_per_second);
-	float			GetIntervalsPerSecond( void ) const;
+	void			SetBeatsPerSecond(float beats_per_second);
+	float			GetBeatsPerSecond( void ) const;
 
 	void			Start( void ); // resumes
 	void			Stop( void );
 	void			Toggle( void ); // toggle between start and stop
 	void			Reset( void ); // only resets, no resume unless already ticking
 	void			Truncate( void ); // same as reset, only keeps the fractions
-	void			TruncateOnce( void );
+	void			Beat( void ); // same as Truncate, only removes one whole number, not all whole numbers
 
 	bool			IsTicking( void ) const;
 	bool			IsStopped( void ) const;
+	bool			IsDue( void ) const;
 
-	float			GetTime( void ); // if running get time now, if stopped get delta
+	float			GetTime( void ) const; // if running get time now, if stopped get delta
 
 	static float	GetProgramTimeSeconds( void );
-	float			GetProgramTime( void );
+	float			GetProgramTime( void ) const;
 };
 
 #endif // TIMER_H

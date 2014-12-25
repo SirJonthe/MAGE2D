@@ -124,7 +124,7 @@ float Timer::GetProgramTimeInterval( void )
 	return float(SDL_GetTicks()) / m_interval;
 }
 
-void NewTimer::UpdateTimer( void )
+void NewTimer::UpdateTimer( void ) const
 {
 	if (m_ticking) {
 		float time = GetProgramTimeSeconds();
@@ -135,36 +135,36 @@ void NewTimer::UpdateTimer( void )
 
 float NewTimer::GetStaticTime(float time_seconds) const
 {
-	return time_seconds * m_intervals_per_second;
+	return time_seconds * m_beats_per_second;
 }
 
-NewTimer::NewTimer(float intervals_per_second) : m_intervals_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
+NewTimer::NewTimer(float beats_per_second) : m_beats_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
 {
-	SetIntervalsPerSecond(intervals_per_second);
+	SetBeatsPerSecond(beats_per_second);
 }
 
-void NewTimer::SetInterval(float frac_of_second)
+void NewTimer::SetBeatInterval(float frac_of_second)
 {
 	if (frac_of_second != 0.0f) {
-		SetIntervalsPerSecond(1.0f / frac_of_second);
+		SetBeatsPerSecond(1.0f / frac_of_second);
 	} else {
-		SetIntervalsPerSecond(0.0f);
+		SetBeatsPerSecond(0.0f);
 	}
 }
 
-float NewTimer::GetInterval( void ) const
+float NewTimer::GetBeatInterval( void ) const
 {
-	return m_intervals_per_second != 0.0f ? 1.0f / m_intervals_per_second : 0.0f;
+	return m_beats_per_second != 0.0f ? 1.0f / m_beats_per_second : 0.0f;
 }
 
-void NewTimer::SetIntervalsPerSecond(float intervals_per_second)
+void NewTimer::SetBeatsPerSecond(float beats_per_second)
 {
-	m_intervals_per_second = intervals_per_second;
+	m_beats_per_second = beats_per_second;
 }
 
-float NewTimer::GetIntervalsPerSecond( void ) const
+float NewTimer::GetBeatsPerSecond( void ) const
 {
-	return m_intervals_per_second;
+	return m_beats_per_second;
 }
 
 void NewTimer::Start( void )
@@ -195,18 +195,19 @@ void NewTimer::Reset( void )
 
 void NewTimer::Truncate( void )
 {
-	if (m_intervals_per_second > 0.0f) {
+	if (m_beats_per_second > 0.0f) {
 		float rel_time = GetStaticTime(m_accumulated_time);
-		m_accumulated_time -= (rel_time - int(rel_time)) / m_intervals_per_second;
+		m_accumulated_time = (rel_time - int(rel_time)) / m_beats_per_second;
 	}
 }
 
-void NewTimer::TruncateOnce( void )
+void NewTimer::Beat( void )
 {
-	if (m_intervals_per_second > 0.0f) {
+	if (m_beats_per_second > 0.0f) {
 		float rel_time = GetStaticTime(m_accumulated_time);
 		if (rel_time >= 1.0f) {
-			m_accumulated_time = (rel_time - 1.0f) / m_intervals_per_second;
+			//m_accumulated_time = (rel_time - 1.0f) / m_beats_per_second;
+			m_accumulated_time -= (1.0f / m_beats_per_second);
 		}
 	}
 }
@@ -221,7 +222,12 @@ bool NewTimer::IsStopped( void ) const
 	return !m_ticking;
 }
 
-float NewTimer::GetTime( void )
+bool NewTimer::IsDue( void ) const
+{
+	return GetTime() >= 1.0f;
+}
+
+float NewTimer::GetTime( void ) const
 {
 	UpdateTimer();
 	return GetStaticTime(m_accumulated_time);
@@ -232,7 +238,7 @@ float NewTimer::GetProgramTimeSeconds( void )
 	return float(SDL_GetTicks()) / 1000.0f;
 }
 
-float NewTimer::GetProgramTime( void )
+float NewTimer::GetProgramTime( void ) const
 {
 	return GetStaticTime(GetProgramTimeSeconds());
 }

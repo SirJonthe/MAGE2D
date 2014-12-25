@@ -426,9 +426,13 @@ void GUI::Print(const mtlChars &text, int scale)
 			ch = last_char + 1;
 		}
 		int index = ch - first_char;
+#ifdef __APPLE__
 		float ux = /*(0.5f / (float)font_width) +*/ char_uv_width * (index % char_count_width);
-		float uy = /*(0.5f / (float)font_height) +*/ (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
-
+		float uy = (-0.5f / (float)font_height) + (char_uv_height * (index / char_count_width));
+#else
+		float ux = char_uv_width * (index % char_count_width);
+		float uy = (char_uv_height * (index / char_count_width)); // should technically sample from the middle, but that breaks font
+#endif
 		uv[0] = ux;
 		uv[1] = uy + char_uv_height;
 
