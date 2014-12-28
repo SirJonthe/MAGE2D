@@ -233,6 +233,11 @@ float NewTimer::GetTime( void ) const
 	return GetStaticTime(m_accumulated_time);
 }
 
+int NewTimer::GetBeats( void ) const
+{
+	return (int)GetTime();
+}
+
 float NewTimer::GetProgramTimeSeconds( void )
 {
 	return float(SDL_GetTicks()) / 1000.0f;

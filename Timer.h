@@ -65,6 +65,7 @@ public:
 	bool			IsDue( void ) const;
 
 	float			GetTime( void ) const; // if running get time now, if stopped get delta
+	int				GetBeats( void ) const;
 
 	static float	GetProgramTimeSeconds( void );
 	float			GetProgramTime( void ) const;
