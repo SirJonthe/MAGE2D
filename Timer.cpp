@@ -138,12 +138,12 @@ float NewTimer::GetStaticTime(float time_seconds) const
 	return time_seconds * m_beats_per_second;
 }
 
-NewTimer::NewTimer(float beats_per_second) : m_beats_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
+NewTimer::NewTimer(float tempo, Units units) : m_beats_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
 {
-	SetBeatsPerSecond(beats_per_second);
+	SetTempo(tempo, units);
 }
 
-void NewTimer::SetBeatInterval(float frac_of_second)
+/*void NewTimer::SetBeatInterval(float frac_of_second)
 {
 	if (frac_of_second != 0.0f) {
 		SetBeatsPerSecond(1.0f / frac_of_second);
@@ -165,6 +165,30 @@ void NewTimer::SetBeatsPerSecond(float beats_per_second)
 float NewTimer::GetBeatsPerSecond( void ) const
 {
 	return m_beats_per_second;
+}*/
+
+void NewTimer::SetTempo(float tempo, NewTimer::Units units)
+{
+	if (units == BeatsPerMinute) {
+		m_beats_per_second = tempo / 60.0f;
+	} else if (units == FractionOfSecond) {
+		m_beats_per_second = tempo != 0.0f ? 1.0f / tempo : 0.0f;
+	} else {
+		m_beats_per_second = tempo;
+	}
+}
+
+float NewTimer::GetTempo(NewTimer::Units units) const
+{
+	float tempo = 0.0f;
+	if (units == BeatsPerMinute) {
+		tempo = m_beats_per_second * 60.0f;
+	} else if (units == FractionOfSecond) {
+		tempo = m_beats_per_second != 0.0f ? 1.0f / m_beats_per_second : 0.0f;
+	} else {
+		tempo = m_beats_per_second;
+	}
+	return tempo;
 }
 
 void NewTimer::Start( void )
@@ -206,7 +230,6 @@ void NewTimer::Beat( void )
 	if (m_beats_per_second > 0.0f) {
 		float rel_time = GetStaticTime(m_accumulated_time);
 		if (rel_time >= 1.0f) {
-			//m_accumulated_time = (rel_time - 1.0f) / m_beats_per_second;
 			m_accumulated_time -= (1.0f / m_beats_per_second);
 		}
 	}
@@ -241,6 +264,19 @@ int NewTimer::GetBeats( void ) const
 float NewTimer::GetProgramTimeSeconds( void )
 {
 	return float(SDL_GetTicks()) / 1000.0f;
+}
+
+float NewTimer::GetProgramTime(float tempo, NewTimer::Units units)
+{
+	float time = 0.0f;
+	if (units == BeatsPerMinute) {
+		time = GetProgramTimeSeconds() * (tempo / 60.0f);
+	} else if (units == FractionOfSecond) {
+		time = tempo != 0.0f ? 1.0f / tempo : 0.0f;
+	} else {
+		time = GetProgramTimeSeconds() * tempo;
+	}
+	return time;
 }
 
 float NewTimer::GetProgramTime( void ) const

@@ -45,13 +45,23 @@ private:
 	float GetStaticTime(float time_seconds) const;
 
 public:
-	explicit NewTimer(float beats_per_second=1.0f);
+	enum Units
+	{
+		BeatsPerSecond,
+		BeatsPerMinute,
+		FractionOfSecond
+	};
 
-	void			SetBeatInterval(float frac_of_second);
+	explicit NewTimer(float beats_per_second = 1.0f, Units units = BeatsPerSecond);
+
+	/*void			SetBeatInterval(float frac_of_second);
 	float			GetBeatInterval( void ) const;
 
 	void			SetBeatsPerSecond(float beats_per_second);
-	float			GetBeatsPerSecond( void ) const;
+	float			GetBeatsPerSecond( void ) const;*/
+
+	void			SetTempo(float tempo, Units units = BeatsPerSecond);
+	float			GetTempo(Units units = BeatsPerSecond) const;
 
 	void			Start( void ); // resumes
 	void			Stop( void );
@@ -68,6 +78,7 @@ public:
 	int				GetBeats( void ) const;
 
 	static float	GetProgramTimeSeconds( void );
+	static float	GetProgramTime(float tempo, Units units = BeatsPerSecond);
 	float			GetProgramTime( void ) const;
 };
 

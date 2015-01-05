@@ -18,7 +18,7 @@ void Schedule::Execute(Object *object)
 		}
 		if (!IsComplete()) {
 			m_timer.Beat();
-			m_timer.SetBeatInterval(m_current_task->GetItem()->GetDelay());
+			m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), NewTimer::FractionOfSecond);
 		}
 	}
 }
@@ -38,7 +38,7 @@ void Schedule::RestartTimer( void )
 	m_timer.Reset();
 	m_current_task = m_tasks.GetFirst();
 	if (!IsComplete()) {
-		m_timer.SetBeatInterval(m_current_task->GetItem()->GetDelay());
+		m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), NewTimer::FractionOfSecond);
 	}
 }
 

@@ -395,6 +395,7 @@ void GUI::Print(const mtlChars &text, int scale)
 		switch (ch) {
 		case '\n':
 		case '\r':
+			SetCaretX(0);
 			ox = 0.0f;
 			oy += char_px_height * scale;
 			continue;

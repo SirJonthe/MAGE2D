@@ -143,9 +143,9 @@ protected:
 			m_timer.Beat();
 		}
 		if (GetEngine()->IsPressed(SDLK_UP)) {
-			m_timer.SetBeatInterval(m_timer.GetBeatInterval() + 1.0f);
-		} else if (GetEngine()->IsPressed(SDLK_DOWN) && m_timer.GetBeatInterval() >= 1.0f) {
-			m_timer.SetBeatInterval(m_timer.GetBeatInterval() - 1.0f);
+			m_timer.SetTempo(m_timer.GetTempo() + 1.0f);
+		} else if (GetEngine()->IsPressed(SDLK_DOWN) && m_timer.GetTempo(NewTimer::FractionOfSecond) >= 1.0f) {
+			m_timer.SetTempo(m_timer.GetTempo(NewTimer::FractionOfSecond) - 1.0f, NewTimer::FractionOfSecond);
 		}
 	}
 	void OnGUI( void )
@@ -156,7 +156,7 @@ protected:
 	{
 		MakeRulesetObject();
 		SetName("object_timer");
-		m_timer.SetBeatInterval(1.0f);
+		m_timer.SetTempo(1.0f, NewTimer::FractionOfSecond);
 	}
 public:
 	TimerObject( void ) : ConstructObject(TimerObject) {}

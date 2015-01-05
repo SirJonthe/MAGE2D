@@ -54,7 +54,7 @@ void Schedule::AddTask(float delay_sec)
 	m_tasks.AddLast(task);
 	if (m_current_task == NULL) {
 		m_current_task = m_tasks.GetFirst();
-		m_timer.SetBeatInterval(task->GetDelay());
+		m_timer.SetTempo(task->GetDelay());
 	}
 }
 
