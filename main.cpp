@@ -144,8 +144,9 @@ protected:
 		}
 		if (GetEngine()->IsPressed(SDLK_UP)) {
 			m_timer.SetTempo(m_timer.GetTempo() + 1.0f);
-		} else if (GetEngine()->IsPressed(SDLK_DOWN) && m_timer.GetTempo(NewTimer::FractionOfSecond) >= 1.0f) {
-			m_timer.SetTempo(m_timer.GetTempo(NewTimer::FractionOfSecond) - 1.0f, NewTimer::FractionOfSecond);
+			std::cout << m_timer.GetTempo(NewTimer::FractionOfSecond) << std::endl;
+		} else if (GetEngine()->IsPressed(SDLK_DOWN)) {
+			m_timer.SetTempo(m_timer.GetTempo() / 2.0f);
 		}
 	}
 	void OnGUI( void )
@@ -156,7 +157,7 @@ protected:
 	{
 		MakeRulesetObject();
 		SetName("object_timer");
-		m_timer.SetTempo(1.0f, NewTimer::FractionOfSecond);
+		m_timer.SetTempo(1.0f);
 	}
 public:
 	TimerObject( void ) : ConstructObject(TimerObject) {}

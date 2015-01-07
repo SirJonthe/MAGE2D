@@ -337,17 +337,15 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 	{
 		int width, height;
 		int fullscreen;
-		int channels;
 	};
 
 	Args args;
 	args.width = width;
 	args.height = height;
 	args.fullscreen = false;
-	args.channels = 16;
 
 	for (int i = 1; i < argc; ++i) {
-		std::cout << "Argument " << i << ": ";
+		std::cout << "\t" << argv[i] << ": ";
 		if (strcmp(argv[i], "-width") == 0 && i < argc-1) {
 			args.width = mmlMax2(atoi(argv[++i]), 0);
 			std::cout << "Window width set (" << args.width << ")";
@@ -368,18 +366,15 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 		else if (strcmp(argv[i], "-console") == 0) {
 			AddObject<Console>();
 			std::cout << "Console enabled";
-		} else if (strcmp(argv[i], "-channels") == 0 && i < argc-1) {
-			args.channels = mmlMax2(MIX_DEFAULT_CHANNELS, atoi(argv[++i]));
-			std::cout << "Sound channel count set(" << args.channels << ")";
 		}
 		else {
-			std::cout << "UNKNOWN ARGUMENT (" << argv[i] << ")";
+			std::cout << "UNKNOWN ARGUMENT";
 		}
 		std::cout << std::endl;
 	}
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {
-		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
+		std::cout << "\tSDL fail: " << SDL_GetError() << std::endl;
 		return false;
 	}
 
@@ -389,20 +384,20 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	if (SDL_SetVideoMode(args.width, args.height, 32, SDL_OPENGL) == NULL) {
-		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
+		std::cout << "\tvideo fail: " << SDL_GetError() << std::endl;
 		return false;
 	}
 
 #ifdef __GLEW_H__
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
-		std::cout << "Could not initialize GLEW: " << glewGetErrorString(err);
+		std::cout << "\tGLEW fail: " << glewGetErrorString(err);
 		return false;
 	}
 #endif
 
-	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, args.channels, 1024) == -1) {
-		std::cout << "\tfailed: " << Mix_GetError() << std::endl;
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) == -1) {
+		std::cout << "\tSDL_mixer fail: " << Mix_GetError() << std::endl;
 		return false;
 	}
 
