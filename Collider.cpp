@@ -277,7 +277,7 @@ bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly)
 	return c;
 }
 
-Collider::Collider( void ) : mtlBase(this), m_transform(NULL)
+Collider::Collider( void ) : mtlBase(this), m_transform(NULL), m_density(0.0f), m_gravity(0.0f, 0.0f)
 {
 }
 
@@ -307,6 +307,28 @@ void Collider::TrackPreviousTransform( void )
 		m_prevTransform.SetParent(Transform::Local, NULL);
 		m_prevTransform.SetIdentity(Transform::Local);
 	}
+}
+
+float Collider::GetMass( void ) const
+{
+	float area = GetArea();
+	return area != 0.0f ? GetDensity() / area : 0.0f;
+}
+
+void Collider::SetMass(float mass)
+{
+	float area = GetArea();
+	m_density = area != 0.0f ? mmlMax2(0.0f, mass) / area : 0.0f;
+}
+
+float Collider::GetDensity( void ) const
+{
+	return m_density;
+}
+
+void Collider::SetDensity(float density)
+{
+	m_density = mmlMax3(0.0f, density);
 }
 
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
@@ -567,6 +589,24 @@ void PolygonCollider::ResetState( void )
 	Collider::ResetState();
 }
 
+float PolygonCollider::GetCircumference( void ) const
+{
+	float circ = 0.0f;
+	for (int i = 0, j = m_vert.GetSize() - 1; i < m_vert.GetSize(); j=i, ++i) {
+		circ += (m_vert[j]-m_vert[i]).Len();
+	}
+	return circ;
+}
+
+float PolygonCollider::GetArea( void ) const
+{
+	float area = 0.0f;
+	for (int i = 0, j = m_vert.GetSize() - 1; i < m_vert.GetSize(); j=i, ++i) {
+		area += m_vert[i][0]*(m_vert[(i+1) % m_vert.GetSize()][1] - m_vert[j][1]);
+	}
+	return 0.5f * area;
+}
+
 UnaryCollisionInfo PolygonCollider::Collides(Ray ray) const
 {
 	UnaryCollisionInfo info;
@@ -642,4 +682,54 @@ UnaryCollisionInfo PolygonCollider::Collides(Plane plane) const
 CollisionInfo PolygonCollider::Collides(const Collider &c) const
 {
 	return c.CollidesWith(*this);
+}
+
+float FluidCollider::GetPressure(mmlVector<2> point) const
+{
+	float pressure = 0.0f;
+	if (m_transform != NULL && (m_gravity[0] != 0.0f || m_gravity[1] != 0.0f) && (m_half_extents[0] != 0.0f || m_half_extents[1] != 0.0f)) {
+		mmlVector<2> pos = m_transform->GetPosition(Transform::Global);
+		if (point[0] >= (pos[0]-m_half_extents[0]) && point[0] <= (pos[0]+m_half_extents[0]) && point[1] >= (pos[1]-m_half_extents[1]) && point[1] <= (pos[1]+m_half_extents[1])) {
+			float gravity_magnitude = m_gravity.LenFast();
+			mmlVector<2> gravity_normal = m_gravity / gravity_magnitude;
+			mmlVector<2> rect[4] = {
+				-m_half_extents + pos,
+				mmlVector<2>(m_half_extents[0], -m_half_extents[1]) + pos,
+				m_half_extents + pos,
+				mmlVector<2>(-m_half_extents[0], m_half_extents[1]) + pos
+			};
+			float line_length = (rect[0] - rect[2]).LenFast() + 1.0f; // the diagonal length of the collision box (plus 1 to avoid edge cases)
+			mmlVector<2> p1 = point;
+			mmlVector<2> p2 = point - gravity_normal * line_length;
+			for (int i = 0, j = 3; i < 4; j=i, ++i) {
+				mmlVector<2> depth_vector;
+				if (LineIntersection(rect[i], rect[j], p1, p2, depth_vector)) {
+					pressure = GetDensity() * (p1 - depth_vector).LenFast() * gravity_magnitude;
+					break;
+				}
+			}
+		}
+	}
+	return pressure;
+}
+
+mmlVector<2> FluidCollider::GetHalfExtents( void ) const
+{
+	return m_half_extents;
+}
+
+void FluidCollider::SetHalfExtents(mmlVector<2> half)
+{
+	m_half_extents[0] = mmlMax2(half[0], -half[0]);
+	m_half_extents[1] = mmlMax2(half[1], -half[1]);
+}
+
+float FluidCollider::GetCircumference( void ) const
+{
+	return 4.0f * (m_half_extents[0] + m_half_extents[1]);
+}
+
+float FluidCollider::GetArea( void ) const
+{
+	return 4.0f * m_half_extents[0] * m_half_extents[1];
 }

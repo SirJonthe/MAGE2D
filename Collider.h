@@ -107,8 +107,11 @@ class Collider : public mtlBase
 	friend class PolygonCollider;
 
 protected:
-	Transform *m_transform;
-	Transform m_prevTransform;
+	Transform		*m_transform;
+	Transform		m_prevTransform;
+	float			m_density;
+	mmlVector<2>	m_gravity;
+
 protected:
 	virtual CollisionInfo CollidesWith(const Collider&) const			{ CollisionInfo c; c.c1 = NULL; c.c2 = NULL; c.collision = false; return c; }
 	virtual CollisionInfo CollidesWith(const PolygonCollider&) const	{ CollisionInfo c; c.c1 = NULL; c.c2 = NULL; c.collision = false; return c; }
@@ -121,20 +124,32 @@ public:
 	const Transform				&GetTransform( void ) const;
 	void						SetTransform(Transform *transform);
 
-	virtual bool				Load(const mtlDirectory &file)		{ return false; }
+	virtual bool				Load(const mtlDirectory &file)			{ return false; }
 
-	virtual void				SetHalfExtents(float w, float h)	{ SetHalfExtents(mmlVector<2>(w, h)); }
-	virtual void				SetHalfExtents(mmlVector<2>)		{} // exactly what this does is left undefined, hopefully something reasonable
-	virtual mmlVector<2>		GetHalfExtents( void ) const		{ return mmlVector<2>(0.0f, 0.0f); }
-	virtual void				ResetState( void )					{}
+	virtual void				SetHalfExtents(float w, float h)		{ SetHalfExtents(mmlVector<2>(w, h)); }
+	virtual void				SetHalfExtents(mmlVector<2>)			{} // exactly what this does is left undefined, hopefully something reasonable
+	virtual mmlVector<2>		GetHalfExtents( void ) const			{ return mmlVector<2>(0.0f, 0.0f); }
+	virtual void				ResetState( void )						{}
 	void						TrackPreviousTransform( void );
 
-	virtual UnaryCollisionInfo	Collides(Ray) const					{ UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
-	virtual UnaryCollisionInfo	Collides(Range) const				{ UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
-	virtual UnaryCollisionInfo	Collides(Plane)	const				{ UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
-	virtual CollisionInfo		Collides(const Collider&) const		{ CollisionInfo c; c.c1 = NULL; c.c2 = NULL; c.collision = false; return c; }
+	virtual UnaryCollisionInfo	Collides(Ray) const						{ UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
+	virtual UnaryCollisionInfo	Collides(Range) const					{ UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
+	virtual UnaryCollisionInfo	Collides(Plane)	const					{ UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
+	virtual CollisionInfo		Collides(const Collider&) const			{ CollisionInfo c; c.c1 = NULL; c.c2 = NULL; c.collision = false; return c; }
 
-	void						RevertTransform( void ) const		{ if (m_transform != NULL) { *m_transform = m_prevTransform; } }
+	virtual float				GetCircumference( void ) const			{ return 0.0f; }
+	virtual float				GetArea( void ) const					{ return 0.0f; }
+
+	float						GetMass( void ) const;
+	void						SetMass(float mass);
+
+	mmlVector<2>				GetGravityVector( void ) const			{ return m_gravity; }
+	void						SetGravityVector(mmlVector<2> gravity)	{ m_gravity = gravity; }
+
+	float						GetDensity( void ) const;
+	void						SetDensity(float density);
+
+	void						RevertTransform( void ) const			{ if (m_transform != NULL) { *m_transform = m_prevTransform; } }
 };
 
 typedef Collider NullCollider;
@@ -180,10 +195,28 @@ public:
 	void							SetHalfExtents(mmlVector<2> half);
 	void							ResetState( void );
 
+	float							GetCircumference( void ) const;
+	float							GetArea( void ) const;
+
 	UnaryCollisionInfo				Collides(Ray ray) const;
 	UnaryCollisionInfo				Collides(Range range) const;
 	UnaryCollisionInfo				Collides(Plane plane) const;
 	CollisionInfo					Collides(const Collider &c) const;
+};
+
+class FluidCollider : public PolygonCollider<Collider, FluidCollider>
+{
+private:
+	mmlVector<2> m_half_extents;
+
+public:
+	float			GetPressure(mmlVector<2> point);
+
+	mmlVector<2>	GetHalfExtents( void ) const;
+	void			SetHalfExtents(mmlVector<2> half);
+
+	float			GetCircumference( void ) const;
+	float			GetArea( void ) const;
 };
 
 #endif // COLLIDER_H
