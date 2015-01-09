@@ -111,6 +111,7 @@ protected:
 	Transform		m_prevTransform;
 	float			m_density;
 	mmlVector<2>	m_gravity;
+	mmlVector<2>	m_movement;
 
 protected:
 	virtual CollisionInfo CollidesWith(const Collider&) const			{ CollisionInfo c; c.c1 = NULL; c.c2 = NULL; c.collision = false; return c; }
@@ -148,6 +149,10 @@ public:
 
 	float						GetDensity( void ) const;
 	void						SetDensity(float density);
+
+	mmlVector<2>				GetMovement( void ) const;
+	void						ZeroMovement( void );
+	void						AddForce(mmlVector<2> force);
 
 	void						RevertTransform( void ) const			{ if (m_transform != NULL) { *m_transform = m_prevTransform; } }
 };
@@ -217,6 +222,10 @@ public:
 
 	float			GetCircumference( void ) const;
 	float			GetArea( void ) const;
+
+	// clip collider polygon to fluid rect
+	// calculate area of clipped collider
+	// apply lift by to collider by fluid_gravity_vector * fluid_density * intersection_area
 };
 
 #endif // COLLIDER_H

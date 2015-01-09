@@ -277,7 +277,7 @@ bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly)
 	return c;
 }
 
-Collider::Collider( void ) : mtlBase(this), m_transform(NULL), m_density(0.0f), m_gravity(0.0f, 0.0f)
+Collider::Collider( void ) : mtlBase(this), m_transform(NULL), m_density(0.0f), m_gravity(0.0f, 0.0f), m_movement(0.0f, 0.0f)
 {
 }
 
@@ -329,6 +329,22 @@ float Collider::GetDensity( void ) const
 void Collider::SetDensity(float density)
 {
 	m_density = mmlMax3(0.0f, density);
+}
+
+mmlVector<2> Collider::GetMovement( void ) const
+{
+	return m_movement;
+}
+
+void Collider::ZeroMovement( void )
+{
+	m_movement[0] = 0.0f;
+	m_movement[1] = 0.0f;
+}
+
+void Collider::AddForce(mmlVector<2> force)
+{
+	m_movement += force;
 }
 
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
