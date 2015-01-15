@@ -578,6 +578,84 @@ int GUI::GetCharPixelHeight(int scale)
 	return char_px_height * scale;
 }
 
+GUI::GraphicsRect::GraphicsRect( void ) : m_color(1.0f, 1.0f, 1.0f, 1.0f), m_id(0)
+{
+	glGenBuffers(1, &m_id);
+	if (m_id == 0) {
+		std::cout << "GraphicsRect2: Failed to generate vertex array" << std::endl;
+	}
+	SetBounds(mmlVector<2>(0.0f, 0.0f), mmlVector<2>(0.0f, 0.0f));
+}
+
+GUI::GraphicsRect::GraphicsRect(int x, int y, int w, int h) : m_color(1.0f, 1.0f, 1.0f, 1.0f), m_id(0)
+{
+	glGenBuffers(1, &m_id);
+	if (m_id == 0) {
+		std::cout << "GraphicsRect2: Failed to generate vertex array" << std::endl;
+	}
+	SetBounds(x, y, w, h);
+}
+
+GUI::GraphicsRect::~GraphicsRect( void )
+{
+	glDeleteBuffers(1, &m_id);
+}
+
+void GUI::GraphicsRect::SetBounds(int x, int y, int w, int h)
+{
+	m_rect.x = x;
+	m_rect.y = y;
+	m_rect.w = w;
+	m_rect.h = h;
+
+	mmlVector<2> xy[4] = {
+		mmlVector<2>((float)x, (float)y),
+		mmlVector<2>((float)(x+w), (float)y),
+		mmlVector<2>((float)(x+w), (float)(y+h)),
+		mmlVector<2>((float)x, (float)(y+h))
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_id);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+	glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(mmlVector<2>), (GLvoid*)&(xy[0][0]), GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void GUI::GraphicsRect::SetColor(float r, float g, float b, float a)
+{
+	m_color = mmlVector<4>(r, g, b, a);
+	m_color.Clamp(mmlVector<4>(0.0f, 0.0f, 0.0f, 0.0f), mmlVector<4>(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+void GUI::GraphicsRect::DrawLines( void ) const
+{
+	glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_id);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+
+	glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void GUI::GraphicsRect::DrawFilled( void ) const
+{
+	glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_id);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+Rect GUI::GraphicsRect::GetRect( void ) const
+{
+	return m_rect;
+}
+
 GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
 {
 	int x1 = m_rect.x, y1 = m_rect.y;

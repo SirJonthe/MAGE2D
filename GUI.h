@@ -1,6 +1,8 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include "Platform.h"
+
 #include "Common.h"
 #include "MTL/mtlString.h"
 #include "MTL/mtlPointer.h"
@@ -80,6 +82,26 @@ struct ContentRect
 	int cw, ch;
 };
 
+class GraphicsRect
+{
+private:
+	Rect			m_rect;
+	mmlVector<4>	m_color;
+	GLuint			m_id;
+
+public:
+	GraphicsRect( void );
+	GraphicsRect(int x, int y, int w, int h);
+	~GraphicsRect( void );
+
+	void SetBounds(int x, int y, int w, int h);
+	void SetColor(float r, float g, float b, float a = 1.0f);
+	void DrawLines( void ) const;
+	void DrawFilled( void ) const;
+
+	Rect GetRect( void ) const;
+};
+
 class Form;
 class Manager;
 
@@ -94,6 +116,7 @@ private:
 	GUI::Control					*m_parent;
 	mtlList< mtlShared<Control> >	m_children;
 	Rect							m_rect;
+	GUI::GraphicsRect2				m_
 	mtlString						m_name;
 	int								m_textScale;
 	bool							m_hasFocus; // only one child can have focus
