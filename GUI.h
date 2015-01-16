@@ -116,7 +116,7 @@ private:
 	GUI::Control					*m_parent;
 	mtlList< mtlShared<Control> >	m_children;
 	Rect							m_rect;
-	GUI::GraphicsRect2				m_
+	GUI::GraphicsRect				m_box;
 	mtlString						m_name;
 	int								m_textScale;
 	bool							m_hasFocus; // only one child can have focus
