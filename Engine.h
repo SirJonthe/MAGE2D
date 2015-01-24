@@ -99,6 +99,7 @@ private:
 	mmlVector<3>		m_clearColor;
 	unsigned char		m_keyState[SDLK_LAST];
 	unsigned char		m_mouseButtonState[MouseButton::Last];
+	float				m_video_scale;
 
 private:
 	void							UpdateInputBuffers( void );

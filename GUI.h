@@ -72,16 +72,6 @@ Point GetTextSize(float number, int scale = 1);
 int GetCharPixelWidth(int scale = 1);
 int GetCharPixelHeight(int scale = 1);
 
-struct ContentRect
-{
-	// writable area
-	int x, y;
-	int w, h;
-	// actual control size
-	int cx, cy;
-	int cw, ch;
-};
-
 class GraphicsRect
 {
 private:
@@ -115,8 +105,7 @@ private:
 	GUI::Form						*m_form;
 	GUI::Control					*m_parent;
 	mtlList< mtlShared<Control> >	m_children;
-	Rect							m_rect;
-	GUI::GraphicsRect				m_box;
+	GUI::GraphicsRect				m_rect;
 	mtlString						m_name;
 	int								m_textScale;
 	bool							m_hasFocus; // only one child can have focus
@@ -124,17 +113,20 @@ private:
 	bool							m_locked;
 
 private:
-	ContentRect ClipRect(ContentRect rect) const;
+	//ContentRect ClipRect(ContentRect rect) const;
 	Control(const Control&) : mtlBase(this) {}
 	Control &operator=(const Control&) { return *this; }
 
 protected:
-	virtual void OnDraw(ContentRect rect) const {}
+	virtual void OnDraw( void ) const {}
 	virtual void OnClick(int x, int y) {}
 	virtual void OnKey(SDLKey key) {}
 	virtual void OnUpdate( void ) {}
 	virtual void OnInit( void ) {}
 	virtual void OnDestroy( void ) {}
+
+	void DrawChildren(Rect clip) const;
+	static Rect Clip(Rect a, Rect b);
 
 public:
 	Control( void );
@@ -154,7 +146,7 @@ public:
 	void Hide( void );
 	void Show( void );
 
-	void Draw(ContentRect rect) const;
+	void Draw(Rect clip) const;
 	void Update( void );
 	void Init( void );
 	void Destroy( void ); // send signal to manager to delete this and all children
@@ -173,7 +165,7 @@ private:
 	Label &operator=(const Label&) { return *this; }
 
 protected:
-	void OnDraw(ContentRect rect) const;
+	void OnDraw( void ) const;
 
 public:
 	Label( void ) : mtlInherit<GUI::Control, GUI::Label>(this), m_text() {}
@@ -206,7 +198,7 @@ private:
 	Form &operator=(const Form&) { return *this; }
 
 protected:
-	void OnDraw(ContentRect rect) const;
+	void OnDraw( void ) const;
 
 public:
 	Form( void );

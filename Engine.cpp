@@ -305,7 +305,8 @@ Engine::Engine( void ) :
 	m_destroyingAll(false),
 	m_occlusionMethod(None),
 	m_music(NULL), m_musicVolume(1.0f),
-	m_clearColor(0.0f, 0.0f, 0.0f)
+	m_clearColor(0.0f, 0.0f, 0.0f),
+	m_video_scale(1.0f)
 {
 	m_mousePosition.x = 0;
 	m_mousePosition.y = 0;
@@ -337,12 +338,14 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 	{
 		int width, height;
 		int fullscreen;
+		bool autofit;
 	};
 
 	Args args;
 	args.width = width;
 	args.height = height;
-	args.fullscreen = false;
+	args.fullscreen = 0;
+	args.autofit = false;
 
 	for (int i = 1; i < argc; ++i) {
 		std::cout << "\t" << argv[i] << ": ";
@@ -367,6 +370,10 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 			AddObject<Console>();
 			std::cout << "Console enabled";
 		}
+		else if (strcmp(argv[i], "-autofit")) {
+			std::cout << "Fitting resolution to screen";
+			args.autofit = true;
+		}
 		else {
 			std::cout << "UNKNOWN ARGUMENT";
 		}
@@ -376,6 +383,26 @@ bool Engine::Init(int width, int height, const mtlChars &windowCaption, int argc
 	if (SDL_Init(SDL_INIT_EVERYTHING) == -1) {
 		std::cout << "\tSDL fail: " << SDL_GetError() << std::endl;
 		return false;
+	}
+
+	if (args.autofit) {
+		const SDL_VideoInfo *info = SDL_GetVideoInfo();
+		if (info != NULL) {
+			float w_scale = (float)args.width / (float)info->current_w;
+			float h_scale = (float)args.height / (float)info->current_h;
+			if (w_scale < 1.0f && h_scale < 1.0f) { // scale up the screen
+				m_video_scale = 1.0f / mmlMax2(w_scale, h_scale);
+			} else if (w_scale > 1.0f || h_scale > 1.0f) { // scale down the screen
+				m_video_scale = 1.0f / mmlMin2(w_scale, h_scale);
+			}
+			args.width *= m_video_scale;
+			args.height *= m_video_scale;
+			std::cout << "Resolution resized to " << args.width << "x" << args.height << " to fit " << info->current_w << "x" << info->current_h << std::endl;
+		} else {
+			std::cout << "Failed to fit resolution" << std::endl;
+		}
+	} else {
+		m_video_scale = 1.0f;
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);

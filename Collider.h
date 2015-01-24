@@ -209,13 +209,13 @@ public:
 	CollisionInfo					Collides(const Collider &c) const;
 };
 
-class FluidCollider : public PolygonCollider<Collider, FluidCollider>
+class FluidCollider : public mtlInherit<PolygonCollider, FluidCollider>
 {
 private:
 	mmlVector<2> m_half_extents;
 
 public:
-	float			GetPressure(mmlVector<2> point);
+	float			GetPressure(mmlVector<2> point) const;
 
 	mmlVector<2>	GetHalfExtents( void ) const;
 	void			SetHalfExtents(mmlVector<2> half);

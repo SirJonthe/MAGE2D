@@ -328,7 +328,7 @@ float Collider::GetDensity( void ) const
 
 void Collider::SetDensity(float density)
 {
-	m_density = mmlMax3(0.0f, density);
+	m_density = mmlMax2(0.0f, density);
 }
 
 mmlVector<2> Collider::GetMovement( void ) const

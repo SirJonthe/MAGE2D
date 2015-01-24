@@ -1,6 +1,7 @@
 #include "Platform.h"
 #include "GUI.h"
 #include <climits>
+#include <iostream>
 
 static GLuint tId = 0, vId = 0, uvId = 0;
 static GLfloat vert[8];
@@ -584,7 +585,7 @@ GUI::GraphicsRect::GraphicsRect( void ) : m_color(1.0f, 1.0f, 1.0f, 1.0f), m_id(
 	if (m_id == 0) {
 		std::cout << "GraphicsRect2: Failed to generate vertex array" << std::endl;
 	}
-	SetBounds(mmlVector<2>(0.0f, 0.0f), mmlVector<2>(0.0f, 0.0f));
+	SetBounds(0, 0, 0, 0);
 }
 
 GUI::GraphicsRect::GraphicsRect(int x, int y, int w, int h) : m_color(1.0f, 1.0f, 1.0f, 1.0f), m_id(0)
@@ -656,22 +657,47 @@ Rect GUI::GraphicsRect::GetRect( void ) const
 	return m_rect;
 }
 
-GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
+/*GUI::ContentRect GUI::Control::ClipRect(GUI::ContentRect rect) const
 {
 	int x1 = m_rect.x, y1 = m_rect.y;
 	int x2 = x1 + m_rect.w, y2 = y1 + m_rect.h;
 
 	GUI::ContentRect r;
-	r.cx = m_rect.x;
-	r.cy = m_rect.y;
-	r.cw = m_rect.w;
-	r.ch = m_rect.h;
+	r.x = m_rect.x;
+	r.y = m_rect.y;
+	r.w = m_rect.w;
+	r.h = m_rect.h;
 
-	r.x = mmlMax2(x1, rect.x);
-	r.y = mmlMax2(y1, rect.y);
-	r.w = mmlMin2(x1 + x2, rect.w);
-	r.h = mmlMin2(y1 + y2, rect.h);
+	r.clip_x = mmlMax2(x1, rect.x);
+	r.clip_y = mmlMax2(y1, rect.y);
+	r.clip_w = mmlMin2(x1 + x2, rect.w);
+	r.clip_h = mmlMin2(y1 + y2, rect.h);
 
+	return r;
+}*/
+
+void GUI::Control::DrawChildren(Rect clip) const
+{
+	clip = Clip(clip, m_rect.GetRect());
+	const mtlItem< mtlShared<GUI::Control> > *c = m_children.GetFirst();
+	while (c != NULL) {
+		glScissor(clip.x, clip.y, clip.w, clip.h);
+		c->GetItem()->Draw(clip);
+		c = c->GetNext();
+	}
+}
+
+Rect GUI::Control::Clip(Rect a, Rect b)
+{
+	Rect r;
+	r.x = mmlMax2(a.x, b.x);
+	r.y = mmlMax2(a.y, b.y);
+	int ax2 = a.x + a.w;
+	int ay2 = a.y + a.h;
+	int bx2 = b.x + b.w;
+	int by2 = b.y + b.h;
+	r.w = mmlMax2(mmlMin2(ax2, bx2) - r.x, 0);
+	r.h = mmlMax2(mmlMin2(ay2, by2) - r.y, 0);
 	return r;
 }
 
@@ -692,26 +718,22 @@ GUI::Control::~Control( void )
 
 void GUI::Control::SetPositionXY(int x, int y)
 {
-	m_rect.x = x;
-	m_rect.y = y;
+	m_rect.SetBounds(x, y, m_rect.GetRect().w, m_rect.GetRect().h);
 }
 
 void GUI::Control::SetPositionUV(float u, float v)
 {
-	m_rect.x = U_To_X(u);
-	m_rect.y = V_To_Y(v);
+	m_rect.SetBounds(U_To_X(u), V_To_Y(v), m_rect.GetRect().w, m_rect.GetRect().h);
 }
 
 void GUI::Control::SetDimensionsXY(int w, int h)
 {
-	m_rect.w = w;
-	m_rect.h = h;
+	m_rect.SetBounds(m_rect.GetRect().x, m_rect.GetRect().y, w, h);
 }
 
 void GUI::Control::SetDimensionsUV(float u, float v)
 {
-	m_rect.x = U_To_X(u);
-	m_rect.y = V_To_Y(v);
+	m_rect.SetBounds(m_rect.GetRect().x, m_rect.GetRect().y, U_To_X(u), V_To_Y(v));
 }
 
 void GUI::Control::Lock( void )
@@ -748,15 +770,10 @@ void GUI::Control::Show( void )
 	m_visible = true;
 }
 
-void GUI::Control::Draw(GUI::ContentRect rect) const
+void GUI::Control::Draw(Rect clip) const
 {
-	rect = ClipRect(rect);
-	OnDraw(rect);
-	const mtlItem< mtlShared<GUI::Control> > *control = m_children.GetFirst();
-	while (control != NULL) {
-		control->GetItem()->Draw(rect);
-		control = control->GetNext();
-	}
+	OnDraw();
+	DrawChildren(clip);
 }
 
 void GUI::Control::Update( void )
@@ -789,10 +806,10 @@ void GUI::Control::Destroy( void )
 	OnDestroy();
 }
 
-void GUI::Label::OnDraw(GUI::ContentRect rect) const
+void GUI::Label::OnDraw( void ) const
 {
 	GUI::SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-	GUI::SetCaretXY(rect.cx, rect.cy);
+	GUI::SetCaretXY(0, 0);
 	GUI::Print(m_text);
 }
 
@@ -808,10 +825,10 @@ void GUI::Label::SetLabel(const mtlChars &text)
 	SetDimensionsXY(content.x, content.y);
 }
 
-void GUI::Form::OnDraw(GUI::ContentRect rect) const
+void GUI::Form::OnDraw( void ) const
 {
 	GUI::SetColor(0.0f, 0.0f, 0.0f, 0.5f);
-	GUI::Box(m_rect);
+	GUI::Box(m_rect.GetRect());
 }
 
 GUI::Form::Form( void ) : mtlInherit<GUI::Control, GUI::Form>(this)
@@ -836,15 +853,20 @@ void GUI::Manager::HandleInput( void )
 
 void GUI::Manager::DrawForms( void ) const
 {
-	GUI::ContentRect rect;
-	rect.cx	= rect.cy = rect.x = rect.y;
-	rect.cw = rect.w = SDL_GetVideoSurface()->w;
-	rect.ch = rect.h = SDL_GetVideoSurface()->h;
-	const mtlItem< mtlShared<GUI::Form> > *n = m_forms.GetFirst();
-	while (n != NULL) {
-		n->GetItem()->Draw(rect);
-		n = n->GetNext();
+	glEnable(GL_SCISSOR_TEST);
+
+	Rect clip;
+	clip.x = clip.y = 0;
+	clip.w = SDL_GetVideoSurface()->w;
+	clip.h = SDL_GetVideoSurface()->h;
+
+	const mtlItem< mtlShared<GUI::Form> > *form = m_forms.GetFirst();
+	while (form != NULL) {
+		form->GetItem()->DrawChildren(clip);
+		form = form->GetNext();
 	}
+
+	glDisable(GL_SCISSOR_TEST);
 }
 
 GUI::Manager::Manager( void ) : m_forms(), m_focus(), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_textCaretX(0), m_textCaretY(0), m_newlineHeight(char_px_height)
