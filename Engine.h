@@ -99,7 +99,6 @@ private:
 	mmlVector<3>		m_clearColor;
 	unsigned char		m_keyState[SDLK_LAST];
 	unsigned char		m_mouseButtonState[MouseButton::Last];
-	float				m_video_scale;
 
 private:
 	void							UpdateInputBuffers( void );
@@ -126,7 +125,7 @@ public:
 								Engine( void );
 								~Engine( void );
 
-	bool						Init(int width, int height, const mtlChars &windowCaption, int argc, char **argv);
+	bool						Init(int width, int height, bool fullscreen, const mtlChars &windowCaption, int argc, char **argv);
 
 	const mtlList<ObjectRef>	&GetObjects( void ) const;
 

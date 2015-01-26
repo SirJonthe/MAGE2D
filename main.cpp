@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 {
 	//Unit_OpenGLTest();
 	Engine engine;
-	engine.Init(800, 600, "Lots-o-tests", argc, argv);
+	engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
 	//Unit_RegisteredObjects();
 	//Unit_Controllable(engine);
 	//Unit_StringMap();
