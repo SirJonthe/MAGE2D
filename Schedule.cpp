@@ -15,7 +15,7 @@ Schedule::Schedule( void ) : m_current_task(NULL)
 
 void Schedule::Execute(Object *object)
 {
-	if (IsEmpty()) { return; }
+	if (IsFinished()) { return; }
 	while (!NullTask() && m_timer.IsDue()) {
 		GetTask()->operator()(object);
 		if (GetTask()->m_num_iter > Schedule::IterateForever) { // decrement counter if not infinite

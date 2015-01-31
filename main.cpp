@@ -187,8 +187,8 @@ void Unit_Schedule( void );
 int main(int argc, char **argv)
 {
 	//Unit_OpenGLTest();
-	Engine engine;
-	engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
+	//Engine engine;
+	//engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
 	//Unit_RegisteredObjects();
 	//Unit_Controllable(engine);
 	//Unit_StringMap();
@@ -197,10 +197,10 @@ int main(int argc, char **argv)
 	//Unit_RandomFloat(engine);
 	//Unit_Font(engine);
 	//engine.AddObject<GridRender>();
-	//Unit_Schedule();
-	engine.AddObject<SpriteEditor>();
+	Unit_Schedule();
+	//engine.AddObject<SpriteEditor>();
 	//engine.AddObject<TimerObject>();
-	engine.RunGame();
+	//engine.RunGame();
 	return 0;
 }
 
@@ -526,15 +526,14 @@ void Unit_Schedule( void )
 	std::cout << "Unit_schedule: " << std::endl;
 
 	Schedule schedule;
-	schedule.AddTask<Task1>(0.5f);
-	schedule.AddTask<Task2>(1.0f);
-	schedule.AddTask<Task3>(2.0f);
-	schedule.LoopSchedule(false);
+	schedule.AddTask<Task1>(0.5f, 3);
+	schedule.AddTask<Task2>(1.0f, 1);
+	schedule.AddTask<Task3>(2.0f, 2);
 
 	SDL_Event event;
 
 	schedule.StartTimer();
-	while (!schedule.IsComplete()) {
+	while (!schedule.IsFinished()) {
 		if (SDL_PollEvent(&event) && event.key.keysym.sym == SDLK_ESCAPE) {
 			break;
 		}
