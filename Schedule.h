@@ -6,8 +6,6 @@
 
 #include "Object.h"
 
-class Schedule;
-
 class ScheduleTask
 {
 	friend class Schedule;
