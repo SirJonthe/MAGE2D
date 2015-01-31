@@ -1,22 +1,35 @@
 #include "Schedule.h"
 
-Schedule::Schedule( void ) : m_current_task(NULL), m_loop(true)
-{}
-
-bool Schedule::IsComplete( void ) const
+bool Schedule::NullTask( void ) const
 {
 	return m_current_task == NULL;
 }
 
+Schedule::Task *Schedule::GetTask( void )
+{
+	return m_current_task->GetItem().GetShared();
+}
+
+Schedule::Schedule( void ) : m_current_task(NULL)
+{}
+
 void Schedule::Execute(Object *object)
 {
-	while (!IsComplete() && m_timer.IsDue()) {
-		m_current_task->GetItem()->operator()(object);
-		m_current_task = m_current_task->GetNext();
-		if (m_loop && IsComplete()) {
+	if (IsEmpty()) { return; }
+	while (!NullTask() && m_timer.IsDue()) {
+		GetTask()->operator()(object);
+		if (GetTask()->m_num_iter > Schedule::IterateForever) { // decrement counter if not infinite
+			GetTask()->m_num_iter -= 1;
+		}
+		if (GetTask()->m_num_iter != 0) { // next item
+			m_current_task = m_current_task->GetNext();
+		} else { // no more iterations, remove item
+			m_current_task = m_current_task->Remove();
+		}
+		if (NullTask()) { // if we reach end, we start at beginning
 			m_current_task = m_tasks.GetFirst();
 		}
-		if (!IsComplete()) {
+		if (!NullTask()) {
 			m_timer.Beat();
 			m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), NewTimer::FractionOfSecond);
 		}
@@ -37,22 +50,9 @@ void Schedule::RestartTimer( void )
 {
 	m_timer.Reset();
 	m_current_task = m_tasks.GetFirst();
-	if (!IsComplete()) {
+	if (!NullTask()) {
 		m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), NewTimer::FractionOfSecond);
 	}
-}
-
-void Schedule::LoopSchedule(bool loop)
-{
-	m_loop = loop;
-	if (IsComplete()) {
-		RestartTimer();
-	}
-}
-
-bool Schedule::IsLooping( void ) const
-{
-	return m_loop;
 }
 
 bool Schedule::IsTicking( void ) const
@@ -63,4 +63,18 @@ bool Schedule::IsTicking( void ) const
 bool Schedule::IsStopped( void ) const
 {
 	return m_timer.IsStopped();
+}
+
+bool Schedule::IsFinished( void ) const
+{
+	return m_tasks.GetSize() == 0;
+}
+
+void Schedule::ClearSchedule( void )
+{
+	m_tasks.RemoveAll();
+	m_current_task = NULL;
+	m_timer.SetTempo(1.0f, NewTimer::BeatsPerSecond);
+	m_timer.Stop();
+	m_timer.Reset();
 }
