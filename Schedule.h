@@ -6,39 +6,69 @@
 
 #include "Object.h"
 
+class Schedule;
+
+class ScheduleTask
+{
+	friend class Schedule;
+	friend class SerialSchedule;
+	friend class ParallelSchedule;
+
+private:
+	float	m_delay_sec;
+	int		m_num_iter;
+
+public:
+	float			GetDelay( void ) const { return m_delay_sec; }
+	int				GetIterationsLeft( void ) const { return m_num_iter; }
+	virtual void	operator()(Object *object) = 0;
+};
+
 class Schedule
 {
 public:
-	struct Task
-	{
-		friend class Schedule;
-
-	private:
-		float	m_delay_sec;
-		int		m_num_iter;
-
-	public:
-		float			GetDelay( void ) const { return m_delay_sec; }
-		int				GetIterationsLeft( void ) const { return m_num_iter; }
-		virtual void	operator()(Object *object) = 0;
-	};
-
 	static const int IterateForever = -1;
 
-private:
-	NewTimer					m_timer;
-	mtlList< mtlShared<Task> >	m_tasks;
-	mtlItem< mtlShared<Task> >	*m_current_task;
+protected:
+	mtlList< mtlShared<ScheduleTask> >	m_tasks;
 
-private:
-	bool NullTask( void ) const;
-	Task *GetTask( void );
+protected:
+	void ExecuteTask(mtlItem< mtlShared< ScheduleTask > > *task, Object *object);
+	void NextTask(mtlItem< mtlShared<ScheduleTask> > *&task);
 
 public:
-	Schedule( void );
+	virtual ~Schedule( void ) {}
 
-	template < typename task_t >
-	void AddTask(float wait_seconds, int iterations = Schedule::IterateForever);
+	virtual void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations = Schedule::IterateForever) = 0;
+
+	virtual void Execute(Object *object) = 0;
+
+	virtual void StartTimer( void ) = 0;
+	virtual void StopTimer( void ) = 0;
+	virtual void RestartTimer( void ) = 0;
+
+	virtual bool IsTicking( void ) const = 0;
+	virtual bool IsStopped( void ) const = 0;
+
+	bool IsFinished( void ) const;
+
+	virtual void ClearSchedule( void ) = 0;
+};
+
+class SerialSchedule : public Schedule
+{
+private:
+	NewTimer							m_timer;
+	mtlItem< mtlShared<ScheduleTask> >	*m_current_task;
+
+private:
+	bool			NullTask( void ) const;
+	ScheduleTask	*GetTask( void );
+
+public:
+	SerialSchedule( void );
+
+	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
 
 	void Execute(Object *object);
 
@@ -49,24 +79,30 @@ public:
 	bool IsTicking( void ) const;
 	bool IsStopped( void ) const;
 
-	bool IsFinished( void ) const;
-
 	void ClearSchedule( void );
 };
 
-template < typename task_t >
-void Schedule::AddTask(float delay_sec, int iterations)
+class ParallelSchedule : public Schedule
 {
-	if (iterations == 0) { return; }
-	mtlShared<Task> task;
-	task.New<task_t>();
-	task->m_delay_sec = delay_sec;
-	task->m_num_iter = iterations;
-	m_tasks.AddLast(task);
-	if (m_current_task == NULL) {
-		m_current_task = m_tasks.GetFirst();
-		m_timer.SetTempo(task->GetDelay());
-	}
-}
+private:
+	mtlList<NewTimer>	m_timers;
+	bool				m_ticking;
+
+public:
+	ParallelSchedule( void );
+
+	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
+
+	void Execute(Object *object);
+
+	void StartTimer( void );
+	void StopTimer( void );
+	void RestartTimer( void );
+
+	bool IsTicking( void ) const;
+	bool IsStopped( void ) const;
+
+	void ClearSchedule( void );
+};
 
 #endif // SCHEDULE_H

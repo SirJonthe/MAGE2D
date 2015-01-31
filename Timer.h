@@ -4,6 +4,34 @@
 #include "MTL/mtlList.h"
 #include "MTL/mtlPointer.h"
 
+// time conversion class??
+/*namespace mtlTime
+{
+	enum Units
+	{
+		Unit_Seconds,
+		Unit_Minutes,
+		Unit_Hours,
+		Unit_Days,
+		Unit_Weeks,
+		Unit_Months,
+		Unit_Years
+	};
+
+	static const float SecondsPerMinute = 60.0f;
+	static const float SecondsPerHour = SecondsPerMinute * 60.0f;
+	static const float SecondsPerDay = SecondsPerHour * 24.0f;
+	static const float SecondsPerWeek = SecondsPerDay * 7.0f;
+	static const float SecondsPerMonth = SecondsPerDay * 30.0f;
+	static const float SecondsPerYear = SecondsPerDay * 365.0f;
+
+	float to_seconds(float beats, Units units);
+	float to_interval(float beats, Units units);
+
+	float from_seconds(float sec, Units units);
+	float from_interval(float sec, Units units);
+}*/
+
 class Timer
 {
 private:
@@ -34,6 +62,14 @@ public:
 
 class NewTimer
 {
+public:
+	enum Units
+	{
+		BeatsPerSecond,
+		BeatsPerMinute,
+		FractionOfSecond
+	};
+
 private:
 	float			m_beats_per_second;
 	mutable float	m_accumulated_time;
@@ -43,22 +79,11 @@ private:
 private:
 	void UpdateTimer( void ) const;
 	float GetStaticTime(float time_seconds) const;
+	static float GetStaticTime(float time_seconds, float tempo, Units units);
+	static float GetBeatsPerSecond(float tempo, Units units);
 
 public:
-	enum Units
-	{
-		BeatsPerSecond,
-		BeatsPerMinute,
-		FractionOfSecond
-	};
-
 	explicit NewTimer(float beats_per_second = 1.0f, Units units = BeatsPerSecond);
-
-	/*void			SetBeatInterval(float frac_of_second);
-	float			GetBeatInterval( void ) const;
-
-	void			SetBeatsPerSecond(float beats_per_second);
-	float			GetBeatsPerSecond( void ) const;*/
 
 	void			SetTempo(float tempo, Units units = BeatsPerSecond);
 	float			GetTempo(Units units = BeatsPerSecond) const;
@@ -74,8 +99,11 @@ public:
 	bool			IsStopped( void ) const;
 	bool			IsDue( void ) const;
 
-	float			GetTime( void ) const; // if running get time now, if stopped get delta
+	float			GetTime( void ) const; // if running, get time now; if stopped, get delta
 	int				GetBeats( void ) const;
+
+	static float	GetTime(float time_sec, float tempo, Units units = BeatsPerSecond);
+	static int		GetBeats(float time_sec, float tempo, Units units = BeatsPerSecond);
 
 	static float	GetProgramTimeSeconds( void );
 	static float	GetProgramTime(float tempo, Units units = BeatsPerSecond);

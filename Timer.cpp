@@ -138,44 +138,24 @@ float NewTimer::GetStaticTime(float time_seconds) const
 	return time_seconds * m_beats_per_second;
 }
 
+float NewTimer::GetBeatsPerSecond(float tempo, NewTimer::Units units)
+{
+	if (units == BeatsPerMinute) {
+		return tempo / 60.0f;
+	} else if (units == FractionOfSecond) {
+		return tempo != 0.0f ? 1.0f / tempo : 0.0f;
+	}
+	return tempo;
+}
+
 NewTimer::NewTimer(float tempo, Units units) : m_beats_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
 {
 	SetTempo(tempo, units);
 }
 
-/*void NewTimer::SetBeatInterval(float frac_of_second)
-{
-	if (frac_of_second != 0.0f) {
-		SetBeatsPerSecond(1.0f / frac_of_second);
-	} else {
-		SetBeatsPerSecond(0.0f);
-	}
-}
-
-float NewTimer::GetBeatInterval( void ) const
-{
-	return m_beats_per_second != 0.0f ? 1.0f / m_beats_per_second : 0.0f;
-}
-
-void NewTimer::SetBeatsPerSecond(float beats_per_second)
-{
-	m_beats_per_second = beats_per_second;
-}
-
-float NewTimer::GetBeatsPerSecond( void ) const
-{
-	return m_beats_per_second;
-}*/
-
 void NewTimer::SetTempo(float tempo, NewTimer::Units units)
 {
-	if (units == BeatsPerMinute) {
-		m_beats_per_second = tempo / 60.0f;
-	} else if (units == FractionOfSecond) {
-		m_beats_per_second = tempo != 0.0f ? 1.0f / tempo : 0.0f;
-	} else {
-		m_beats_per_second = tempo;
-	}
+	m_beats_per_second = GetBeatsPerSecond(tempo, units);
 }
 
 float NewTimer::GetTempo(NewTimer::Units units) const
@@ -264,6 +244,16 @@ int NewTimer::GetBeats( void ) const
 float NewTimer::GetProgramTimeSeconds( void )
 {
 	return float(SDL_GetTicks()) / 1000.0f;
+}
+
+float NewTimer::GetTime(float time_sec, float tempo, NewTimer::Units units)
+{
+	return time_sec * GetBeatsPerSecond(tempo, units);
+}
+
+int NewTimer::GetBeats(float time_sec, float tempo, Units units)
+{
+	return (int)GetTime(time_sec, tempo, units);
 }
 
 float NewTimer::GetProgramTime(float tempo, NewTimer::Units units)

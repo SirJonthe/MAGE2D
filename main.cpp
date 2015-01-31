@@ -497,24 +497,27 @@ void Unit_Font(Engine &engine)
 	engine.RunGame();
 }
 
-struct Task1 : public Schedule::Task
+class Task1 : public ScheduleTask
 {
+public:
 	virtual void operator()(Object*)
 	{
 		std::cout << "\t1" << std::endl;
 	}
 };
 
-struct Task2 : public Schedule::Task
+class Task2 : public ScheduleTask
 {
+public:
 	virtual void operator()(Object*)
 	{
 		std::cout << "\t2" << std::endl;
 	}
 };
 
-struct Task3 : public Schedule::Task
+class Task3 : public ScheduleTask
 {
+public:
 	virtual void operator()(Object*)
 	{
 		std::cout << "\t3" << std::endl;
@@ -523,12 +526,12 @@ struct Task3 : public Schedule::Task
 
 void Unit_Schedule( void )
 {
-	std::cout << "Unit_schedule: " << std::endl;
+	std::cout << "Unit_Schedule: " << std::endl;
 
-	Schedule schedule;
-	schedule.AddTask<Task1>(0.5f, 3);
-	schedule.AddTask<Task2>(1.0f, 1);
-	schedule.AddTask<Task3>(2.0f, 2);
+	SerialSchedule schedule;
+	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task1>(), 0.5f, 3);
+	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task2>(), 1.0f, 1);
+	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task3>(), 2.0f, 2);
 
 	SDL_Event event;
 
