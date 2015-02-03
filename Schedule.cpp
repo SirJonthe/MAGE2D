@@ -55,6 +55,12 @@ void SerialSchedule::AddTask(mtlShared<ScheduleTask> task, float delay_sec, int 
 	}
 }
 
+/*void SerialSchedule::AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds)
+{
+	int iterations = (int)(exist_seconds / wait_seconds);
+	AddTask(task, wait_seconds, iterations);
+}*/
+
 void SerialSchedule::Execute(Object *object)
 {
 	if (IsFinished() || IsStopped()) { return; }
@@ -123,13 +129,21 @@ void ParallelSchedule::AddTask(mtlShared<ScheduleTask> task, float delay_sec, in
 	m_timers.AddLast(timer);
 }
 
+/*void ParallelSchedule::AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds)
+{
+	int iterations = (int)(exist_seconds / wait_seconds);
+	AddTask(task, wait_seconds, iterations);
+}*/
+#include <iostream>
 void ParallelSchedule::Execute(Object *object)
 {
 	if (IsFinished() || IsStopped()) { return; }
 	mtlItem< mtlShared<ScheduleTask> > *task = m_tasks.GetFirst();
 	mtlItem<NewTimer> *timer = m_timers.GetFirst();
+	int a = 0;
 	while (task != NULL && timer != NULL) {
 		int beats = timer->GetItem().GetBeats();
+		timer->GetItem().Truncate();
 		bool is_inf = task->GetItem()->GetIterationsLeft() < 0;
 		int i;
 		for (i = 0; i < beats; ++i) {
@@ -145,6 +159,7 @@ void ParallelSchedule::Execute(Object *object)
 			task = task->GetNext();
 			timer = timer->GetNext();
 		}
+		++a;
 	}
 }
 

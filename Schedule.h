@@ -15,10 +15,12 @@ class ScheduleTask
 private:
 	float	m_delay_sec;
 	int		m_num_iter;
+	//NewTimer m_timer;
 
 public:
 	float			GetDelay( void ) const { return m_delay_sec; }
 	int				GetIterationsLeft( void ) const { return m_num_iter; }
+	//virtual bool IsDue( void );
 	virtual void	operator()(Object *object) = 0;
 };
 
@@ -38,6 +40,7 @@ public:
 	virtual ~Schedule( void ) {}
 
 	virtual void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations = Schedule::IterateForever) = 0;
+	//virtual void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds) = 0;
 
 	virtual void Execute(Object *object) = 0;
 
@@ -67,6 +70,7 @@ public:
 	SerialSchedule( void );
 
 	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
+	//void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds);
 
 	void Execute(Object *object);
 
@@ -90,6 +94,7 @@ public:
 	ParallelSchedule( void );
 
 	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
+	//void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds);
 
 	void Execute(Object *object);
 

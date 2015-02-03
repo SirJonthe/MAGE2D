@@ -174,6 +174,7 @@ RegisterObject(TimerObject);
 
 void PrintString(const mtlChars &ch);
 
+void RunUnitTests(Engine &engine);
 void Unit_OpenGLTest( void );
 void Unit_RegisteredObjects( void );
 void Unit_Controllable(Engine &engine);
@@ -186,22 +187,25 @@ void Unit_Schedule( void );
 
 int main(int argc, char **argv)
 {
-	//Unit_OpenGLTest();
-	//Engine engine;
-	//engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
-	//Unit_RegisteredObjects();
-	//Unit_Controllable(engine);
-	//Unit_StringMap();
-	//Unit_ArrayResize();
-	//Unit_GUI(engine);
-	//Unit_RandomFloat(engine);
-	//Unit_Font(engine);
-	//engine.AddObject<GridRender>();
-	Unit_Schedule();
-	//engine.AddObject<SpriteEditor>();
-	//engine.AddObject<TimerObject>();
-	//engine.RunGame();
+	Engine engine;
+	engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
+	engine.AddObject<SpriteEditor>();
+	engine.RunGame();
+	//RunUnitTests(engine);
 	return 0;
+}
+
+void RunUnitTests(Engine &engine)
+{
+	Unit_OpenGLTest();
+	Unit_RegisteredObjects();
+	Unit_Controllable(engine);
+	Unit_StringMap();
+	Unit_ArrayResize();
+	Unit_GUI(engine);
+	Unit_RandomFloat(engine);
+	Unit_Font(engine);
+	Unit_Schedule();
 }
 
 void Controllable::OnUpdate( void )
@@ -528,6 +532,7 @@ void Unit_Schedule( void )
 {
 	std::cout << "Unit_Schedule: " << std::endl;
 
+	std::cout << "serial: ";
 	SerialSchedule schedule;
 	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task1>(), 0.5f, 3);
 	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task2>(), 1.0f, 1);
@@ -541,6 +546,23 @@ void Unit_Schedule( void )
 			break;
 		}
 		schedule.Execute(NULL);
+		SDL_Delay(25);
 	}
-	std::cout << " [done]" << std::endl;
+
+	std::cout << "parallel: ";
+	ParallelSchedule schedule2;
+	schedule2.AddTask(mtlShared<ScheduleTask>::Create<Task1>(), 0.5f, 4);
+	schedule2.AddTask(mtlShared<ScheduleTask>::Create<Task2>(), 0.1f, 5);
+	schedule2.AddTask(mtlShared<ScheduleTask>::Create<Task3>(), 2.0f, 2);
+
+	schedule2.StartTimer();
+	while (!schedule2.IsFinished()) {
+		if (SDL_PollEvent(&event) && event.key.keysym.sym == SDLK_ESCAPE) {
+			break;
+		}
+		schedule2.Execute(NULL);
+		SDL_Delay(25);
+	}
+
+	std::cout << "[done]" << std::endl;
 }
