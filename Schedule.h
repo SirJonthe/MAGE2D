@@ -20,9 +20,15 @@ private:
 public:
 	float			GetDelay( void ) const { return m_delay_sec; }
 	int				GetIterationsLeft( void ) const { return m_num_iter; }
-	//virtual bool IsDue( void );
+	//virtual bool	IsDue( void ); // put any kind of execution condition here
 	virtual void	operator()(Object *object) = 0;
 };
+
+template < typename task_t >
+inline mtlShared<ScheduleTask> CreateTask( void )
+{
+	return mtlShared<ScheduleTask>::Create<task_t>();
+}
 
 class Schedule
 {
