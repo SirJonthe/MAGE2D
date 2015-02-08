@@ -25,18 +25,20 @@ About
 * Includes a hardware accelerated graphics pipeline for pixel perfect rendering.
 * Render pipeline is generic enough for developers to write their own renderers that
   work on custom graphics data.
-* Includes routines for sound and music playback. Nothing too fancy.
+* Includes simple routines for sound and music playback. Nothing too fancy yet.
 * Asset managers that allow the user to load an asset once and only once without having
   to worry about the specifics.
 
 Planned features
 ----------------
-* Collisions.
-  - Maybe pixel perfect...
-* A small physics engine.
-  - Maybe pixel perfect...
-* Explicit scene graph.
 * Simple GUI
+* A small physics engine.
+  - Polygon colliders.
+* Explicit scene graph.
+* A few dev tools (sprite editor, console, tile editor, profiler/debugger, etc.)
+* Maybe pixel perfect colliders for collision detection and physics.
+* Once I feel satisfied with the current state of the engine I will get to writing
+  documentation.
 
 Compiling
 ---------
