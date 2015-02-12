@@ -13,16 +13,32 @@ class ScheduleTask
 	friend class ParallelSchedule;
 
 private:
+<<<<<<< HEAD
 	float		m_delay_sec;
 	int			m_num_iter;
 	NewTimer	m_timer;
+=======
+	float	m_delay_sec;
+	int		m_num_iter;
+	//NewTimer m_timer;
+>>>>>>> e3f6a39163065f7eb8dc0ff7f22aeda405acfefe
 
 public:
 	float			GetDelay( void ) const { return m_delay_sec; }
 	int				GetIterationsLeft( void ) const { return m_num_iter; }
+<<<<<<< HEAD
 	virtual bool	IsDue( void ) const; // overload this to have an arbitrary condition for execution
+=======
+	//virtual bool	IsDue( void ); // put any kind of execution condition here
+>>>>>>> e3f6a39163065f7eb8dc0ff7f22aeda405acfefe
 	virtual void	operator()(Object *object) = 0;
 };
+
+template < typename task_t >
+inline mtlShared<ScheduleTask> CreateTask( void )
+{
+	return mtlShared<ScheduleTask>::Create<task_t>();
+}
 
 class Schedule
 {
@@ -40,6 +56,7 @@ public:
 	virtual ~Schedule( void ) {}
 
 	virtual void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations = Schedule::IterateForever) = 0;
+	//virtual void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds) = 0;
 
 	virtual void Execute(Object *object) = 0;
 
@@ -69,6 +86,7 @@ public:
 	SerialSchedule( void );
 
 	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
+	//void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds);
 
 	void Execute(Object *object);
 
@@ -92,6 +110,7 @@ public:
 	ParallelSchedule( void );
 
 	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
+	//void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds);
 
 	void Execute(Object *object);
 
