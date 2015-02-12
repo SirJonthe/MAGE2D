@@ -12,7 +12,7 @@ unsigned long long int GetObjectNumber( void )
 Object::Object( void ) :
 	mtlBase(this),
 	m_graphics(), m_name(),
-	m_destroy(false), m_collisions(true), m_visible(true), m_frozen(false),
+	m_destroy(false), m_kill(false), m_collisions(true), m_visible(true), m_frozen(false),
 	m_collider(),
 	m_objectFlags(0x0000000000000001), m_collisionMask(AllFlagsOn), m_objectNumber(GetObjectNumber()),
 	m_engine(NULL), /*m_objectRef(NULL),*/
@@ -40,6 +40,12 @@ unsigned long long Object::GetObjectNumber( void ) const
 void Object::Destroy( void )
 {
 	m_destroy = true;
+}
+
+void Object::Kill( void )
+{
+	m_destroy = true;
+	m_kill = true;
 }
 
 bool Object::IsTicking( void ) const

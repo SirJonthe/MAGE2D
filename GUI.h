@@ -150,6 +150,7 @@ public:
 	void Update( void );
 	void Init( void );
 	void Destroy( void ); // send signal to manager to delete this and all children
+	void Kill( void ); // destroy without calling OnDestroy
 
 	template < typename control_t >
 	mtlShared<GUI::Control> AddControl( void ) { m_children.AddLast(mtlShared<GUI::Control>::Create<control_t>()); return m_children.GetLast()->GetItem(); }

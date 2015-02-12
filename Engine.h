@@ -156,6 +156,7 @@ public:
 	ObjectRef					AddObjectNow( void );
 	ObjectRef					AddObjectNow(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
 
+	void						KillAllObjects( void );
 	void						DestroyAllObjects( void );
 
 	ObjectRef					GetCamera( void );

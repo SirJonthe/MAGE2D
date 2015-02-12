@@ -27,6 +27,7 @@ private:
 	mtlString					m_name;
 	Transform					m_transform;
 	bool						m_destroy;
+	bool						m_kill;
 	bool						m_collisions;
 	bool						m_visible;
 	bool						m_frozen;			// used by the debugger object to freeze game state
@@ -62,6 +63,7 @@ public:
 	unsigned long long		GetObjectNumber( void ) const;
 
 	void					Destroy( void );
+	void					Kill( void );
 	bool					IsTicking( void ) const;
 	bool					IsDestroyed( void ) const;
 

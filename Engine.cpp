@@ -197,7 +197,9 @@ void Engine::DestroyObjects( void )
 	while (object != NULL) {
 		if (node_ref(object)->m_destroy) {
 			if (m_camera.GetShared() == node_ref(object)) { m_camera.Delete(); }
-			node_ref(object)->OnDestroy();
+			if (!node_ref(object)->m_kill) { // do not call OnDestroy if we kill the object
+				node_ref(object)->OnDestroy();
+			}
 			node_ref(object)->m_engine = NULL;
 			//node_ref(object)->m_objectRef = NULL;
 			const Transform *transform_addr = &node_ref(object)->GetTransform();
@@ -674,9 +676,25 @@ void Engine::DestroyAllObjects( void )
 	m_destroyingAll = true;
 
 	mtlItem<ObjectRef> *object = m_objects.GetFirst();
+	while (object != NULL) {
+		node_ref(object)->Destroy();
+		object = object->GetNext();
+	}
+
+	m_camera.Delete();
+
+	m_destroyingAll = false;
+}
+
+void Engine::KillAllObjects( void )
+{
+	if (m_destroyingAll) { return; }
+	m_destroyingAll = true;
+
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	if (m_inLoop) {
 		while (object != NULL) {
-			node_ref(object)->Destroy();
+			node_ref(object)->Kill();
 			object = object->GetNext();
 		}
 	} else {
@@ -835,7 +853,7 @@ void Engine::KillProgram( void )
 	GUI::Destroy();
 	m_inLoop = false;
 	m_quit = true;
-	DestroyAllObjects();
+	KillAllObjects();
 	exit(0);
 }
 
