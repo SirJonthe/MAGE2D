@@ -13,12 +13,14 @@ class ScheduleTask
 	friend class ParallelSchedule;
 
 private:
-	float	m_delay_sec;
-	int		m_num_iter;
+	float		m_delay_sec;
+	int			m_num_iter;
+	NewTimer	m_timer;
 
 public:
 	float			GetDelay( void ) const { return m_delay_sec; }
 	int				GetIterationsLeft( void ) const { return m_num_iter; }
+	virtual bool	IsDue( void ) const; // overload this to have an arbitrary condition for execution
 	virtual void	operator()(Object *object) = 0;
 };
 

@@ -1,5 +1,10 @@
 #include "Schedule.h"
 
+bool ScheduleTask::IsDue( void ) const
+{
+	return m_timer.IsDue();
+}
+
 void Schedule::ExecuteTask(mtlItem< mtlShared<ScheduleTask> > *task, Object *object)
 {
 	if (task != NULL) {

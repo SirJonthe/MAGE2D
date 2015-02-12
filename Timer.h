@@ -26,10 +26,10 @@
 	static const float SecondsPerYear = SecondsPerDay * 365.0f;
 
 	float to_seconds(float beats, Units units);
-	float to_interval(float beats, Units units);
+	float to_delay(float beats, Units units);
 
 	float from_seconds(float sec, Units units);
-	float from_interval(float sec, Units units);
+	float from_delay(float sec, Units units);
 }*/
 
 class Timer
