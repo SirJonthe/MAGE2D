@@ -4,8 +4,8 @@
 #include <climits>
 #include "Common.h"
 #include "Transform.h"
-#include "MTL/mtlString.h"
-#include "MTL/mtlType.h"
+#include "MiniLib/MTL/mtlString.h"
+#include "MiniLib/MTL/mtlType.h"
 #include "Collider.h"
 #include "Graphics.h"
 

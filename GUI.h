@@ -4,10 +4,10 @@
 #include "Platform.h"
 
 #include "Common.h"
-#include "MTL/mtlString.h"
-#include "MTL/mtlPointer.h"
-#include "MTL/mtlAsset.h"
-#include "MTL/mtlType.h"
+#include "MiniLib/MTL/mtlString.h"
+#include "MiniLib/MTL/mtlPointer.h"
+#include "MiniLib/MTL/mtlAsset.h"
+#include "MiniLib/MTL/mtlType.h"
 
 namespace GUI
 {

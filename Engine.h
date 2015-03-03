@@ -3,10 +3,10 @@
 
 #include "Platform.h"
 
-#include "MTL/mtlString.h"
-#include "MTL/mtlList.h"
-#include "MTL/mtlType.h"
-#include "MTL/mtlRandom.h"
+#include "MiniLib/MTL/mtlString.h"
+#include "MiniLib/MTL/mtlList.h"
+#include "MiniLib/MTL/mtlType.h"
+#include "MiniLib/MTL/mtlRandom.h"
 #include "Timer.h"
 #include "Sound.h"
 #include "Common.h"

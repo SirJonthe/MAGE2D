@@ -2,8 +2,8 @@
 #define SOUND_H
 
 #include "Platform.h"
-#include "MTL/mtlAsset.h"
-#include "MTL/mtlString.h"
+#include "MiniLib/MTL/mtlAsset.h"
+#include "MiniLib/MTL/mtlString.h"
 
 class Sound : public mtlAssetInterface
 {

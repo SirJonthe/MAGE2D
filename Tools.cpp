@@ -1,4 +1,4 @@
-#include "MTL/mtlParser.h"
+#include "MiniLib/MTL/mtlParser.h"
 
 #include "Tools.h"
 #include "Engine.h"

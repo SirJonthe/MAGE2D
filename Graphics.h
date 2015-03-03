@@ -3,9 +3,9 @@
 
 #include "Platform.h"
 
-#include "MTL/mtlAsset.h"
-#include "MTL/mtlType.h"
-#include "MTL/mtlArray.h"
+#include "MiniLib/MTL/mtlAsset.h"
+#include "MiniLib/MTL/mtlType.h"
+#include "MiniLib/MTL/mtlArray.h"
 #include "Transform.h"
 #include "Timer.h"
 

@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <iostream>
-#include "MML/mmlMath.h"
+#include "MiniLib/MML/mmlMath.h"
 #include "Image.h"
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN

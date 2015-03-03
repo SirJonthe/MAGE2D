@@ -4,8 +4,8 @@
 #include "Image.h"
 #include "Tools.h"
 #include "Schedule.h"
-#include "MTL/mtlString.h"
-#include "MTL/mtlStringMap.h"
+#include "MiniLib/MTL/mtlString.h"
+#include "MiniLib/MTL/mtlStringMap.h"
 #include <iostream>
 
 // BUG: mtlShared<a> = mtlShared<b> (can't access the other class' private members)

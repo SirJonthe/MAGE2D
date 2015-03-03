@@ -1,8 +1,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "MTL/mtlList.h"
-#include "MTL/mtlPointer.h"
+#include "MiniLib/MTL/mtlList.h"
+#include "MiniLib/MTL/mtlPointer.h"
 
 // time conversion class??
 /*namespace mtlTime

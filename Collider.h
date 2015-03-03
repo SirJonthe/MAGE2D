@@ -3,7 +3,7 @@
 
 #include "Common.h"
 #include "Sprite.h"
-#include "MTL/mtlType.h"
+#include "MiniLib/MTL/mtlType.h"
 
 //http://xbox.create.msdn.com/en-US/education/catalog/tutorial/collision_2d_perpixel_transformed
 

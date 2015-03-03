@@ -1,8 +1,8 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "MTL/mtlString.h"
-#include "MTL/mtlType.h"
+#include "MiniLib/MTL/mtlString.h"
+#include "MiniLib/MTL/mtlType.h"
 #include "Common.h"
 #include "Timer.h"
 #include "Graphics.h"

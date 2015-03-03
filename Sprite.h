@@ -2,10 +2,10 @@
 #define SPRITE_H
 
 #include "Image.h"
-#include "MTL/mtlArray.h"
-#include "MTL/mtlDirectory.h"
-#include "MTL/mtlAsset.h"
-#include "MTL/mtlType.h"
+#include "MiniLib/MTL/mtlArray.h"
+#include "MiniLib/MTL/mtlDirectory.h"
+#include "MiniLib/MTL/mtlAsset.h"
+#include "MiniLib/MTL/mtlType.h"
 
 // REMEMBER:
 // Sprites may animate in height as well

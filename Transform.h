@@ -9,8 +9,8 @@
 #ifndef TRANSFORM_H_INCLUDED__
 #define TRANSFORM_H_INCLUDED__
 
-#include "MML/mmlMatrix.h"
-#include "MML/mmlVector.h"
+#include "MiniLib/MML/mmlMatrix.h"
+#include "MiniLib/MML/mmlVector.h"
 
 // Might be able to make this more efficient by combining position and rotation,
 // but I'd rather not break anything right now...

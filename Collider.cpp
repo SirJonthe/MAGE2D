@@ -1,5 +1,5 @@
 #include "Collider.h"
-#include "MTL/mtlParser.h"
+#include "MiniLib/MTL/mtlParser.h"
 #include <iostream>
 
 #define RoundErr 0.001f

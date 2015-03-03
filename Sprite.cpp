@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Sprite.h"
-#include "MML/mmlMath.h"
-#include "MTL/mtlParser.h"
+#include "MiniLib/MML/mmlMath.h"
+#include "MiniLib/MTL/mtlParser.h"
 
 bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened)
 {

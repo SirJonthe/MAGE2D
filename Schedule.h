@@ -1,8 +1,8 @@
 #ifndef SCHEDULE_H
 #define SCHEDULE_H
 
-#include "MTL/mtlList.h"
-#include "MTL/mtlPointer.h"
+#include "MiniLib/MTL/mtlList.h"
+#include "MiniLib/MTL/mtlPointer.h"
 
 #include "Object.h"
 
@@ -13,24 +13,14 @@ class ScheduleTask
 	friend class ParallelSchedule;
 
 private:
-<<<<<<< HEAD
 	float		m_delay_sec;
 	int			m_num_iter;
 	NewTimer	m_timer;
-=======
-	float	m_delay_sec;
-	int		m_num_iter;
-	//NewTimer m_timer;
->>>>>>> e3f6a39163065f7eb8dc0ff7f22aeda405acfefe
 
 public:
 	float			GetDelay( void ) const { return m_delay_sec; }
 	int				GetIterationsLeft( void ) const { return m_num_iter; }
-<<<<<<< HEAD
 	virtual bool	IsDue( void ) const; // overload this to have an arbitrary condition for execution
-=======
-	//virtual bool	IsDue( void ); // put any kind of execution condition here
->>>>>>> e3f6a39163065f7eb8dc0ff7f22aeda405acfefe
 	virtual void	operator()(Object *object) = 0;
 };
 

@@ -3,7 +3,7 @@
 
 #include "Object.h"
 #include "Common.h"
-#include "MTL/mtlDuplex.h"
+#include "MiniLib/MTL/mtlDuplex.h"
 
 ObjectDeclaration(KillPlane)
 {

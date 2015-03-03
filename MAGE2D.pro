@@ -9,16 +9,16 @@ SOURCES += main.cpp \
 	Object.cpp \
 	Image.cpp \
 	Engine.cpp \
-	MTL/mtlString.cpp \
-	MTL/mtlParser.cpp \
-	MTL/mtlDirectory.cpp \
+	MiniLib/MTL/mtlString.cpp \
+	MiniLib/MTL/mtlParser.cpp \
+	MiniLib/MTL/mtlDirectory.cpp \
 	Tools.cpp \
 	GUI.cpp \
 	Graphics.cpp \
 	Transform.cpp \
 	Collider.cpp \
-    MTL/mtlExpression.cpp \
-    MTL/mtlRandom.cpp \
+	MiniLib/MTL/mtlExpression.cpp \
+	MiniLib/MTL/mtlRandom.cpp \
     Schedule.cpp
 
 HEADERS += \
@@ -29,32 +29,31 @@ HEADERS += \
 	Image.h \
 	Engine.h \
 	Common.h \
-	MML/mmlVector.h \
-	MML/mmlQuaternion.h \
-	MML/mmlMatrix.h \
-	MML/mmlMath.h \
-	MML/mmlFixed.h \
-	MTL/mtlVersion.h \
-	MTL/mtlString.h \
-	MTL/mtlParser.h \
-	MTL/mtlList.h \
-	MTL/mtlDuplex.h \
-	MTL/mtlDirectory.h \
-	MTL/mtlBinaryTree.h \
-	MTL/mtlAsset.h \
-	MTL/mtlArray.h \
+	MiniLib/MML/mmlVector.h \
+	MiniLib/MML/mmlQuaternion.h \
+	MiniLib/MML/mmlMatrix.h \
+	MiniLib/MML/mmlMath.h \
+	MiniLib/MML/mmlFixed.h \
+	MiniLib/MTL/mtlString.h \
+	MiniLib/MTL/mtlParser.h \
+	MiniLib/MTL/mtlList.h \
+	MiniLib/MTL/mtlDuplex.h \
+	MiniLib/MTL/mtlDirectory.h \
+	MiniLib/MTL/mtlBinaryTree.h \
+	MiniLib/MTL/mtlAsset.h \
+	MiniLib/MTL/mtlArray.h \
 	Tools.h \
 	Graphics.h \
 	GUI.h \
-	MTL/mtlPointer.h \
-	MTL/mtlType.h \
-	MTL/mtlStringMap.h \
+	MiniLib/MTL/mtlPointer.h \
+	MiniLib/MTL/mtlType.h \
+	MiniLib/MTL/mtlStringMap.h \
 	Platform.h \
 	Transform.h \
 	Collider.h \
-    MTL/mtlExpression.h \
-    MTL/mtlHashTable.h \
-    MTL/mtlRandom.h \
+	MiniLib/MTL/mtlExpression.h \
+	MiniLib/MTL/mtlHashTable.h \
+	MiniLib/MTL/mtlRandom.h \
     Schedule.h
 
 OTHER_FILES += \

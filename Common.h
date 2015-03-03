@@ -3,10 +3,10 @@
 
 #include <cmath>
 #include <cstddef>
-#include "MML/mmlVector.h"
-#include "MTL/mtlList.h"
-#include "MTL/mtlArray.h"
-#include "MTL/mtlList.h"
+#include "MiniLib/MML/mmlVector.h"
+#include "MiniLib/MTL/mtlList.h"
+#include "MiniLib/MTL/mtlArray.h"
+#include "MiniLib/MTL/mtlList.h"
 
 #define ShallowArray(type_t) mtlShared< mtlArray<type_t> >
 #define ShallowList(type_t) mtlShared< mtlList<type_t> >
