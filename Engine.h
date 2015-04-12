@@ -125,6 +125,8 @@ public:
 								Engine( void );
 								~Engine( void );
 
+	void						Execute(const mtlChars &cmd);
+
 	bool						Init(int width, int height, bool fullscreen, const mtlChars &windowCaption, int argc, char **argv);
 
 	const mtlList<ObjectRef>	&GetObjects( void ) const;

@@ -332,6 +332,10 @@ Engine::~Engine( void )
 	SDL_Quit();
 }
 
+void Engine::Execute(const mtlChars &cmd)
+{
+}
+
 bool Engine::Init(int width, int height, bool fullscreen, const mtlChars &windowCaption, int argc, char **argv)
 {
 	std::cout << "Engine::Init: " << std::endl;

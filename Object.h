@@ -55,7 +55,7 @@ private:
 public:
 	explicit				Object( void );
 	virtual					~Object( void ) {}
-	virtual void			SetValuesViaString(const mtlChars&) {}
+	virtual void			Execute(const mtlChars&) {}
 
 	const mtlString			&GetName( void ) const;
 	void					SetName(const mtlChars &name);
