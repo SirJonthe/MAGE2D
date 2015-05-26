@@ -85,6 +85,7 @@ private:
 	ObjectRef			m_camera;
 	Timer				m_timer;
 	float				m_deltaSeconds;
+	float				m_timeScale;
 	mtlRandom			m_rand;
 	//CollisionSolver	m_collisionSolver;
 	GUI::Manager		m_guiManager;
@@ -180,6 +181,8 @@ public:
 
 	void						SetUpdateFrequency(float updatesPerSecond);
 	float						GetElapsedTime( void ) const;
+	float						GetTimeScale( void ) const;
+	void						SetTimeScale(float timeScale);
 
 	void						SetRandomizerState(unsigned long long state, unsigned long long inc = 1);
 	unsigned int				GetRandomUint( void );

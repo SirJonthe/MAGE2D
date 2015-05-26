@@ -301,7 +301,7 @@ void Engine::GetRegisteredTypes(const mtlNode<TypeNode> *branch, mtlList< mtlSha
 
 Engine::Engine( void ) :
 	m_objects(), m_camera(),
-	m_timer(60.0f), m_deltaSeconds(0.0f),
+	m_timer(60.0f), m_deltaSeconds(0.0f), m_timeScale(1.0f),
 	m_rand(),
 	m_quit(false), m_inLoop(false),
 	m_destroyingAll(false),
@@ -868,7 +868,17 @@ void Engine::SetUpdateFrequency(float updatesPerSecond)
 
 float Engine::GetElapsedTime( void ) const
 {
-	return m_deltaSeconds;
+	return m_deltaSeconds * m_timeScale;
+}
+
+float Engine::GetTimeScale( void ) const
+{
+	return m_timeScale;
+}
+
+void Engine::SetTimeScale(float timeScale)
+{
+	m_timeScale = timeScale;
 }
 
 void Engine::SetRandomizerState(unsigned long long state, unsigned long long inc)
