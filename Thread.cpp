@@ -2,14 +2,7 @@
 
 Thread::Thread( void ) : m_thread(NULL) {}
 
-bool Thread::Create(ThreadFunction function, void *in_data)
-{
-	Destroy();
-	m_thread = SDL_CreateThread(function, in_data);
-	return IsGood();
-}
-
-bool Thread::Run(ThreadFunction function, in_data)
+bool Thread::Run(ThreadFunction function, void *in_data)
 {
 	Kill();
 	m_thread = SDL_CreateThread(function, in_data);
@@ -36,7 +29,7 @@ void Thread::Kill( void )
 
 Uint32 Thread::GetCurrentID( void )
 {
-	return SDL_GetThreadID();
+	return SDL_GetThreadID(NULL);
 }
 
 Uint32 Thread::GetID( void ) const
@@ -69,9 +62,17 @@ bool Mutex::Lock( void )
 	return ret_val;
 }
 
+bool Mutex::TryLock( void )
+{
+	if (!IsLocked()) {
+		return Lock();
+	}
+	return false;
+}
+
 bool Mutex::Unlock( void )
 {
-	if (IsLocked() && LockerID() != Thread::GetCurrentID()) {
+	if (IsLocked() && GetLockerID() != Thread::GetCurrentID()) {
 		SDL_SetError("Unlocking thread is not same as locking thread.");
 		return false;
 	}
@@ -81,4 +82,14 @@ bool Mutex::Unlock( void )
 		m_lockID = 0;
 	}
 	return ret_val;
+}
+
+bool Mutex::IsLocked( void ) const
+{
+	return m_isLocked;
+}
+
+Uint32 Mutex::GetLockerID( void ) const
+{
+	return m_lockID;
 }

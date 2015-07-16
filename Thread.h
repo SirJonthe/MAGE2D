@@ -36,9 +36,10 @@ public:
 
 	bool   Lock( void );
 	bool   Unlock( void );
+	bool   TryLock( void );
 
 	bool   IsLocked( void ) const;
-	Uint32 LockerID( void ) const;
+	Uint32 GetLockerID( void ) const;
 };
 
 #endif // THREAD_H_INCLUDED__
