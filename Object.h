@@ -73,7 +73,7 @@ public:
 	void					ToggleCollisions( void );
 	bool					GetCollisionMask(unsigned int bit) const;
 	flags_t					GetCollisionMasks(flags_t mask = AllFlagsOn) const;
-	void					SetCollisionMask(unsigned int bit, bool state);
+	void					SetCollisionMask(unsigned int bit_index, bool state);
 	void					SetCollisionMasks(flags_t mask);
 	void					ClearAllCollisionMasks( void );
 	void					DestroyCollider( void );
@@ -96,7 +96,7 @@ public:
 	bool					IsDynamicType( void ) const;
 	template < typename object_t >
 	bool					IsStaticType( void ) const;
-	bool					IsStaticType(TypeID id);
+	bool					IsStaticType(mtlTypeID id);
 	bool					GetObjectFlag(unsigned int bit) const;
 	flags_t					GetObjectFlags(flags_t mask = AllFlagsOn) const;
 	void					SetObjectFlag(unsigned int bit, bool state);

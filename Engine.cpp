@@ -476,7 +476,7 @@ void Engine::FilterByName(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out,
 	}
 }
 
-void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, TypeID id)
+void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, mtlTypeID id)
 {
 	out.RemoveAll();
 	const mtlItem<ObjectRef> *n = in.GetFirst();

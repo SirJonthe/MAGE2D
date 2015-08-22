@@ -88,10 +88,10 @@ flags_t Object::GetCollisionMasks(flags_t mask) const
 	return m_collisionMask & mask;
 }
 
-void Object::SetCollisionMask(unsigned int bit, bool state)
+void Object::SetCollisionMask(unsigned int bit_index, bool state)
 {
 	unsigned int bitState = state ? 1 : 0;
-	unsigned int mask = bitState << bit;
+	unsigned int mask = bitState << bit_index;
 	m_collisionMask |= mask;
 }
 
@@ -140,7 +140,7 @@ void Object::SetDepth(float depth)
 	m_depth = depth;
 }
 
-bool Object::IsStaticType(TypeID id)
+bool Object::IsStaticType(mtlTypeID id)
 {
 	return GetInstanceType() == id;
 }

@@ -135,7 +135,7 @@ public:
 	static void					FilterByName(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const mtlChars &name);
 	template < typename type_t >
 	static void					FilterByDynamicType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out);
-	static void					FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, TypeID id);
+	static void					FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, mtlTypeID id);
 	template < typename type_t >
 	static void					FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out);
 	static void					FilterByObjectFlags(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
