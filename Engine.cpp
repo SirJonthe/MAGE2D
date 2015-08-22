@@ -922,6 +922,11 @@ float Engine::GetRandomRaisedCos( void )
 	return (cos(x) + 1.0f) / 2.0f;
 }
 
+bool Engine::GetRandomBit( void )
+{
+	return bool(GetRandomUint() & 1);
+}
+
 bool Engine::PlayMusic(const mtlChars &file)
 {
 	std::cout << "Engine::PlayMusic: " << file.GetChars() << std::endl;

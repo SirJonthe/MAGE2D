@@ -192,6 +192,7 @@ public:
 	float						GetRandomUniform( void );
 	float						GetRandomFloat(float min, float max);
 	float						GetRandomRaisedCos( void );
+	bool						GetRandomBit( void );
 
 	bool						PlayMusic(const mtlChars &file);
 	void						StopMusic( void );
