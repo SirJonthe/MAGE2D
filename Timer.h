@@ -100,6 +100,7 @@ public:
 	bool			IsDue( void ) const;
 
 	float			GetTime( void ) const; // if running, get time now; if stopped, get delta
+	void			SetTime(float time);
 	int				GetBeats( void ) const;
 
 	static float	GetTime(float time_sec, float tempo, Units units = BeatsPerSecond);

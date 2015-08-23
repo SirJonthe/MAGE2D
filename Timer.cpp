@@ -173,14 +173,18 @@ float NewTimer::GetTempo(NewTimer::Units units) const
 
 void NewTimer::Start( void )
 {
-	m_time_last = GetProgramTimeSeconds();
-	m_ticking = true;
+	if (!IsTicking()) {
+		m_time_last = GetProgramTimeSeconds();
+		m_ticking = true;
+	}
 }
 
 void NewTimer::Stop( void )
 {
-	UpdateTimer();
-	m_ticking = false;
+	if (IsTicking()) {
+		UpdateTimer();
+		m_ticking = false;
+	}
 }
 
 void NewTimer::Toggle( void )
@@ -234,6 +238,11 @@ float NewTimer::GetTime( void ) const
 {
 	UpdateTimer();
 	return GetStaticTime(m_accumulated_time);
+}
+
+void NewTimer::SetTime(float time)
+{
+	m_accumulated_time = time / m_beats_per_second;
 }
 
 int NewTimer::GetBeats( void ) const
