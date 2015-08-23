@@ -121,7 +121,7 @@ public:
 
 	void					MakeRulesetObject( void );
 
-	//ObjectRef				GetObjectReference( void );
+	ObjectRef				GetSelfRef( void );
 };
 
 #include "Engine.h"

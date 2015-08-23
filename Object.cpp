@@ -249,10 +249,7 @@ void Object::MakeRulesetObject( void )
 	SetObjectFlags(Object::ruleset_object);
 }
 
-/*ObjectRef Object::GetObjectReference( void )
+ObjectRef Object::GetSelfRef( void )
 {
-	if (m_objectRef == NULL) {
-		return ObjectRef();
-	}
-	return *m_objectRef;
-}*/
+	return (GetEngine() != NULL) ? GetEngine()->GetSelf(this) : ObjectRef();
+}
