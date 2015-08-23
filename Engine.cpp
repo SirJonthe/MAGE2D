@@ -307,7 +307,8 @@ Engine::Engine( void ) :
 	m_destroyingAll(false),
 	m_occlusionMethod(None),
 	m_music(NULL), m_musicVolume(1.0f),
-	m_clearColor(0.0f, 0.0f, 0.0f)
+	m_clearColor(0.0f, 0.0f, 0.0f),
+	m_loop_counter(0)
 {
 	m_mousePosition.x = 0;
 	m_mousePosition.y = 0;
@@ -816,6 +817,7 @@ int Engine::RunGame( void )
 
 	m_quit = false;
 	m_inLoop = true;
+	m_loop_counter = 0;
 
 	m_timer.Restart();
 
@@ -830,6 +832,7 @@ int Engine::RunGame( void )
 		DestroyObjects();
 		InitPendingObjects();
 		UpdateTimer();
+		++m_loop_counter;
 	}
 
 	m_inLoop = false;
@@ -1250,4 +1253,9 @@ ObjectRef Engine::GetSelf(const Object *self) const
 mmlVector<2> Engine::GetScreenPoint(const mmlVector<2> &world_point) const
 {
 	return world_point + mmlVector<2>((float)GetVideoWidth() / 2.0f, (float)GetVideoHeight() / 2.0f);
+}
+
+unsigned long long Engine::GetLoopCounter( void ) const
+{
+	return m_loop_counter;
 }

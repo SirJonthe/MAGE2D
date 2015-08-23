@@ -100,6 +100,7 @@ private:
 	mmlVector<3>		m_clearColor;
 	unsigned char		m_keyState[SDLK_LAST];
 	unsigned char		m_mouseButtonState[MouseButton::Last];
+	unsigned long long	m_loop_counter;
 
 private:
 	void							UpdateInputBuffers( void );
@@ -251,6 +252,8 @@ public:
 	ObjectRef					GetSelf(const Object *self) const;
 
 	mmlVector<2>				GetScreenPoint(const mmlVector<2> &world_point) const;
+
+	unsigned long long			GetLoopCounter( void ) const;
 };
 
 #define RegisterObject(ObjectTypeName) \
