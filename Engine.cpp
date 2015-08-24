@@ -42,7 +42,7 @@ void Engine::CollideObjects( void )
 {
 	// construct a list of possible collisions and reset the colliders' state
 	mtlItem<ObjectRef> *object = m_objects.GetFirst();
-	mtlList<ObjectRef> colliders;
+	mtlList<ObjectRef&> colliders;
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
 			node_ref(object)->GetCollider()->ResetState();
@@ -52,39 +52,39 @@ void Engine::CollideObjects( void )
 	}
 
 	// test for collisions (O(n^2))
-	object = colliders.GetFirst();
-	while (object != NULL) {
-		mtlItem<ObjectRef> *nextObject = object->GetNext();
-		while (nextObject != NULL) {
-			flags_t abCollision = node_ref(object)->GetCollisionMasks() & node_ref(nextObject)->GetObjectFlags();
-			flags_t baCollision = node_ref(nextObject)->GetObjectFlags() & node_ref(object)->GetCollisionMasks();
+	mtlItem<ObjectRef&> *collider = colliders.GetFirst();
+	while (collider != NULL) {
+		mtlItem<ObjectRef&> *nextCollider = collider->GetNext();
+		while (nextCollider != NULL) {
+			flags_t abCollision = node_ref(collider)->GetCollisionMasks() & node_ref(nextCollider)->GetObjectFlags();
+			flags_t baCollision = node_ref(nextCollider)->GetObjectFlags() & node_ref(collider)->GetCollisionMasks();
 			if (abCollision > 0 || baCollision > 0) {
-				CollisionInfo info = node_ref(object)->m_collider.GetShared()->Collides(*node_ref(nextObject)->m_collider.GetShared());
+				CollisionInfo info = node_ref(collider)->m_collider->Collides(*node_ref(nextCollider)->m_collider.GetShared());
 				if (info.collision) {
 
 					if (baCollision > 0) {
-						node_ref(nextObject)->OnCollision(object->GetItem(), info);
+						node_ref(nextCollider)->OnCollision(collider->GetItem(), info);
 					}
 
 					mmlSwap(info.c1, info.c2);
 					mmlSwap(info.c1_points, info.c2_points);
 					if (abCollision > 0) {
-						node_ref(object)->OnCollision(nextObject->GetItem(), info);
+						node_ref(collider)->OnCollision(nextCollider->GetItem(), info);
 					}
 				}
 			}
-			nextObject = nextObject->GetNext();
+			nextCollider = nextCollider->GetNext();
 		}
-		object->GetItem()->GetCollider()->TrackPreviousTransform();
-		object = object->GetNext();
+		collider->GetItem()->GetCollider()->TrackPreviousTransform();
+		collider = collider->GetNext();
 	}
 }
 
 struct GraphicsContainer
 {
-	ObjectRef	object;
-	float		z;
-	bool operator<(const GraphicsContainer &c) const { return z < c.z; }
+	Object *object;
+	float   z;
+	bool    operator<(const GraphicsContainer &c) const { return z < c.z; }
 };
 
 void Engine::DrawObjects( void )
@@ -98,7 +98,7 @@ void Engine::DrawObjects( void )
 			if (!node_ref(object)->IsDestroyed() && node_ref(object)->IsVisible()) {
 				//GraphicsContainer c = { object->GetItem(), node_ref(object)->GetTransform().GetIndependentTransform(Transform::Global), m_occlusionMethod };
 				GraphicsContainer c;
-				c.object = object->GetItem();
+				c.object = object->GetItem().GetShared();
 				if (m_occlusionMethod == SortByX || m_occlusionMethod == SortByY) {
 					c.z = c.object->GetTransform().GetPosition(Transform::Global)[(int)m_occlusionMethod];
 				} else {
@@ -115,15 +115,15 @@ void Engine::DrawObjects( void )
 		for (int i = 0; i < sortedGraphics.GetSize(); ++i) {
 
 			Engine::SetGameProjection();
-			SetGameView(sortedGraphics[i].object.GetShared()->GetTransform());
+			SetGameView(sortedGraphics[i].object->GetTransform());
 
 			glColor4f(
-				sortedGraphics[i].object.GetShared()->GetGraphics().GetRed(),
-				sortedGraphics[i].object.GetShared()->GetGraphics().GetGreen(),
-				sortedGraphics[i].object.GetShared()->GetGraphics().GetBlue(),
-				sortedGraphics[i].object.GetShared()->GetGraphics().GetAlpha()
+				sortedGraphics[i].object->GetGraphics().GetRed(),
+				sortedGraphics[i].object->GetGraphics().GetGreen(),
+				sortedGraphics[i].object->GetGraphics().GetBlue(),
+				sortedGraphics[i].object->GetGraphics().GetAlpha()
 			);
-			sortedGraphics[i].object.GetShared()->OnDraw();
+			sortedGraphics[i].object->OnDraw();
 		}
 
 	} else {
