@@ -1259,3 +1259,8 @@ unsigned long long Engine::GetLoopCounter( void ) const
 {
 	return m_loop_counter;
 }
+
+int Engine::GetPendingObjectsCount( void ) const
+{
+	return m_pending.GetSize();
+}

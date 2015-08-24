@@ -254,6 +254,7 @@ public:
 	mmlVector<2>				GetScreenPoint(const mmlVector<2> &world_point) const;
 
 	unsigned long long			GetLoopCounter( void ) const;
+	int							GetPendingObjectsCount( void ) const;
 };
 
 #define RegisterObject(ObjectTypeName) \
