@@ -4,8 +4,8 @@
 #include <iostream>
 
 static GLuint tId = 0, vId = 0, uvId = 0;
-static GLfloat vert[8];
-static GLfloat uv[8];
+//static GLfloat vert[8];
+//static GLfloat uv[8];
 
 int &CaretX( void ) { static int caret_x = 0; return caret_x; }
 int &CaretY( void ) { static int caret_y = 0; return caret_y; }
@@ -374,6 +374,10 @@ void GUI::NewLine(int scale)
 void GUI::Print(const mtlChars &text, int scale)
 {
 	if (text.GetSize() == 0) { return; }
+
+	GLfloat vert[8];
+	GLfloat uv[8];
+
 	scale = mmlMax2(1, scale);
 	Newl() = mmlMax2(Newl(), char_px_height * scale);
 
@@ -497,7 +501,13 @@ void GUI::Print(Rect r, int scale)
 
 void GUI::Box(Rect rect)
 {
-	/*glBindTexture(GL_TEXTURE_2D, 0);
+	// Engine enables texture coord array, but box rendering does not use texture coordinate array.
+	// Disable to avoid crash.
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	GLfloat vert[8];
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vId);
 	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
@@ -516,19 +526,10 @@ void GUI::Box(Rect rect)
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
 
-	glDrawArrays(GL_QUADS, 0, 4);*/
+	glDrawArrays(GL_QUADS, 0, 4);
 
-	glBegin(GL_TRIANGLES);
-
-	glVertex2i(rect.x, rect.y);
-	glVertex2i(rect.x + rect.w, rect.y);
-	glVertex2i(rect.x, rect.y + rect.h);
-
-	glVertex2i(rect.x + rect.w, rect.y);
-	glVertex2i(rect.x + rect.w, rect.y + rect.h);
-	glVertex2i(rect.x, rect.y + rect.h);
-
-	glEnd();
+	// Re-enable texture coord array for subsequent rendering.
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	//Newl() = mmlMax2(Newl(), rect.h);
 }
@@ -922,6 +923,10 @@ void GUI::Manager::SetTextColor(mmlVector<3> color)
 void GUI::Manager::Print(const mtlChars &text, int scale)
 {
 	if (text.GetSize() == 0) { return; }
+
+	GLfloat vert[8];
+	GLfloat uv[8];
+
 	scale = mmlMax2(1, scale);
 	m_newlineHeight = mmlMax2(m_newlineHeight, char_px_height * scale);
 

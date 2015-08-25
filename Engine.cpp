@@ -42,7 +42,7 @@ void Engine::CollideObjects( void )
 {
 	// construct a list of possible collisions and reset the colliders' state
 	mtlItem<ObjectRef> *object = m_objects.GetFirst();
-	mtlList<ObjectRef&> colliders;
+	mtlList<ObjectRef> colliders;
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
 			node_ref(object)->GetCollider()->ResetState();
@@ -52,9 +52,9 @@ void Engine::CollideObjects( void )
 	}
 
 	// test for collisions (O(n^2))
-	mtlItem<ObjectRef&> *collider = colliders.GetFirst();
+	mtlItem<ObjectRef> *collider = colliders.GetFirst();
 	while (collider != NULL) {
-		mtlItem<ObjectRef&> *nextCollider = collider->GetNext();
+		mtlItem<ObjectRef> *nextCollider = collider->GetNext();
 		while (nextCollider != NULL) {
 			flags_t abCollision = node_ref(collider)->GetCollisionMasks() & node_ref(nextCollider)->GetObjectFlags();
 			flags_t baCollision = node_ref(nextCollider)->GetObjectFlags() & node_ref(collider)->GetCollisionMasks();
@@ -443,6 +443,10 @@ bool Engine::Init(int width, int height, bool fullscreen, const mtlChars &window
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // means we can apply color to the textures we are rendering using glColor3
 
+
+	// TODO: This should be called at the time of rendering, not in an init function.
+	//       May cause rendering to crash if texture coord array is not used for that rendering (must disable before rendering, see GUI::Box).
+	//       Use Vertex Array Objects instead.
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 

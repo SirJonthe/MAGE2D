@@ -1,6 +1,13 @@
 --------
 --TODO--
 --------
+Restructure to use Vertex Array Objects
+	In Engine::Init
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	...cause GUI::Box to break, since that function does not use textures or UV coordinates for rendering (GL_TEXTURE_COORD_ARRAY is still enabled).
+	Hack is to disable before rendering box, then re-enabling when box is rendered.
+	Long-term solution is to use VAO.
 Make SceneGraph (handles relations between transforms, that's all)
 Simple GUI
 Collision response
