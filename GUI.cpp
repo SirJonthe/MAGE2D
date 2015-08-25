@@ -497,7 +497,7 @@ void GUI::Print(Rect r, int scale)
 
 void GUI::Box(Rect rect)
 {
-	glBindTexture(GL_TEXTURE_2D, 0);
+	/*glBindTexture(GL_TEXTURE_2D, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vId);
 	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
@@ -516,7 +516,19 @@ void GUI::Box(Rect rect)
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_QUADS, 0, 4);*/
+
+	glBegin(GL_TRIANGLES);
+
+	glVertex2i(rect.x, rect.y);
+	glVertex2i(rect.x + rect.w, rect.y);
+	glVertex2i(rect.x, rect.y + rect.h);
+
+	glVertex2i(rect.x + rect.w, rect.y);
+	glVertex2i(rect.x + rect.w, rect.y + rect.h);
+	glVertex2i(rect.x, rect.y + rect.h);
+
+	glEnd();
 
 	//Newl() = mmlMax2(Newl(), rect.h);
 }
