@@ -318,7 +318,7 @@ float Collider::GetMass( void ) const
 void Collider::SetMass(float mass)
 {
 	float area = GetArea();
-	m_density = area != 0.0f ? mmlMax2(0.0f, mass) / area : 0.0f;
+	m_density = area != 0.0f ? mmlMax(0.0f, mass) / area : 0.0f;
 }
 
 float Collider::GetDensity( void ) const
@@ -328,7 +328,7 @@ float Collider::GetDensity( void ) const
 
 void Collider::SetDensity(float density)
 {
-	m_density = mmlMax2(0.0f, density);
+	m_density = mmlMax(0.0f, density);
 }
 
 mmlVector<2> Collider::GetMovement( void ) const
@@ -500,9 +500,9 @@ void PolygonCollider::CreateShape(PolygonCollider::Shape shape)
 	}*/
 }
 
-bool PolygonCollider::Load(const mtlDirectory &file)
+bool PolygonCollider::Load(const mtlPath &file)
 {
-	std::cout << "PolygonCollider::Load: " << file.GetDirectory().GetChars() << std::endl;
+	std::cout << "PolygonCollider::Load: " << file.GetPath().GetChars() << std::endl;
 
 	m_vert.Free();
 
@@ -736,8 +736,8 @@ mmlVector<2> FluidCollider::GetHalfExtents( void ) const
 
 void FluidCollider::SetHalfExtents(mmlVector<2> half)
 {
-	m_half_extents[0] = mmlMax2(half[0], -half[0]);
-	m_half_extents[1] = mmlMax2(half[1], -half[1]);
+	m_half_extents[0] = mmlMax(half[0], -half[0]);
+	m_half_extents[1] = mmlMax(half[1], -half[1]);
 }
 
 float FluidCollider::GetCircumference( void ) const

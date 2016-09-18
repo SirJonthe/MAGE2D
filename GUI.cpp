@@ -368,7 +368,7 @@ void GUI::NewLine(int scale)
 {
 	CaretX() = 0;
 	CaretY() += Newl();
-	Newl() = char_px_height * mmlMax2(scale, 1);
+	Newl() = char_px_height * mmlMax(scale, 1);
 }
 
 void GUI::Print(const mtlChars &text, int scale)
@@ -378,8 +378,8 @@ void GUI::Print(const mtlChars &text, int scale)
 	GLfloat vert[8];
 	GLfloat uv[8];
 
-	scale = mmlMax2(1, scale);
-	Newl() = mmlMax2(Newl(), char_px_height * scale);
+	scale = mmlMax(1, scale);
+	Newl() = mmlMax(Newl(), char_px_height * scale);
 
 	glBindBuffer(GL_ARRAY_BUFFER, uvId);
 	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0);
@@ -531,7 +531,7 @@ void GUI::Box(Rect rect)
 	// Re-enable texture coord array for subsequent rendering.
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	//Newl() = mmlMax2(Newl(), rect.h);
+	//Newl() = mmlMax(Newl(), rect.h);
 }
 
 void GUI::Box(mmlVector<2> min, mmlVector<2> max)
@@ -560,7 +560,7 @@ Point GUI::GetTextSize(const mtlChars &text, int scale)
 			} else {
 				x += char_px_width;
 			}
-			p.x = mmlMax2(x, p.x);
+			p.x = mmlMax(x, p.x);
 		}
 	}
 	p.x *= scale;
@@ -681,10 +681,10 @@ Rect GUI::GraphicsRect::GetRect( void ) const
 	r.w = m_rect.w;
 	r.h = m_rect.h;
 
-	r.clip_x = mmlMax2(x1, rect.x);
-	r.clip_y = mmlMax2(y1, rect.y);
-	r.clip_w = mmlMin2(x1 + x2, rect.w);
-	r.clip_h = mmlMin2(y1 + y2, rect.h);
+	r.clip_x = mmlMax(x1, rect.x);
+	r.clip_y = mmlMax(y1, rect.y);
+	r.clip_w = mmlMin(x1 + x2, rect.w);
+	r.clip_h = mmlMin(y1 + y2, rect.h);
 
 	return r;
 }*/
@@ -703,14 +703,14 @@ void GUI::Control::DrawChildren(Rect clip) const
 Rect GUI::Control::Clip(Rect a, Rect b)
 {
 	Rect r;
-	r.x = mmlMax2(a.x, b.x);
-	r.y = mmlMax2(a.y, b.y);
+	r.x = mmlMax(a.x, b.x);
+	r.y = mmlMax(a.y, b.y);
 	int ax2 = a.x + a.w;
 	int ay2 = a.y + a.h;
 	int bx2 = b.x + b.w;
 	int by2 = b.y + b.h;
-	r.w = mmlMax2(mmlMin2(ax2, bx2) - r.x, 0);
-	r.h = mmlMax2(mmlMin2(ay2, by2) - r.y, 0);
+	r.w = mmlMax(mmlMin(ax2, bx2) - r.x, 0);
+	r.h = mmlMax(mmlMin(ay2, by2) - r.y, 0);
 	return r;
 }
 
@@ -927,8 +927,8 @@ void GUI::Manager::Print(const mtlChars &text, int scale)
 	GLfloat vert[8];
 	GLfloat uv[8];
 
-	scale = mmlMax2(1, scale);
-	m_newlineHeight = mmlMax2(m_newlineHeight, char_px_height * scale);
+	scale = mmlMax(1, scale);
+	m_newlineHeight = mmlMax(m_newlineHeight, char_px_height * scale);
 
 	glBindBuffer(GL_ARRAY_BUFFER, uvId);
 	glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)0);
@@ -1023,7 +1023,7 @@ void GUI::Manager::PrintNewLine(int scale)
 {
 	CaretX() = 0;
 	CaretY() += Newl();
-	Newl() = char_px_height * mmlMax2(scale, 1);
+	Newl() = char_px_height * mmlMax(scale, 1);
 }
 
 void GUI::Manager::SetTextCaret(int x, int y)

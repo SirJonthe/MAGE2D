@@ -20,11 +20,11 @@ private:
 
 public:
 						Image( void );
-						Image(const mtlDirectory &file);
+						Image(const mtlPath &file);
 						~Image( void );
 
 	void				Destroy( void );
-	bool				Load(const mtlDirectory &file);
+	bool				Load(const mtlPath &file);
 
 	bool				IsGood( void ) const;
 

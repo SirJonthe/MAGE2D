@@ -3,11 +3,11 @@
 #include "MiniLib/MML/mmlMath.h"
 #include "MiniLib/MTL/mtlParser.h"
 
-bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened)
+bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlPath &file, mtlList<mtlPath> &filesOpened)
 {
-	mtlItem<mtlDirectory> *node = filesOpened.GetFirst();
+	mtlItem<mtlPath> *node = filesOpened.GetFirst();
 	while (node != NULL) {
-		if (node->GetItem().GetDirectory().Compare(file.GetDirectory())) {
+		if (node->GetItem().GetPath().Compare(file.GetPath())) {
 			SetError("Recursive file meta data");
 			return false;
 		}
@@ -38,11 +38,11 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 				SetError("\"default\" must be first parameter of file");
 				return false;
 			}
-			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize()-1] != '\"') {
+			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize() - 1] != '\"') {
 				SetError("Malformed string value");
 				return false;
 			}
-			mtlDirectory defaultFile = val.GetSubstring(1, val.GetSize()-1);
+			mtlPath defaultFile = mtlChars(val, 1, val.GetSize() - 1);
 			Metadata defaultOut;
 			if (!LoadMetadata(defaultOut, defaultFile, filesOpened)) {
 				return false;
@@ -53,11 +53,11 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlDirectory &file, mtlLi
 			out.frameWidth = defaultOut.frameWidth;
 			out.loopBack = defaultOut.loopBack;
 		} else if (param.Compare("image_file")) {
-			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize()-1] != '\"') {
+			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize() - 1] != '\"') {
 				SetError("Malformed string value");
 				return false;
 			}
-			out.file.Copy(val.GetSubstring(1, val.GetSize()-1));
+			out.file.Copy(mtlChars(val, 1, val.GetSize() - 1));
 		} else if (param.Compare("frame_width")) {
 			if (!val.ToInt(out.frameWidth)) {
 				SetError("frame_width must be integer");
@@ -155,22 +155,22 @@ int Sprite::GetLoopbackFrame( void ) const
 
 void Sprite::SetFrameWidth(int width)
 {
-	m_frameWidth = mmlMax2(0, width);
+	m_frameWidth = mmlMax(0, width);
 }
 
 void Sprite::SetFrameHeight(int height)
 {
-	m_frameHeight = mmlMax2(0, height);
+	m_frameHeight = mmlMax(0, height);
 }
 
 void Sprite::SetFrameCount(int count)
 {
-	m_numFrames = mmlMax2(0, count);
+	m_numFrames = mmlMax(0, count);
 }
 
 void Sprite::SetFramesPerSecond(float frames)
 {
-	m_framesPerSecond = mmlMax2(0.0f, frames);
+	m_framesPerSecond = mmlMax(0.0f, frames);
 }
 
 void Sprite::SetLoopbackFrame(int frame)
@@ -197,23 +197,23 @@ int Sprite::GetFrameIndex(float time) const
 	const float totalAnimationTime = delay * GetFrameCount();
 	float progress = (time / totalAnimationTime);
 	if (progress > 1.0f) {
-		progress = mmlMax2((delay * GetLoopbackFrame()) / totalAnimationTime, progress - int(progress));
+		progress = mmlMax((delay * GetLoopbackFrame()) / totalAnimationTime, progress - int(progress));
 	}
 	return int(progress * GetFrameCount());
 }
 
-bool Sprite::Load(const mtlDirectory &file)
+bool Sprite::Load(const mtlPath &file)
 {
-	std::cout << "Sprite::Load: " << file.GetDirectory().GetChars() << std::endl;
+	std::cout << "Sprite::Load: " << file.GetPath().GetChars() << std::endl;
 
 	Destroy();
 
-	if (!file.GetExtension().Compare("sprite")) {
+	if (!file.GetFileExtension().Compare("sprite")) {
 		SetError("Unexpected file extension");
 		return false;
 	}
 
-	mtlList<mtlDirectory> filesOpened;
+	mtlList<mtlPath> filesOpened;
 	Metadata out;
 	if (!LoadMetadata(out, file, filesOpened)) {
 		std::cout << "\tfailed: " << GetError().GetChars() << std::endl;
@@ -226,7 +226,7 @@ bool Sprite::Load(const mtlDirectory &file)
 		if (out.frameHeight	== -1) {
 			m_frameHeight = m_sheet.GetAsset()->GetHeight();
 		} else {
-			m_frameHeight = mmlMin2(m_sheet.GetAsset()->GetHeight(), out.frameHeight);
+			m_frameHeight = mmlMin(m_sheet.GetAsset()->GetHeight(), out.frameHeight);
 		}
 		if (out.frameCount == -1 && out.frameWidth == -1) {
 			m_numFrames = 1;

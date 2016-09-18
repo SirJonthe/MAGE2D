@@ -232,7 +232,7 @@ void Console::SetBackgroundColor(const mmlVector<4> &color)
 
 void Console::SetMaxHistory(int lines)
 {
-	m_maxHistory = mmlMax2(1, lines);
+	m_maxHistory = mmlMax(1, lines);
 }
 
 void Console::SetEnvokationKey(SDLKey key)
@@ -585,9 +585,9 @@ void SpriteEditor::OnUpdate( void )
 	mmlVector<2> wMouse = GetEngine()->GetWorldMousePosition();
 
 	if (GetEngine()->IsPressed(SDLK_DOWN)) {
-		GetTransform().SetScale(Transform::Local, mmlMin2(1.0f, GetTransform().GetScaleX(Transform::Local) * 2.0f));
+		GetTransform().SetScale(Transform::Local, mmlMin(1.0f, GetTransform().GetScaleX(Transform::Local) * 2.0f));
 	} else if (GetEngine()->IsPressed(SDLK_UP)) {
-		GetTransform().SetScale(Transform::Local, mmlMax2(1.0f / 16.0f, GetTransform().GetScaleX(Transform::Local) / 2.0f));
+		GetTransform().SetScale(Transform::Local, mmlMax(1.0f / 16.0f, GetTransform().GetScaleX(Transform::Local) / 2.0f));
 	}
 
 	if (GetEngine()->IsDown(MouseButton::Right)) {

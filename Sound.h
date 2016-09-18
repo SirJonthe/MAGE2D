@@ -14,7 +14,7 @@ public:
 	Sound( void );
 	Sound(const mtlChars &file);
 	~Sound( void );
-	bool Load(const mtlDirectory &file);
+	bool Load(const mtlPath &file);
 	int Play( void ) const;
 	void Free( void );
 	bool IsGood( void ) const;

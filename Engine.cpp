@@ -356,11 +356,11 @@ bool Engine::Init(int width, int height, bool fullscreen, const mtlChars &window
 	for (int i = 1; i < argc; ++i) {
 		std::cout << "\t" << argv[i] << ": ";
 		if (strcmp(argv[i], "-width") == 0 && i < argc-1) {
-			args.width = mmlMax2(atoi(argv[++i]), 0);
+			args.width = mmlMax(atoi(argv[++i]), 0);
 			std::cout << "Window width set (" << args.width << ")";
 		}
 		else if (strcmp(argv[i], "-height") == 0 && i < argc-1) {
-			args.height = mmlMax2(atoi(argv[++i]), 0);
+			args.height = mmlMax(atoi(argv[++i]), 0);
 			std::cout << "Window height set (" << args.height << ")";
 		}
 		else if (strcmp(argv[i], "-fullscreen") == 0 && i < argc-1) {
@@ -368,7 +368,7 @@ bool Engine::Init(int width, int height, bool fullscreen, const mtlChars &window
 			std::cout << "Window mode set (" << args.fullscreen << ")";
 		}
 		else if (strcmp(argv[i], "-freq") == 0 && i < argc-1) {
-			float freq = mmlMax2(1.0f, (float)atof(argv[++i]));
+			float freq = mmlMax(1.0f, (float)atof(argv[++i]));
 			SetUpdateFrequency(freq);
 			std::cout << "Update frequency set (" << freq << ")";
 		}
@@ -399,7 +399,7 @@ bool Engine::Init(int width, int height, bool fullscreen, const mtlChars &window
 		if (info != NULL) {
 			float w_scale = (float)args.width / (float)info->current_w;
 			float h_scale = (float)args.height / (float)info->current_h;
-			float scale = 1.0f / mmlMax2(w_scale, h_scale);
+			float scale = 1.0f / mmlMax(w_scale, h_scale);
 			args.width *= scale;
 			args.height *= scale;
 			std::cout << "Resolution resized to " << args.width << "x" << args.height << " to fit " << info->current_w << "x" << info->current_h << " (scale factor " << scale << ")" << std::endl;

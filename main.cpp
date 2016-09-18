@@ -332,7 +332,7 @@ FollowCamera::FollowCamera( void ) : ConstructObject(FollowCamera), m_follow()
 
 void PrintString(const mtlChars &ch)
 {
-	if (!ch.IsNull()) {
+	if (ch.GetChars() != NULL) {
 		if (ch.IsNullTerminated()) {
 			std::cout << ch.GetChars();
 		} else {

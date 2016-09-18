@@ -19,7 +19,7 @@ Image::Image( void ) : mtlInherit<Graphics, Image>(this), m_image(NULL), m_width
 {
 }
 
-Image::Image(const mtlDirectory &file) : mtlInherit<Graphics, Image>(this), m_image(NULL), m_width(0), m_height(0)
+Image::Image(const mtlPath &file) : mtlInherit<Graphics, Image>(this), m_image(NULL), m_width(0), m_height(0)
 {
 	Load(file);
 }
@@ -41,13 +41,13 @@ void Image::Destroy( void )
 	m_height = 0;
 }
 
-bool Image::Load(const mtlDirectory &file)
+bool Image::Load(const mtlPath &file)
 {
-	std::cout << "Image::Load: " << file.GetDirectory().GetChars() << std::endl;
+	std::cout << "Image::Load: " << file.GetPath().GetChars() << std::endl;
 
 	Destroy();
 
-	SDL_Surface *image = IMG_Load(file.GetDirectory().GetChars());
+	SDL_Surface *image = IMG_Load(file.GetPath().GetChars());
 	if (image == NULL) {
 		std::cout << "\tfailed: " << SDL_GetError() << std::endl;
 		return false;

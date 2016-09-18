@@ -3,7 +3,7 @@
 
 #include "Image.h"
 #include "MiniLib/MTL/mtlArray.h"
-#include "MiniLib/MTL/mtlDirectory.h"
+#include "MiniLib/MTL/mtlPath.h"
 #include "MiniLib/MTL/mtlAsset.h"
 #include "MiniLib/MTL/mtlType.h"
 
@@ -36,7 +36,7 @@ private:
 private:
 	Sprite(const Sprite&) : mtlInherit<Graphics, Sprite>(this) {}
 	Sprite &operator=(const Sprite&) { return *this; }
-	bool LoadMetadata(Metadata &out, const mtlDirectory &file, mtlList<mtlDirectory> &filesOpened);
+	bool LoadMetadata(Metadata &out, const mtlPath &file, mtlList<mtlPath> &filesOpened);
 
 public:
 			Sprite( void );
@@ -60,7 +60,7 @@ public:
 
 	int		GetFrameIndex(float time) const;
 
-	bool	Load(const mtlDirectory &file);
+	bool	Load(const mtlPath &file);
 	void	Destroy( void );
 	void	Draw(float time) const;
 	bool	IsGood( void ) const;
