@@ -13,15 +13,15 @@ class ScheduleTask
 	friend class ParallelSchedule;
 
 private:
-	float		m_delay_sec;
-	int			m_num_iter;
-	NewTimer	m_timer;
+	float    m_delay_sec;
+	int      m_num_iter;
+	NewTimer m_timer;
 
 public:
-	float			GetDelay( void ) const { return m_delay_sec; }
-	int				GetIterationsLeft( void ) const { return m_num_iter; }
-	virtual bool	IsDue( void ) const; // overload this to have an arbitrary condition for execution
-	virtual void	operator()(Object *object) = 0;
+	float        GetDelay( void ) const { return m_delay_sec; }
+	int          GetIterationsLeft( void ) const { return m_num_iter; }
+	virtual bool IsDue( void ) const; // overload this to have an arbitrary condition for execution
+	virtual void operator()(Object *object) = 0;
 };
 
 template < typename task_t >
@@ -36,7 +36,7 @@ public:
 	static const int IterateForever = -1;
 
 protected:
-	mtlList< mtlShared<ScheduleTask> >	m_tasks;
+	mtlList< mtlShared<ScheduleTask> > m_tasks;
 
 protected:
 	void ExecuteTask(mtlItem< mtlShared< ScheduleTask > > *task, Object *object);
@@ -65,12 +65,12 @@ public:
 class SerialSchedule : public Schedule
 {
 private:
-	NewTimer							m_timer;
-	mtlItem< mtlShared<ScheduleTask> >	*m_current_task;
+	NewTimer                            m_timer;
+	mtlItem< mtlShared<ScheduleTask> > *m_current_task;
 
 private:
-	bool			NullTask( void ) const;
-	ScheduleTask	*GetTask( void );
+	bool          NullTask( void ) const;
+	ScheduleTask *GetTask( void );
 
 public:
 	SerialSchedule( void );
@@ -93,8 +93,8 @@ public:
 class ParallelSchedule : public Schedule
 {
 private:
-	mtlList<NewTimer>	m_timers;
-	bool				m_ticking;
+	mtlList<NewTimer> m_timers;
+	bool              m_ticking;
 
 public:
 	ParallelSchedule( void );
