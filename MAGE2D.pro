@@ -56,7 +56,8 @@ HEADERS += \
 	MiniLib/MTL/mtlRandom.h \
     Schedule.h \
     MiniLib/MTL/mtlMathParser.h \
-    Thread.h
+    Thread.h \
+    Physics.h
 
 OTHER_FILES += \
 	TODO.txt \

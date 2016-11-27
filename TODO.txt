@@ -33,6 +33,8 @@ mtlParser
 	// parses a string, treats it as a mathematical expression
 	// calculates expression and retuns value in 'out'
 	// uses strings in 'var' and values in 'val' to identify variables
+Break objects with Voronoi diagrams (splits object in several objects, graphics and colliders into several pieces)
+	could be used for fun gameplay mechanics
 
 ----------
 --DESIGN--
@@ -40,6 +42,7 @@ mtlParser
 Type tree in Engine should be mtlStringMap instead of mtlBinaryTree (saves a ton of code)
 In order for font to work properly I think I need to store font in an extended Graphics object
 	Graphics objects store mirrors global state, font modifies global state which might desync Graphics mirrored state from global state
+Hide all use of OpenGL in cpp files; don't pollute project with OpenGL (or SDL if possible)
 
 -------------------
 --LONG TERM PLANS--
@@ -77,8 +80,6 @@ Engine filtering methods
 -------------
 MiniLib
 	Update MiniLib components?
-	Link to MiniLib on GitHub somehow?
-		git submodules
 Valgrind warnings
 Compiler warnings
 
