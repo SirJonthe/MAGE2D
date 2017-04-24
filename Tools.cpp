@@ -62,7 +62,8 @@ void Console::SubmitInput( void )
 	Print(m_userInput);
 	NewLine();
 
-	mtlParser parser(m_userInput);
+	mtlSyntaxParser parser;
+	parser.SetBuffer(m_userInput);
 
 	while (!parser.IsEnd()) {
 		mtlChars cmd = parser.ReadWord();
@@ -73,7 +74,9 @@ void Console::SubmitInput( void )
 			}
 		} else if (cmd.Compare("destroy")) {
 			cmd = parser.ReadWord();
-			mtlChars destroy_type = parser.ReadLine();
+			mtlArray<mtlChars> m;
+			parser.Match("%s", m);
+			mtlChars destroy_type = m[0];
 			mtlList<ObjectRef> objects;
 			if (cmd.Compare("name")) {
 				GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, destroy_type);
@@ -93,13 +96,17 @@ void Console::SubmitInput( void )
 			cmd = parser.ReadWord();
 			mtlList<ObjectRef> objects;
 			if (cmd.Compare("name")) {
-				mtlChars info_type = parser.ReadLine();
+				mtlArray<mtlChars> m;
+				parser.Match("%s", m);
+				mtlChars info_type = m[0];
 				GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, info_type);
 			} else if (cmd.Compare("id")) {
-				mtlChars info_type = parser.ReadLine();
+				mtlArray<mtlChars> m;
+				parser.Match("%s", m);
+				mtlChars info_type = m[0];
 				mtlString id(info_type);
 				GetEngine()->FilterByStaticType(GetEngine()->GetObjects(), objects, atoi(id.GetChars()));
-			} if (cmd.Compare("all")) {
+			} else if (cmd.Compare("all")) {
 				GetEngine()->FilterByDynamicType<Object>(GetEngine()->GetObjects(), objects);
 			} else {
 				PrintRaw("{0.796,1.0,0.094}No such command");
@@ -116,7 +123,9 @@ void Console::SubmitInput( void )
 		} else if (cmd.Compare("quit")) {
 			GetEngine()->EndGame();
 		} else if (cmd.Compare("echo")) {
-			PrintRaw(parser.ReadLine());
+			mtlArray<mtlChars> m;
+			parser.Match("%s", m);
+			PrintRaw(m[0]);
 		} else {
 			PrintRaw("{0.796,1.0,0.094}No such command");
 			NewLine();

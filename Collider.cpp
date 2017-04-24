@@ -509,16 +509,24 @@ bool PolygonCollider::Load(const mtlPath &file)
 	mtlList< mmlVector<2> > vert;
 
 	mtlString file_contents;
-	if (!mtlParser::BufferFile(file, file_contents)) {
+	if (!mtlBufferFile(file, file_contents)) {
 		std::cout << "\tfailed to open/read file" << std::endl;
 		return false;
 	}
-	mtlParser parser(file_contents);
+	mtlSyntaxParser parser;
+	parser.SetBuffer(file_contents);
+	parser.EnableCaseSensitivity();
+	parser.SetHyphenators("");
 	while (!parser.IsEnd()) {
-		mtlChars word = parser.ReadWord();
+
+		mtlChars word = parser.ReadAlpha();
 		if (word.Compare("v")) {
+			mtlChars v1 = parser.ReadReal();
+			parser.Match("f");
+			mtlChars v2 = parser.ReadReal();
+			parser.Match("f");
 			mmlVector<2> v;
-			if (!parser.ReadWord().ToFloat(v[0]) || !parser.ReadWord().ToFloat(v[1])) {
+			if (!v1.ToFloat(v[0]) || !v2.ToFloat(v[1])) {
 				std::cout << "\tfailed to convert param to float" << std::endl;
 				return false;
 			}

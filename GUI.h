@@ -48,7 +48,8 @@ template < int n >
 void Print(const mmlVector<n> &vec, int scale = 1)
 {
 	for (int i = 0; i < n-1; ++i) {
-		GUI::Print(vec[n], scale);
+		float x = vec[n];
+		GUI::Print(x, scale);
 		GUI::Print(", ", scale);
 	}
 	GUI::Print(vec[n-1], scale);

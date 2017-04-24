@@ -16,99 +16,130 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlPath &file, mtlList<mt
 	filesOpened.AddLast(file);
 
 	mtlString fileContents;
-	if (!mtlParser::BufferFile(file, fileContents)) {
+	if (!mtlBufferFile(file, fileContents)) {
 		SetError("File could not be read");
 		return false;
 	}
-	mtlParser read;
+	mtlSyntaxParser read;
 	read.SetBuffer(fileContents);
-	int lineNumber = 0;
-	while (!read.IsEnd()) {
-		++lineNumber;
-		mtlList<mtlChars> param_val;
-		read.ReadLine().SplitByChar(param_val, "=");
-		if (param_val.GetSize() != 2) {
-			SetError("Parameter/value mismatch");
+	read.EnableCaseSensitivity();
+	mtlArray<mtlChars> param_val;
+
+	if (read.Match("default=\"%S\"", param_val) == 0) {
+		mtlPath defaultFile = param_val[0];
+		Metadata defaultOut;
+		if (!LoadMetadata(defaultOut, defaultFile, filesOpened)) {
 			return false;
 		}
-		mtlChars param = param_val.GetFirst()->GetItem();
-		mtlChars val = param_val.GetFirst()->GetNext()->GetItem();
-		if (param.Compare("default")) {
-			if (lineNumber == 1) {
-				SetError("\"default\" must be first parameter of file");
+		out.file.Copy(defaultOut.file);
+		out.frameCount = defaultOut.frameCount;
+		out.framesPerSecond = defaultOut.framesPerSecond;
+		out.frameWidth = defaultOut.frameWidth;
+		out.loopBack = defaultOut.loopBack;
+	}
+
+	while (!read.IsEnd()) {
+
+		switch (read.Match("%w=\"%S\" %| %w=%!(true%|false) %| %w=%r %| %w=%i", param_val)) {
+		case 0: // value=str
+		{
+			mtlChars param = param_val[0];
+			mtlChars val = param_val[1];
+			if (param.Compare("image_file")) {
+				out.file.Copy(val);
+			} else {
+				mtlString error("Unknown parameter: \"");
+				error.Append(param).Append("\"");
+				SetError(error);
 				return false;
 			}
-			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize() - 1] != '\"') {
-				SetError("Malformed string value");
+			break;
+		}
+
+		case 1: //value=bool
+		{
+			mtlChars param = param_val[0];
+			mtlChars val = param_val[1];
+			if (param.Compare("is_looping")) {
+				if (!val.ToBool(out.isLooping)) {
+					SetError("is_looping must be boolean");
+					return false;
+				}
+			} else {
+				mtlString error("Unknown parameter: \"");
+				error.Append(param).Append("\"");
+				SetError(error);
 				return false;
 			}
-			mtlPath defaultFile = mtlChars(val, 1, val.GetSize() - 1);
-			Metadata defaultOut;
-			if (!LoadMetadata(defaultOut, defaultFile, filesOpened)) {
+		}
+
+		case 2: // value=real
+		{
+			mtlChars param = param_val[0];
+			mtlChars val = param_val[1];
+			if (param.Compare("frames_per_second")) {
+				if (!val.ToFloat(out.framesPerSecond) || out.framesPerSecond < 0.0f) {
+					SetError("frames_per_second must be positive float");
+					return false;
+				}
+			} else {
+				mtlString error("Unknown parameter: \"");
+				error.Append(param).Append("\"");
+				SetError(error);
 				return false;
 			}
-			out.file.Copy(defaultOut.file);
-			out.frameCount = defaultOut.frameCount;
-			out.framesPerSecond = defaultOut.framesPerSecond;
-			out.frameWidth = defaultOut.frameWidth;
-			out.loopBack = defaultOut.loopBack;
-		} else if (param.Compare("image_file")) {
-			if (val.GetChars()[0] != '\"' || val.GetChars()[val.GetSize() - 1] != '\"') {
-				SetError("Malformed string value");
+			break;
+		}
+
+		case 3: // value=int
+		{
+			mtlChars param = param_val[0];
+			mtlChars val = param_val[1];
+			if (param.Compare("frame_width")) {
+				if (!val.ToInt(out.frameWidth) || out.frameWidth < 0) {
+					SetError("frame_width must be positive integer");
+					return false;
+				}
+			} else if (param.Compare("frame_count")) {
+				if (!val.ToInt(out.frameCount) || out.frameCount < 0) {
+					SetError("frame_count must be positive integer");
+					return false;
+				}
+			} else if (param.Compare("frame_height")) {
+				if (!val.ToInt(out.frameHeight) || out.frameHeight < 0) {
+					SetError("frame_height must be positive integer");
+					return false;
+				}
+			} else if (param.Compare("frame_delay_ms")) {
+				int i;
+				if (!val.ToInt(i) || i < 0) {
+					SetError("frame_delay_ms must be positive integer");
+					return false;
+				}
+				out.framesPerSecond = 1.0f / (float(i) / 1000.0f);
+			} else if (param.Compare("frame_delay_seconds")) {
+				int i;
+				if (!val.ToInt(i) || i < 0) {
+					SetError("frame_delay_seconds must be positive integer");
+					return false;
+				}
+				out.framesPerSecond = 1.0f / float(i);
+			} else if (param.Compare("loopback_frame")) {
+				if (!val.ToInt(out.loopBack) || out.loopBack < 0) {
+					SetError("loopback_frame must be positive integer");
+					return false;
+				}
+			} else {
+				mtlString error("Unknown parameter: \"");
+				error.Append(param).Append("\"");
+				SetError(error);
 				return false;
 			}
-			out.file.Copy(mtlChars(val, 1, val.GetSize() - 1));
-		} else if (param.Compare("frame_width")) {
-			if (!val.ToInt(out.frameWidth)) {
-				SetError("frame_width must be integer");
-				return false;
-			} else if (out.frameWidth < 0) {
-				SetError("frame_width must be positive integer");
-				return false;
-			}
-		} else if (param.Compare("frame_count")) {
-			if (!val.ToInt(out.frameCount) || out.frameCount < 0) {
-				SetError("frame_count must be positive integer");
-				return false;
-			}
-		} else if (param.Compare("frame_height")) {
-			if (!val.ToInt(out.frameHeight) || out.frameHeight < 0) {
-				SetError("frame_height must be positive integer");
-				return false;
-			}
-		} else if (param.Compare("frames_per_second")) {
-			if (!val.ToFloat(out.framesPerSecond) || out.framesPerSecond < 0.0f) {
-				SetError("frames_per_second must be positive float");
-				return false;
-			}
-		} else if (param.Compare("frame_delay_ms")) {
-			int i;
-			if (!val.ToInt(i) || i < 0) {
-				SetError("frame_delay_ms must be positive integer");
-				return false;
-			}
-			out.framesPerSecond = 1.0f / (float(i) / 1000.0f);
-		} else if (param.Compare("frame_delay_seconds")) {
-			int i;
-			if (!val.ToInt(i) || i < 0) {
-				SetError("frame_delay_seconds must be positive integer");
-				return false;
-			}
-			out.framesPerSecond = 1.0f / float(i);
-		} else if (param.Compare("is_looping")) {
-			if (!val.ToBool(out.isLooping)) {
-				SetError("is_looping must be boolean");
-				return false;
-			}
-		} else if (param.Compare("loopback_frame")) {
-			if (!val.ToInt(out.loopBack) || out.loopBack < 0) {
-				SetError("loopback_frame must be positive integer");
-				return false;
-			}
-		} else {
-			mtlString error("Unknown parameter: \"");
-			error.Append(param).Append("\"");
-			SetError(error);
+			break;
+		}
+
+		default:
+			SetError("Unknown parameter/value pair");
 			return false;
 		}
 	}
