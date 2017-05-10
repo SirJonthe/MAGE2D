@@ -1,7 +1,7 @@
 #include "Platform.h"
 #include "Timer.h"
 
-Timer::Timer(float intervalsPerSecond) : m_timeLast(-1.0f), m_timeNow(-1.0f), m_interval(0.0f), m_delta(0.0f)
+/*Timer::Timer(float intervalsPerSecond) : m_timeLast(-1.0f), m_timeNow(-1.0f), m_interval(0.0f), m_delta(0.0f)
 {
 	SetIntervalsPerSecond(intervalsPerSecond);
 }
@@ -122,9 +122,9 @@ float Timer::GetProgramTimeSeconds( void )
 float Timer::GetProgramTimeInterval( void )
 {
 	return float(SDL_GetTicks()) / m_interval;
-}
+}*/
 
-void NewTimer::UpdateTimer( void ) const
+void Timer::UpdateTimer( void ) const
 {
 	if (m_ticking) {
 		float time = GetProgramTimeSeconds();
@@ -133,12 +133,12 @@ void NewTimer::UpdateTimer( void ) const
 	}
 }
 
-float NewTimer::GetStaticTime(float time_seconds) const
+float Timer::GetStaticTime(float time_seconds) const
 {
 	return time_seconds * m_beats_per_second;
 }
 
-float NewTimer::GetBeatsPerSecond(float tempo, NewTimer::Units units)
+float Timer::GetBeatsPerSecond(float tempo, Timer::Units units)
 {
 	if (units == BeatsPerMinute) {
 		return tempo / 60.0f;
@@ -148,17 +148,17 @@ float NewTimer::GetBeatsPerSecond(float tempo, NewTimer::Units units)
 	return tempo;
 }
 
-NewTimer::NewTimer(float tempo, Units units) : m_beats_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
+Timer::Timer(float tempo, Units units) : m_beats_per_second(0.0f), m_accumulated_time(0.0f), m_time_last(0.0), m_ticking(false)
 {
 	SetTempo(tempo, units);
 }
 
-void NewTimer::SetTempo(float tempo, NewTimer::Units units)
+void Timer::SetTempo(float tempo, NewTimer::Units units)
 {
 	m_beats_per_second = GetBeatsPerSecond(tempo, units);
 }
 
-float NewTimer::GetTempo(NewTimer::Units units) const
+float Timer::GetTempo(Timer::Units units) const
 {
 	float tempo = 0.0f;
 	if (units == BeatsPerMinute) {
@@ -171,7 +171,7 @@ float NewTimer::GetTempo(NewTimer::Units units) const
 	return tempo;
 }
 
-void NewTimer::Start( void )
+void Timer::Start( void )
 {
 	if (!IsTicking()) {
 		m_time_last = GetProgramTimeSeconds();
@@ -179,7 +179,7 @@ void NewTimer::Start( void )
 	}
 }
 
-void NewTimer::Stop( void )
+void Timer::Stop( void )
 {
 	if (IsTicking()) {
 		UpdateTimer();
@@ -187,7 +187,7 @@ void NewTimer::Stop( void )
 	}
 }
 
-void NewTimer::Toggle( void )
+void Timer::Toggle( void )
 {
 	if (IsTicking()) {
 		Stop();
@@ -196,12 +196,12 @@ void NewTimer::Toggle( void )
 	}
 }
 
-void NewTimer::Reset( void )
+void Timer::Reset( void )
 {
 	m_accumulated_time = 0.0f;
 }
 
-void NewTimer::Truncate( void )
+void Timer::Truncate( void )
 {
 	if (m_beats_per_second > 0.0f) {
 		float rel_time = GetStaticTime(m_accumulated_time);
@@ -209,7 +209,7 @@ void NewTimer::Truncate( void )
 	}
 }
 
-void NewTimer::Beat( void )
+void Timer::Beat( void )
 {
 	if (m_beats_per_second > 0.0f) {
 		float rel_time = GetStaticTime(m_accumulated_time);
@@ -219,53 +219,53 @@ void NewTimer::Beat( void )
 	}
 }
 
-bool NewTimer::IsTicking( void ) const
+bool Timer::IsTicking( void ) const
 {
 	return m_ticking;
 }
 
-bool NewTimer::IsStopped( void ) const
+bool Timer::IsStopped( void ) const
 {
 	return !m_ticking;
 }
 
-bool NewTimer::IsDue( void ) const
+bool Timer::IsDue( void ) const
 {
 	return GetTime() >= 1.0f;
 }
 
-float NewTimer::GetTime( void ) const
+float Timer::GetTime( void ) const
 {
 	UpdateTimer();
 	return GetStaticTime(m_accumulated_time);
 }
 
-void NewTimer::SetTime(float time)
+void Timer::SetTime(float time)
 {
 	m_accumulated_time = time / m_beats_per_second;
 }
 
-int NewTimer::GetBeats( void ) const
+int Timer::GetBeats( void ) const
 {
 	return (int)GetTime();
 }
 
-float NewTimer::GetProgramTimeSeconds( void )
+float Timer::GetProgramTimeSeconds( void )
 {
 	return float(SDL_GetTicks()) / 1000.0f;
 }
 
-float NewTimer::GetTime(float time_sec, float tempo, NewTimer::Units units)
+float Timer::GetTime(float time_sec, float tempo, Timer::Units units)
 {
 	return time_sec * GetBeatsPerSecond(tempo, units);
 }
 
-int NewTimer::GetBeats(float time_sec, float tempo, Units units)
+int Timer::GetBeats(float time_sec, float tempo, Timer::Units units)
 {
 	return (int)GetTime(time_sec, tempo, units);
 }
 
-float NewTimer::GetProgramTime(float tempo, NewTimer::Units units)
+float Timer::GetProgramTime(float tempo, Timer::Units units)
 {
 	float time = 0.0f;
 	if (units == BeatsPerMinute) {
@@ -278,7 +278,7 @@ float NewTimer::GetProgramTime(float tempo, NewTimer::Units units)
 	return time;
 }
 
-float NewTimer::GetProgramTime( void ) const
+float Timer::GetProgramTime( void ) const
 {
 	return GetStaticTime(GetProgramTimeSeconds());
 }
