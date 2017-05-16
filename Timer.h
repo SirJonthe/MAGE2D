@@ -43,6 +43,7 @@ public:
 	bool IsStopped( void ) const;
 	bool IsDue( void ) const;
 
+	Time  GetIntTime( void ) const;
 	float GetTime( void ) const;
 	int   GetBeats( void ) const;
 	float GetPartBeat( void ) const;

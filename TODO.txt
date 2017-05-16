@@ -12,27 +12,6 @@ Make SceneGraph (handles relations between transforms, that's all)
 Simple GUI
 Collision response
 Object callbacks
-mtlParser
-	bool Match("%s = { %f, %f, %f };", mtlList<mtlString> &out);
-	// a string (any)
-	// an equals sign
-	// an opening brace
-	// three floats separated by commas
-	// a closing brace
-	// a semi-colon
-	// NOTE: %i, %f, %b, %s (int, float, bool, string)
-        // NOTE: values will be returned in 'out'
-        // NOTE: can specify if white spaces should be ignored - may even search multiple lines of text
-	// NOTE: strings are terminated by the following character in the search string, i.e. "{%s}" is terminated by '}'
-	// NOTE: does brace matching for strings, i.e. searching "function(function(), param)" with "function(%s)" returns "function(), param" rather than "function("
-	// NOTE: returns FALSE if no match was found
-	// NOTE: search always begins from current position forward (doesn't just look for match wherever it can find it)
-
-	bool Expression(int &out, const mtlList<mtlString> &var, const mtlList<int> &val);
-	bool Expressions(float &out, const mtlList<mtlString> &def, const mtlList<float> &val);
-	// parses a string, treats it as a mathematical expression
-	// calculates expression and retuns value in 'out'
-	// uses strings in 'var' and values in 'val' to identify variables
 Break objects with Voronoi diagrams (splits object in several objects, graphics and colliders into several pieces)
 	could be used for fun gameplay mechanics
 
@@ -74,6 +53,10 @@ Physics?
 --DEBUG--
 ---------
 Engine filtering methods
+Check memory errors when using GUI::Print(mmlVector<n>, int)
+Check tranform system, behaving strangely?
+Check RTTI system, IsClassType not returning correct value?
+Is collision system correctly filtering collisions based on object vs. collision flags?
 
 -------------
 --WHEN DONE--

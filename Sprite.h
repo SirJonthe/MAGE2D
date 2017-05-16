@@ -26,12 +26,12 @@ private:
 	};
 
 private:
-	mtlAsset<Graphics>	m_sheet;
-	int					m_frameWidth;
-	int					m_frameHeight;
-	int					m_numFrames;
-	float				m_framesPerSecond;
-	int					m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
+	mtlAsset<Graphics> m_sheet;
+	int                m_frameWidth;
+	int                m_frameHeight;
+	int                m_numFrames;
+	float              m_framesPerSecond;
+	int                m_loopBack; // if animation does not loop then set loopBack to frameCount - 1
 
 private:
 	Sprite(const Sprite&) : mtlInherit<Graphics, Sprite>(this) {}
@@ -39,31 +39,31 @@ private:
 	bool LoadMetadata(Metadata &out, const mtlPath &file, mtlList<mtlPath> &filesOpened);
 
 public:
-			Sprite( void );
+	Sprite( void );
 
-	int		GetFrameCount( void ) const;
-	int		GetWidth( void ) const;
-	int		GetHeight( void ) const;
-	float	GetFramesPerSecond( void ) const;
-	float	GetFrameDelay( void ) const;
-	float	GetAnimationTime( void ) const;
-	int		GetLoopbackFrame( void ) const;
-	//int		GetStartFrame( void ) const;
+	int   GetFrameCount( void ) const;
+	int   GetWidth( void ) const;
+	int   GetHeight( void ) const;
+	float GetFramesPerSecond( void ) const;
+	float GetFrameDelay( void ) const;
+	float GetAnimationTime( void ) const;
+	int   GetLoopbackFrame( void ) const;
+	//int GetStartFrame( void ) const;
 
-	void	SetFrameWidth(int width);
-	void	SetFrameHeight(int height);
-	void	SetFrameCount(int count);
-	void	SetFramesPerSecond(float frames);
-	void	SetLoopbackFrame(int frame);
+	void SetFrameWidth(int width);
+	void SetFrameHeight(int height);
+	void SetFrameCount(int count);
+	void SetFramesPerSecond(float frames);
+	void SetLoopbackFrame(int frame);
 
-	bool	LoadSpriteSheet(const mtlChars &file);
+	bool LoadSpriteSheet(const mtlChars &file);
 
-	int		GetFrameIndex(float time) const;
+	int  GetFrameIndex(int frame) const;
 
-	bool	Load(const mtlPath &file);
-	void	Destroy( void );
-	void	Draw(float time) const;
-	bool	IsGood( void ) const;
+	bool Load(const mtlPath &file);
+	void Destroy( void );
+	void Draw(int frame, float) const;
+	bool IsGood( void ) const;
 };
 
 #endif // SPRITE_H

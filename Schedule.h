@@ -13,9 +13,9 @@ class ScheduleTask
 	friend class ParallelSchedule;
 
 private:
-	float    m_delay_sec;
-	int      m_num_iter;
-	NewTimer m_timer;
+	float m_delay_sec;
+	int   m_num_iter;
+	Timer m_timer;
 
 public:
 	float        GetDelay( void ) const { return m_delay_sec; }
@@ -65,7 +65,7 @@ public:
 class SerialSchedule : public Schedule
 {
 private:
-	NewTimer                            m_timer;
+	Timer                               m_timer;
 	mtlItem< mtlShared<ScheduleTask> > *m_current_task;
 
 private:
@@ -93,8 +93,8 @@ public:
 class ParallelSchedule : public Schedule
 {
 private:
-	mtlList<NewTimer> m_timers;
-	bool              m_ticking;
+	mtlList<Timer> m_timers;
+	bool           m_ticking;
 
 public:
 	ParallelSchedule( void );

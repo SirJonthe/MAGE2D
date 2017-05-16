@@ -64,74 +64,75 @@ void Console::SubmitInput( void )
 
 	mtlSyntaxParser parser;
 	parser.SetBuffer(m_userInput);
+	parser.EnableCaseSensitivity();
+	mtlArray<mtlChars> m;
+	mtlList<ObjectRef> objects;
 
 	while (!parser.IsEnd()) {
-		mtlChars cmd = parser.ReadWord();
-		if (cmd.Compare("spawn")) {
-			mtlChars object = parser.ReadWord();
-			if (GetEngine()->AddObject(object).IsNull()) {
+
+		switch (parser.Match("spawn %w %| destroy all %| destroy name %w %| destroy id %i %| info all %| info name %w %| info id %i %| quit %| echo %s %| %s", m)) {
+		case 0:
+			if (GetEngine()->AddObject(m[0]).IsNull()) {
 				PrintRaw("{0.796,1.0,0.094}No such object");
 			}
-		} else if (cmd.Compare("destroy")) {
-			cmd = parser.ReadWord();
-			mtlArray<mtlChars> m;
-			parser.Match("%s", m);
-			mtlChars destroy_type = m[0];
-			mtlList<ObjectRef> objects;
-			if (cmd.Compare("name")) {
-				GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, destroy_type);
-			} else if (cmd.Compare("id")) {
-				mtlString id(destroy_type);
-				GetEngine()->FilterByStaticType(GetEngine()->GetObjects(), objects, atoi(id.GetChars()));
-			} else {
-				PrintRaw("{0.796,1.0,0.094}No such command");
-				NewLine();
-			}
-			mtlItem<ObjectRef> *i = objects.GetFirst();
-			while (i != NULL) {
-				i->GetItem()->Destroy();
-				i = i->GetNext();
-			}
-		} else if (cmd.Compare("info")) {
-			cmd = parser.ReadWord();
-			mtlList<ObjectRef> objects;
-			if (cmd.Compare("name")) {
-				mtlArray<mtlChars> m;
-				parser.Match("%s", m);
-				mtlChars info_type = m[0];
-				GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, info_type);
-			} else if (cmd.Compare("id")) {
-				mtlArray<mtlChars> m;
-				parser.Match("%s", m);
-				mtlChars info_type = m[0];
-				mtlString id(info_type);
-				GetEngine()->FilterByStaticType(GetEngine()->GetObjects(), objects, atoi(id.GetChars()));
-			} else if (cmd.Compare("all")) {
-				GetEngine()->FilterByDynamicType<Object>(GetEngine()->GetObjects(), objects);
-			} else {
-				PrintRaw("{0.796,1.0,0.094}No such command");
-				NewLine();
-			}
-			mtlItem<ObjectRef> *i = objects.GetFirst();
-			while (i != NULL) {
+			break;
+		case 1:
+			GetEngine()->DestroyAllObjects();
+			break;
+		case 2:
+			GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, m[0]);
+			for (mtlItem<ObjectRef> *i = objects.GetFirst(); i != NULL; i = i->GetNext()) { i->GetItem()->Destroy(); }
+			break;
+		case 3:
+			GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, m[0]);
+			for (mtlItem<ObjectRef> *i = objects.GetFirst(); i != NULL; i = i->GetNext()) { i->GetItem()->Destroy(); }
+			break;
+		case 4:
+		{
+			for (const mtlItem<ObjectRef> *i = GetEngine()->GetObjects().GetFirst(); i != NULL; i = i->GetNext()) {
 				Print(i->GetItem()->GetName());
 				Print("    ");
 				Print((int)i->GetItem()->GetInstanceType());
 				NewLine();
-				i = i->GetNext();
 			}
-		} else if (cmd.Compare("quit")) {
+			break;
+		}
+		case 5:
+		{
+			GetEngine()->FilterByName(GetEngine()->GetObjects(), objects, m[0]);
+			for (mtlItem<ObjectRef> *i = objects.GetFirst(); i != NULL; i = i->GetNext()) {
+				Print(i->GetItem()->GetName());
+				Print("    ");
+				Print((int)i->GetItem()->GetInstanceType());
+				NewLine();
+			}
+			break;
+		}
+		case 6:
+		{
+			int id;
+			m[0].ToInt(id);
+			GetEngine()->FilterByStaticType(GetEngine()->GetObjects(), objects, id);
+			for (mtlItem<ObjectRef> *i = objects.GetFirst(); i != NULL; i = i->GetNext()) {
+				Print(i->GetItem()->GetName());
+				Print("    ");
+				Print((int)i->GetItem()->GetInstanceType());
+				NewLine();
+			}
+			break;
+		}
+		case 7:
 			GetEngine()->EndGame();
-		} else if (cmd.Compare("echo")) {
-			mtlArray<mtlChars> m;
-			parser.Match("%s", m);
+			break;
+		case 8:
 			PrintRaw(m[0]);
-		} else {
+			break;
+		default:
 			PrintRaw("{0.796,1.0,0.094}No such command");
 			NewLine();
+			break;
 		}
 	}
-
 	m_userInput.Free();
 }
 
@@ -423,7 +424,7 @@ void SpriteEditor::InputBox::Draw(bool hover)
 
 void SpriteEditor::EditableSprite::OnDraw( void )
 {
-	m_sprite.Draw(m_timer.GetTimeDeltaTick());
+	m_sprite.Draw(m_timer.GetBeats(), m_timer.GetPartBeat());
 }
 
 SpriteEditor::EditableSprite::EditableSprite( void ) : mtlInherit<Object, EditableSprite>(this)

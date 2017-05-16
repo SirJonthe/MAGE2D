@@ -509,7 +509,7 @@ bool PolygonCollider::Load(const mtlPath &file)
 	mtlList< mmlVector<2> > vert;
 
 	mtlString file_contents;
-	if (!mtlBufferFile(file, file_contents)) {
+	if (!mtlSyntaxParser::BufferFile(file, file_contents)) {
 		std::cout << "\tfailed to open/read file" << std::endl;
 		return false;
 	}

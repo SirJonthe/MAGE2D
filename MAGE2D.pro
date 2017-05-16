@@ -11,7 +11,7 @@ SOURCES += main.cpp \
 	Engine.cpp \
 	MiniLib/MTL/mtlString.cpp \
 	MiniLib/MTL/mtlParser.cpp \
-	MiniLib/MTL/mtlDirectory.cpp \
+    MiniLib/MTL/mtlPath.cpp \
 	Tools.cpp \
 	GUI.cpp \
 	Graphics.cpp \
@@ -39,7 +39,7 @@ HEADERS += \
 	MiniLib/MTL/mtlParser.h \
 	MiniLib/MTL/mtlList.h \
 	MiniLib/MTL/mtlDuplex.h \
-	MiniLib/MTL/mtlDirectory.h \
+    MiniLib/MTL/mtlPath.h \
 	MiniLib/MTL/mtlBinaryTree.h \
 	MiniLib/MTL/mtlAsset.h \
 	MiniLib/MTL/mtlArray.h \

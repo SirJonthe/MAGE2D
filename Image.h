@@ -42,7 +42,7 @@ public:
 	const Uint32		*GetPixels(int y) const;
 	const Uint32		*GetPixels(int x, int y) const;
 
-	void				Draw(float) const;
+	void				Draw(int, float) const;
 };
 
 #endif // IMAGE_H

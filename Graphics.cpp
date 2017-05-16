@@ -107,7 +107,6 @@ GraphicsInstance &GraphicsInstance::operator =(const GraphicsInstance &instance)
 		m_graphics = instance.m_graphics;
 		m_tint = instance.m_tint;
 		m_timer = instance.m_timer;
-		m_time = instance.m_time;
 	}
 	return *this;
 }
@@ -224,22 +223,22 @@ void GraphicsInstance::SetAlpha(float a)
 
 float GraphicsInstance::GetIntervalsPerSecond( void ) const
 {
-	return m_timer.GetIntervalsPerSecond();
+	return m_timer.GetTempo(Timer::BeatsPerSecond);
 }
 
 void GraphicsInstance::SetIntervalsPerSecond(float intervals)
 {
-	m_timer.SetIntervalsPerSecond(intervals);
+	m_timer.SetTempo(intervals, Timer::BeatsPerSecond);
 }
 
 float GraphicsInstance::GetInterval( void ) const
 {
-	return m_timer.GetInterval();
+	return m_timer.GetTempo(Timer::SecondsPerBeat);
 }
 
 void GraphicsInstance::SetInterval(float interval)
 {
-	m_timer.SetInterval(interval);
+	m_timer.SetTempo(interval, Timer::SecondsPerBeat);
 }
 
 void GraphicsInstance::Start( void )
@@ -250,13 +249,11 @@ void GraphicsInstance::Start( void )
 void GraphicsInstance::Stop( void )
 {
 	m_timer.Stop();
-	m_time = 0.0f;
 }
 
 void GraphicsInstance::Restart( void )
 {
-	m_timer.Restart();
-	m_time = 0.0f;
+	m_timer.Reset();
 }
 
 bool GraphicsInstance::IsStopped( void ) const
@@ -272,8 +269,6 @@ bool GraphicsInstance::IsTicking( void ) const
 void GraphicsInstance::Draw( void )
 {
 	if (m_graphics.GetAsset() != NULL) {
-		m_time += m_timer.GetTimeDeltaTick();
-		m_graphics.GetAsset()->Draw(m_time);
-		m_timer.Tick();
+		m_graphics.GetAsset()->Draw(m_timer.GetBeats(), m_timer.GetPartBeat());
 	}
 }

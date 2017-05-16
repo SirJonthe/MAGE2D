@@ -16,7 +16,7 @@ bool Sprite::LoadMetadata(Sprite::Metadata &out, const mtlPath &file, mtlList<mt
 	filesOpened.AddLast(file);
 
 	mtlString fileContents;
-	if (!mtlBufferFile(file, fileContents)) {
+	if (!mtlSyntaxParser::BufferFile(file, fileContents)) {
 		SetError("File could not be read");
 		return false;
 	}
@@ -220,9 +220,9 @@ bool Sprite::LoadSpriteSheet(const mtlChars &file)
 	return m_startFrame;
 }*/
 
-int Sprite::GetFrameIndex(float time) const
+int Sprite::GetFrameIndex(int frame) const
 {
-	if (time <= 0.0f) { return 0; }
+	/*if (time <= 0.0f) { return 0; }
 
 	const float delay = GetFrameDelay();
 	const float totalAnimationTime = delay * GetFrameCount();
@@ -230,7 +230,13 @@ int Sprite::GetFrameIndex(float time) const
 	if (progress > 1.0f) {
 		progress = mmlMax((delay * GetLoopbackFrame()) / totalAnimationTime, progress - int(progress));
 	}
-	return int(progress * GetFrameCount());
+	return int(progress * GetFrameCount());*/
+
+	if (frame < 0 || GetFrameCount() == 0) { return 0; }
+	if (frame >= GetFrameCount()) {
+		frame = mmlMax(GetLoopbackFrame(), frame % GetFrameCount());
+	}
+	return frame;
 }
 
 bool Sprite::Load(const mtlPath &file)
@@ -336,10 +342,10 @@ void Sprite::Destroy( void )
 	m_loopBack = 0;
 }
 
-void Sprite::Draw(float time) const
+void Sprite::Draw(int frame, float) const
 {
 	if (!m_sheet.IsNull()) {
-		DrawGraphics(0, GetFrameIndex(time)*6, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
+		DrawGraphics(0, GetFrameIndex(frame)*6, GL_TRIANGLES, 2, m_sheet.GetAsset()->GetTextureID());
 	}
 }
 

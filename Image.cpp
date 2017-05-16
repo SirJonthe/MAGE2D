@@ -191,7 +191,7 @@ const Uint32 *Image::GetPixels(int x, int y) const
 	return IsGood() ? ((Uint32*)(m_image->pixels) + y * m_image->w + x) : NULL;
 }
 
-void Image::Draw(float) const
+void Image::Draw(int, float) const
 {
 	DrawGraphics(0, 0, GL_TRIANGLES, 2);
 }

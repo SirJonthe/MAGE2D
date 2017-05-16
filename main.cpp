@@ -132,7 +132,7 @@ public:
 ObjectDeclaration(TimerObject)
 {
 private:
-	NewTimer m_timer;
+	Timer m_timer;
 protected:
 	void OnUpdate( void )
 	{
@@ -140,13 +140,13 @@ protected:
 			m_timer.Toggle();
 		}
 		if (GetEngine()->IsPressed(SDLK_RETURN)) {
-			m_timer.Beat();
+			m_timer.DecrementBeat();
 		}
 		if (GetEngine()->IsPressed(SDLK_UP)) {
-			m_timer.SetTempo(m_timer.GetTempo() + 1.0f);
-			std::cout << m_timer.GetTempo(NewTimer::FractionOfSecond) << std::endl;
+			m_timer.SetTempo(m_timer.GetTempo(Timer::BeatsPerSecond) + 1.0f, Timer::BeatsPerSecond);
+			std::cout << m_timer.GetTempo(Timer::SecondsPerBeat) << std::endl;
 		} else if (GetEngine()->IsPressed(SDLK_DOWN)) {
-			m_timer.SetTempo(m_timer.GetTempo() / 2.0f);
+			m_timer.SetTempo(m_timer.GetTempo(Timer::BeatsPerSecond) / 2.0f, Timer::BeatsPerSecond);
 		}
 	}
 	void OnGUI( void )
@@ -157,7 +157,7 @@ protected:
 	{
 		MakeRulesetObject();
 		SetName("object_timer");
-		m_timer.SetTempo(1.0f);
+		m_timer.SetTempo(1.0f, Timer::BeatsPerSecond);
 	}
 public:
 	TimerObject( void ) : ConstructObject(TimerObject) {}
