@@ -115,7 +115,7 @@ bool Timer::IsDue( void ) const
 	return GetTime() >= 1.0f;
 }
 
-Timer::Time Timer::GetIntTime( void ) const
+Timer::Time Timer::GetFixedTime( void ) const
 {
 	UpdateTimer();
 	return (m_acc_time * TICKS_PER_SEC) / m_beat_interval;
@@ -136,5 +136,5 @@ int Timer::GetBeats( void ) const
 float Timer::GetPartBeat( void ) const
 {
 	UpdateTimer();
-	return (float)m_beat_interval / (float)(m_acc_time % m_beat_interval);
+	return (float)(m_acc_time % m_beat_interval) / (float)m_beat_interval;
 }
