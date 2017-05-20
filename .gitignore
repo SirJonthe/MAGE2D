@@ -10,4 +10,4 @@
 
 # Non-portable QtCreator files
 *.pro.user
-
+*.pro.user.*
