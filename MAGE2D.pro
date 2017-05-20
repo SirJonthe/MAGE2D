@@ -83,6 +83,12 @@ win32: {
 }
 
 macx: {
+    # On newer versions of OSX with Xcode installed
+    # the default search path is not /Library/Frameworks.
+    # Instead g++ searches for frameworks by default in
+    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
+    # If you do not wish to set a new search path, install SDL framework files there.
+    # Note: Even absolute search paths like /Library/Frameworks/SDL fails to detect the framework
 	LIBS += \
 		-framework Cocoa \
 		-framework OpenGL \
