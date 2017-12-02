@@ -500,6 +500,14 @@ void PolygonCollider::CreateShape(PolygonCollider::Shape shape)
 	}*/
 }
 
+mtlChars ReadFloat(mtlSyntaxParser &parser)
+{
+	mtlArray<mtlChars> m;
+	parser.Match("%r %| %i", m);
+	parser.Match("f");
+	return m.GetSize() > 0 ? m[0] : "";
+}
+
 bool PolygonCollider::Load(const mtlPath &file)
 {
 	std::cout << "PolygonCollider::Load: " << file.GetPath().GetChars() << std::endl;
@@ -519,12 +527,9 @@ bool PolygonCollider::Load(const mtlPath &file)
 	parser.SetHyphenators("");
 	while (!parser.IsEnd()) {
 
-		mtlChars word = parser.ReadAlpha();
-		if (word.Compare("v")) {
-			mtlChars v1 = parser.ReadReal();
-			parser.Match("f");
-			mtlChars v2 = parser.ReadReal();
-			parser.Match("f");
+		if (parser.Match("v") == 0) {
+			mtlChars v1 = ReadFloat(parser);
+			mtlChars v2 = ReadFloat(parser);
 			mmlVector<2> v;
 			if (!v1.ToFloat(v[0]) || !v2.ToFloat(v[1])) {
 				std::cout << "\tfailed to convert param to float" << std::endl;

@@ -56,7 +56,7 @@ void SerialSchedule::AddTask(mtlShared<ScheduleTask> task, float delay_sec, int 
 	m_tasks.AddLast(task);
 	if (m_current_task == NULL) {
 		m_current_task = m_tasks.GetFirst();
-		m_timer.SetTempo(task->GetDelay(), NewTimer::FractionOfSecond);
+		m_timer.SetTempo(task->GetDelay(), Timer::SecondsPerBeat);
 	}
 }
 
@@ -73,8 +73,8 @@ void SerialSchedule::Execute(Object *object)
 		ExecuteTask(m_current_task, object);
 		NextTask(m_current_task);
 		if (!NullTask()) {
-			m_timer.Beat();
-			m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), NewTimer::FractionOfSecond);
+			m_timer.DecrementBeat();
+			m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), Timer::SecondsPerBeat);
 		}
 	}
 }
@@ -94,7 +94,7 @@ void SerialSchedule::RestartTimer( void )
 	m_timer.Reset();
 	m_current_task = m_tasks.GetFirst();
 	if (!NullTask()) {
-		m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), NewTimer::FractionOfSecond);
+		m_timer.SetTempo(m_current_task->GetItem()->GetDelay(), Timer::SecondsPerBeat);
 	}
 }
 
@@ -112,7 +112,7 @@ void SerialSchedule::ClearSchedule( void )
 {
 	m_tasks.RemoveAll();
 	m_current_task = NULL;
-	m_timer.SetTempo(1.0f, NewTimer::BeatsPerSecond);
+	m_timer.SetTempo(1.0f, Timer::BeatsPerSecond);
 	m_timer.Stop();
 	m_timer.Reset();
 }
@@ -126,8 +126,8 @@ void ParallelSchedule::AddTask(mtlShared<ScheduleTask> task, float delay_sec, in
 	task->m_delay_sec = delay_sec;
 	task->m_num_iter = iterations;
 	m_tasks.AddLast(task);
-	NewTimer timer;
-	timer.SetTempo(delay_sec, NewTimer::FractionOfSecond);
+	Timer timer;
+	timer.SetTempo(delay_sec, Timer::SecondsPerBeat);
 	if (m_ticking) {
 		timer.Start();
 	}
@@ -139,16 +139,16 @@ void ParallelSchedule::AddTask(mtlShared<ScheduleTask> task, float delay_sec, in
 	int iterations = (int)(exist_seconds / wait_seconds);
 	AddTask(task, wait_seconds, iterations);
 }*/
-#include <iostream>
+
 void ParallelSchedule::Execute(Object *object)
 {
 	if (IsFinished() || IsStopped()) { return; }
 	mtlItem< mtlShared<ScheduleTask> > *task = m_tasks.GetFirst();
-	mtlItem<NewTimer> *timer = m_timers.GetFirst();
+	mtlItem<Timer> *timer = m_timers.GetFirst();
 	int a = 0;
 	while (task != NULL && timer != NULL) {
 		int beats = timer->GetItem().GetBeats();
-		timer->GetItem().Truncate();
+		timer->GetItem().ResetPartBeat();
 		bool is_inf = task->GetItem()->GetIterationsLeft() < 0;
 		int i;
 		for (i = 0; i < beats; ++i) {
@@ -171,7 +171,7 @@ void ParallelSchedule::Execute(Object *object)
 void ParallelSchedule::StartTimer( void )
 {
 	m_ticking = true;
-	mtlItem<NewTimer> *timer = m_timers.GetFirst();
+	mtlItem<Timer> *timer = m_timers.GetFirst();
 	while (timer != NULL) {
 		timer->GetItem().Start();
 		timer = timer->GetNext();
@@ -181,7 +181,7 @@ void ParallelSchedule::StartTimer( void )
 void ParallelSchedule::StopTimer( void )
 {
 	m_ticking = false;
-	mtlItem<NewTimer> *timer = m_timers.GetFirst();
+	mtlItem<Timer> *timer = m_timers.GetFirst();
 	while (timer != NULL) {
 		timer->GetItem().Stop();
 		timer = timer->GetNext();
@@ -190,7 +190,7 @@ void ParallelSchedule::StopTimer( void )
 
 void ParallelSchedule::RestartTimer( void )
 {
-	mtlItem<NewTimer> *timer = m_timers.GetFirst();
+	mtlItem<Timer> *timer = m_timers.GetFirst();
 	while (timer != NULL) {
 		timer->GetItem().Reset();
 		timer = timer->GetNext();
