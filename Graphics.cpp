@@ -57,11 +57,11 @@ void Graphics::DrawGraphics(int vtxOffset, int uvOffset, GLenum mode, GLsizei co
 		glDrawArrays(mode, 0, count*3);
 		break;
 	case GL_LINES:
-	case GL_LINE_LOOP:
-	case GL_LINE_STRIP:
 		glDrawArrays(mode, 0, count*2);
 		break;
 	case GL_POINTS:
+	case GL_LINE_LOOP:
+	case GL_LINE_STRIP:
 		glDrawArrays(mode, 0, count);
 		break;
 	default: break;

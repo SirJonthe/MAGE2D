@@ -16,6 +16,8 @@
 	// or preload all animations and store them in directly accessible Graphics classes, then assign to main graphics object to change animation
 	// basically circumvents the need for a binary tree inside Sprite class (in order to find animation string)
 
+#include <iostream>
+
 class Graphics : public mtlAssetInterface, public mtlBase
 {
 private:
@@ -38,11 +40,13 @@ public:
 	Graphics( void ); // construct buffers
 	virtual ~Graphics( void );
 
-	virtual int  GetWidth( void ) const = 0;
-	virtual int  GetHeight( void ) const = 0;
-	virtual bool IsGood( void ) const = 0;
-	virtual void Destroy( void ) = 0;
+	virtual int  GetWidth( void )                  const = 0;
+	virtual int  GetHeight( void )                 const = 0;
+	virtual bool IsGood( void )                    const = 0;
+	virtual void Destroy( void )                         = 0;
 	virtual void Draw(int frame, float part_frame) const = 0;
+
+	void Draw( void ) const { Draw(0, 0.0f); }
 
 	int GetArea( void ) const;
 
@@ -93,7 +97,7 @@ public:
 	void  SetAlpha(float a);
 
 	float GetIntervalsPerSecond( void ) const;
-	void SetIntervalsPerSecond(float intervals);
+	void  SetIntervalsPerSecond(float intervals);
 
 	float GetInterval( void ) const;
 	void  SetInterval(float interval);

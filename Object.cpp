@@ -3,6 +3,15 @@
 
 RegisterObject(Object);
 
+void Object::DrawDebugInfo( void )
+{
+	if (m_draw_debug_info) {
+		if (m_collisions && m_debug_collider_graphics.GetShared() != NULL) {
+			m_debug_collider_graphics.GetShared()->Draw();
+		}
+	}
+}
+
 unsigned long long int GetObjectNumber( void )
 {
 	static unsigned long long int objectCounter = 0;
@@ -16,8 +25,14 @@ Object::Object( void ) :
 	m_collider(),
 	m_objectFlags(0x0000000000000001), m_collisionMask(AllFlagsOn), m_objectNumber(GetObjectNumber()),
 	m_engine(NULL), /*m_objectRef(NULL),*/
-	m_depth(1.0f)
+	m_depth(1.0f),
+	m_draw_debug_info(false),
+	m_physics_object(),
+	m_physics(false)
 {
+	m_transform.New();
+	m_physics_object.New();
+	m_physics_object->SetTransform(m_transform);
 	m_name.Copy("object_generic");
 	LoadCollider<NullCollider>();
 }
@@ -122,12 +137,12 @@ Collider *Object::GetCollider( void )
 
 Transform &Object::GetTransform( void )
 {
-	return m_transform;
+	return *m_transform.GetShared();
 }
 
 const Transform &Object::GetTransform( void ) const
 {
-	return m_transform;
+	return *m_transform.GetShared();
 }
 
 float Object::GetDepth( void ) const
@@ -222,6 +237,16 @@ void Object::DrawGraphics( void )
 	m_graphics.Draw();
 }
 
+void Object::EnableDebugGraphics( void )
+{
+	m_draw_debug_info = true;
+}
+
+void Object::DisableDebugGraphics( void )
+{
+	m_draw_debug_info = false;
+}
+
 const Engine *Object::GetEngine( void ) const
 {
 	if (m_engine == NULL) {
@@ -247,9 +272,40 @@ void Object::MakeRulesetObject( void )
 	ClearAllCollisionMasks();
 	ClearAllObjectFlags();
 	SetObjectFlags(Object::ruleset_object);
+	DisablePhysics();
 }
 
 ObjectRef Object::GetSelfRef( void )
 {
 	return (GetEngine() != NULL) ? GetEngine()->GetSelf(this) : ObjectRef();
+}
+
+Physics &Object::GetPhysics( void )
+{
+	return *m_physics_object.GetShared();
+}
+
+const Physics &Object::GetPhysics( void ) const
+{
+	return *m_physics_object.GetShared();
+}
+
+void Object::EnablePhysics( void )
+{
+	m_physics = true;
+}
+
+void Object::DisablePhysics( void )
+{
+	m_physics = false;
+}
+
+void Object::TogglePhysics( void )
+{
+	m_physics = !m_physics;
+}
+
+bool Object::HasPhysics( void ) const
+{
+	return !m_physics;
 }

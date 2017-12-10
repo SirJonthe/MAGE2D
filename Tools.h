@@ -155,4 +155,14 @@ public:
 	SpriteEditor( void );
 };
 
+ObjectDeclaration(DebugCamera)
+{
+protected:
+	void OnUpdate( void );
+	void OnGUI( void );
+
+public:
+	DebugCamera( void );
+};
+
 #endif // TOOLS_H

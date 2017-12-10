@@ -119,7 +119,7 @@ bool Image::SetSurface(SDL_Surface *&image)
 	LoadTexture(m_image->pixels, m_width, m_height, m_image->format->BytesPerPixel, GL_BGRA);
 
 	mtlArray< mmlVector<2> > vtx;
-	vtx.Create(6);
+	vtx.Create(6); // create vertex coordinates for two triangles
 	float w = float(m_width) * 0.5f;
 	float h = float(m_height) * 0.5f;
 	vtx[0][0] = -w;
@@ -135,7 +135,7 @@ bool Image::SetSurface(SDL_Surface *&image)
 	LoadVertexArray(vtx);
 
 	mtlArray< mmlVector<2> > uv;
-	uv.Create(6);
+	uv.Create(6); // create UV coordinates for two triangles
 	uv[0][0] = 0.0f;
 	uv[0][1] = 0.0f;
 	uv[1][0] = 1.0f;

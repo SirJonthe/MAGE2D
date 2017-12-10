@@ -55,7 +55,7 @@ UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
 	return info;
 }
 
-UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a)
+UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a)
 {
 	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
 	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
@@ -80,7 +80,7 @@ UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a)
 	return info;
 }
 
-UnaryCollisionInfo RangeCollide(Range r, mmlVector<2> a, mmlVector<2> b)
+UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a, mmlVector<2> b)
 {
 	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
 	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
@@ -277,84 +277,53 @@ bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly)
 	return c;
 }
 
-Collider::Collider( void ) : mtlBase(this), m_transform(NULL), m_density(0.0f), m_gravity(0.0f, 0.0f), m_movement(0.0f, 0.0f)
+Collider::Collider( void ) : mtlBase(this), m_transform(/*NULL*/)
 {
 }
 
 Transform &Collider::GetTransform( void )
 {
-	return *m_transform;
+//	return *m_transform;
+	return *m_transform.GetShared();
 }
 
 const Transform &Collider::GetTransform( void ) const
 {
-	return *m_transform;
+//	return *m_transform;
+	return *m_transform.GetShared();
 }
 
-void Collider::SetTransform(Transform *transform)
+void Collider::SetTransform(mtlShared<Transform> &transform)
 {
 	m_transform = transform;
-	if (m_transform != NULL) {
-		m_prevTransform = *m_transform;
-	}
 }
 
-void Collider::TrackPreviousTransform( void )
-{
-	if (m_transform != NULL) {
-		m_prevTransform = *m_transform;
-	} else {
-		m_prevTransform.SetParent(Transform::Local, NULL);
-		m_prevTransform.SetIdentity(Transform::Local);
-	}
-}
+//void Collider::SetTransform(Transform *transform)
+//{
+//	m_transform = transform;
+//	if (m_transform != NULL) {
+//		m_prevTransform = *m_transform;
+//	}
+//}
 
-float Collider::GetMass( void ) const
-{
-	float area = GetArea();
-	return area != 0.0f ? GetDensity() / area : 0.0f;
-}
-
-void Collider::SetMass(float mass)
-{
-	float area = GetArea();
-	m_density = area != 0.0f ? mmlMax(0.0f, mass) / area : 0.0f;
-}
-
-float Collider::GetDensity( void ) const
-{
-	return m_density;
-}
-
-void Collider::SetDensity(float density)
-{
-	m_density = mmlMax(0.0f, density);
-}
-
-mmlVector<2> Collider::GetMovement( void ) const
-{
-	return m_movement;
-}
-
-void Collider::ZeroMovement( void )
-{
-	m_movement[0] = 0.0f;
-	m_movement[1] = 0.0f;
-}
-
-void Collider::AddForce(mmlVector<2> force)
-{
-	m_movement += force;
-}
+//void Collider::TrackPreviousTransform( void )
+//{
+//	if (m_transform != NULL) {
+//		m_prevTransform = *m_transform;
+//	} else {
+//		m_prevTransform.SetParent(Transform::Local, NULL);
+//		m_prevTransform.SetIdentity(Transform::Local);
+//	}
+//}
 
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 {
 	CollisionInfo info;
 	info.c1 = NULL;
 	info.c2 = NULL;
+	info.c1_avg_collision = mmlVector<2>(0.0f, 0.0f);
+	info.c2_avg_collision = mmlVector<2>(0.0f, 0.0f);
 	info.collision = false;
-	info.avg_intersection = mmlVector<2>(0.0f, 0.0f);
-	info.unique_points = 0;
 
 	if (m_vert.GetSize() == 0 || c.m_vert.GetSize() == 0) { return info; }
 
@@ -378,31 +347,27 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 			float s = (-sa[1] * (a1[0] - b1[0]) + sa[0] * (a1[1] - b1[1])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
 			float t = ( sb[0] * (a1[1] - b1[1]) - sb[1] * (a1[0] - b1[0])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
 
-			if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
-
-				//m_collide[k] = true;
-				//c.m_collide[l] = true;
+			if (s >= 0.0f && s <= 1.0f && t >= 0.0f && t <= 1.0f) {
 
 				mmlVector<2> intersection = a1 + (t * sa);
 				points1.AddLast(intersection);
 				points2.AddLast(intersection);
-				info.avg_intersection += intersection;
-				++info.unique_points;
+
+				info.c1_avg_collision += intersection;
+				info.c2_avg_collision += intersection;
 
 			} else {
 				if (PointInPolygon(a2, c.m_globalVert) && PointInPolygon(a1, c.m_globalVert)) {
 					points1.AddLast(a2);
 					points1.AddLast(a1);
-					//m_collide[k] = true;
-					info.avg_intersection += (a1 + a2);
-					info.unique_points += 2;
+
+					info.c1_avg_collision += (a2 + a1);
 				}
 				if (PointInPolygon(b2, m_globalVert) && PointInPolygon(b1, m_globalVert)) {
 					points2.AddLast(b2);
 					points2.AddLast(b1);
-					//c.m_collide[l] = true;
-					info.avg_intersection += (b1 + b2);
-					info.unique_points += 2;
+
+					info.c2_avg_collision += (b2 + b1);
 				}
 			}
 
@@ -437,8 +402,8 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 			node = node->GetNext();
 		}
 
-		info.avg_intersection /= (float)info.unique_points;
-
+		info.c1_avg_collision /= points1.GetSize();
+		info.c2_avg_collision /= points2.GetSize();
 	}
 
 	return info;
@@ -594,7 +559,7 @@ mmlVector<2> PolygonCollider::GetHalfExtents( void ) const
 	return max;
 }
 
-void PolygonCollider::SetHalfExtents(mmlVector<2> half)
+void PolygonCollider::SetHalfExtents(const mmlVector<2> &half)
 {
 	CreateShape(Rectangle);
 	for (int i = 0; i < m_vert.GetSize(); ++i) {
@@ -602,12 +567,11 @@ void PolygonCollider::SetHalfExtents(mmlVector<2> half)
 	}
 }
 
-void PolygonCollider::ResetState( void )
+//void PolygonCollider::ResetState( void )
+void PolygonCollider::UpdateWorldState( void )
 {
-	/*for (int i = 0; i < m_collide.GetSize(); ++i) {
-		m_collide[i] = false;
-	}*/
-	if (m_transform == NULL) {
+	//if (m_transform == NULL) {
+	if (m_transform.GetShared() == NULL) {
 		m_globalVert.Copy(m_vert);
 	} else {
 		if (m_vert.GetSize() != m_globalVert.GetSize()) { m_globalVert.Create(m_vert.GetSize()); }
@@ -615,7 +579,8 @@ void PolygonCollider::ResetState( void )
 			m_globalVert[i] = GetTransform().TransformPoint(Transform::Global, m_vert[i]);
 		}
 	}
-	Collider::ResetState();
+	//Collider::ResetState();
+	Collider::UpdateWorldState();
 }
 
 float PolygonCollider::GetCircumference( void ) const
@@ -660,7 +625,7 @@ UnaryCollisionInfo PolygonCollider::Collides(Ray ray) const
 	return info;
 }
 
-UnaryCollisionInfo PolygonCollider::Collides(Range range) const
+UnaryCollisionInfo PolygonCollider::Collides(Cone cone) const
 {
 	UnaryCollisionInfo info;
 	info.collision = false;
@@ -669,7 +634,7 @@ UnaryCollisionInfo PolygonCollider::Collides(Range range) const
 	info.points->SetCapacity(m_vert.GetSize());
 
 	for (int i = 0, j = m_vert.GetSize() - 1; i < m_vert.GetSize(); j = i++) {
-		UnaryCollisionInfo temp = RangeCollide(range, m_vert[j], m_vert[i]);
+		UnaryCollisionInfo temp = ConeCollide(cone, m_vert[j], m_vert[i]);
 		if (temp.collision) {
 			info.collision = true;
 			for (int n = 0; n < temp.points->GetSize(); ++n) {
@@ -711,54 +676,4 @@ UnaryCollisionInfo PolygonCollider::Collides(Plane plane) const
 CollisionInfo PolygonCollider::Collides(const Collider &c) const
 {
 	return c.CollidesWith(*this);
-}
-
-float FluidCollider::GetPressure(mmlVector<2> point) const
-{
-	float pressure = 0.0f;
-	if (m_transform != NULL && (m_gravity[0] != 0.0f || m_gravity[1] != 0.0f) && (m_half_extents[0] != 0.0f || m_half_extents[1] != 0.0f)) {
-		mmlVector<2> pos = m_transform->GetPosition(Transform::Global);
-		if (point[0] >= (pos[0]-m_half_extents[0]) && point[0] <= (pos[0]+m_half_extents[0]) && point[1] >= (pos[1]-m_half_extents[1]) && point[1] <= (pos[1]+m_half_extents[1])) {
-			float gravity_magnitude = m_gravity.LenFast();
-			mmlVector<2> gravity_normal = m_gravity / gravity_magnitude;
-			mmlVector<2> rect[4] = {
-				-m_half_extents + pos,
-				mmlVector<2>(m_half_extents[0], -m_half_extents[1]) + pos,
-				m_half_extents + pos,
-				mmlVector<2>(-m_half_extents[0], m_half_extents[1]) + pos
-			};
-			float line_length = (rect[0] - rect[2]).LenFast() + 1.0f; // the diagonal length of the collision box (plus 1 to avoid edge cases)
-			mmlVector<2> p1 = point;
-			mmlVector<2> p2 = point - gravity_normal * line_length;
-			for (int i = 0, j = 3; i < 4; j=i, ++i) {
-				mmlVector<2> depth_vector;
-				if (LineIntersection(rect[i], rect[j], p1, p2, depth_vector)) {
-					pressure = GetDensity() * (p1 - depth_vector).LenFast() * gravity_magnitude;
-					break;
-				}
-			}
-		}
-	}
-	return pressure;
-}
-
-mmlVector<2> FluidCollider::GetHalfExtents( void ) const
-{
-	return m_half_extents;
-}
-
-void FluidCollider::SetHalfExtents(mmlVector<2> half)
-{
-	m_half_extents[0] = mmlMax(half[0], -half[0]);
-	m_half_extents[1] = mmlMax(half[1], -half[1]);
-}
-
-float FluidCollider::GetCircumference( void ) const
-{
-	return 4.0f * (m_half_extents[0] + m_half_extents[1]);
-}
-
-float FluidCollider::GetArea( void ) const
-{
-	return 4.0f * m_half_extents[0] * m_half_extents[1];
 }

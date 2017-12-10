@@ -106,6 +106,7 @@ private:
 	void							UpdateInputBuffers( void );
 	void							UpdateObjects( void );
 	void							CollideObjects( void );
+	void							UpdatePhysics( void );
 	void							DrawObjects( void );
 	void							DrawGUI( void );
 	void							FinalizeObjects( void );
@@ -143,20 +144,24 @@ public:
 	static void					FilterByCollisionMasks(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
 	static void					FilterByObjectFlagsInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
 	static void					FilterByCollisionMasksInclusive(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, flags_t mask);
-	static void					FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t objectMask = AllFlagsOn);
+	static void					FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Cone &range, flags_t objectMask = AllFlagsOn);
 	static void					FilterByPlane(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t objectMask = AllFlagsOn);
 	static void					FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Ray &ray, flags_t mask = AllFlagsOn);
-	static void					FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t mask = AllFlagsOn);
+	static void					FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Cone &range, flags_t mask = AllFlagsOn);
 	static void					FilterByPlaneCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Plane &plane, flags_t mask = AllFlagsOn);
 
 	//UnaryCollisionInfo		TraceRay(const Ray &ray); // traverses some kind of spatial data structure, returns object with closest intersection
 
+	//template < typename type_t >
+	//ObjectRef					AddObject( void );
 	template < typename type_t >
-	ObjectRef					AddObject( void );
+	mtlShared<type_t>           AddObject( void );
 	ObjectRef					AddObject( void );
 	ObjectRef					AddObject(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
 	template < typename type_t >
 	ObjectRef					AddObjectNow( void );
+	template < typename type_t >
+	mtlShared<type_t>           AddObjectNow( void );
 	ObjectRef					AddObjectNow( void );
 	ObjectRef					AddObjectNow(const mtlChars &typeName); // can fail (return NULL) if that type name is not registered
 
@@ -288,19 +293,19 @@ void Engine::FilterByStaticType(const mtlList<ObjectRef> &in, mtlList<ObjectRef>
 }
 
 template < typename type_t >
-ObjectRef Engine::AddObject( void )
+mtlShared<type_t> Engine::AddObject( void )
 {
-	ObjectRef o;
-	o.New<type_t>();
+	mtlShared<type_t> o;
+	o.New();
 	AddObject(o);
 	return o;
 }
 
 template < typename type_t >
-ObjectRef Engine::AddObjectNow( void )
+mtlShared<type_t> Engine::AddObjectNow( void )
 {
-	ObjectRef o;
-	o.New<type_t>();
+	mtlShared<type_t> o;
+	o.New();
 	AddObjectNow(o);
 	return o;
 }

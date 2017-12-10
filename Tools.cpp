@@ -778,3 +778,33 @@ void SpriteEditor::OnGUI( void )
 SpriteEditor::SpriteEditor( void ) : mtlInherit<Object, SpriteEditor>(this), m_currentFrame(0) {}
 
 RegisterObject(SpriteEditor);
+
+RegisterObject(DebugCamera);
+
+void DebugCamera::OnUpdate( void )
+{
+	if (GetEngine()->IsDown(MouseButton::Left)) {
+		float scale = GetTransform().GetScaleX(Transform::Global);
+		Point mm = GetEngine()->GetMouseMovement();
+		GetTransform().Translate(Transform::Local, mmlVector<2>((float)-mm.x * scale, (float)-mm.y * scale));
+	}
+	if (GetEngine()->IsDown(MouseButton::Right)) {
+		int y = GetEngine()->GetMouseMovement().y;
+		if (y != 0) {
+			GetTransform().Scale(mmlClamp(0.01f, (float)pow(0.99f, -y), 100.0f));
+		}
+	}
+}
+
+void DebugCamera::OnGUI( void )
+{
+	GUI::SetColor(0.0f, 1.0f, 1.0f);
+	GUI::Print("Debug camera enabled");
+	GUI::NewLine();
+}
+
+DebugCamera::DebugCamera( void ) : ConstructObject(DebugCamera)
+{
+	SetName("DebugCamera");
+	MakeRulesetObject();
+}

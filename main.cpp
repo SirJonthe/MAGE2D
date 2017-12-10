@@ -11,6 +11,9 @@
 // BUG: mtlShared<a> = mtlShared<b> (can't access the other class' private members)
 // Investigate if the font rendering is fixed by using unsigned ints as UVs rather than floats
 
+// BIG BUGS
+	// mtlShared< ColliderGraphics<PolygonCollider> >::SetHaflExtents(float, float) not defined -> this SHOULD be virtual, and is defined in the base class
+
 ObjectDeclaration(Controllable)
 {
 protected:
@@ -126,7 +129,7 @@ protected:
 		}
 	}
 public:
-	Quitter( void ) : ConstructObject(Quitter) {}
+	Quitter( void ) : ConstructObject(Quitter) { SetName("Quitter"); }
 };
 
 ObjectDeclaration(TimerObject)
@@ -163,6 +166,93 @@ public:
 	TimerObject( void ) : ConstructObject(TimerObject) {}
 };
 
+ObjectDeclaration(PhysicsObject)
+{
+private:
+	mmlVector<2> m_vector;
+	bool         m_establishing_force;
+protected:
+	void OnInit( void )
+	{
+		LoadCollider<PolygonCollider>();
+		GetCollider()->SetHalfExtents(50.0f, 30.0f);
+		EnablePhysics();
+		EnableCollisions();
+	}
+	void OnUpdate( void )
+	{
+		if (GetEngine()->IsPressed(MouseButton::Middle)) {
+			m_vector = GetEngine()->GetWorldMousePosition();
+			m_establishing_force = true;
+		} else if (GetEngine()->IsReleased(MouseButton::Middle)) {
+			m_establishing_force = false;
+			Ray r;
+			r.origin = m_vector;
+			r.direction = mmlNormalize(GetEngine()->GetWorldMousePosition() - m_vector);
+
+		}
+	}
+	void OnGUI( void )
+	{
+		GUI::Print(GetName());
+		GUI::NewLine();
+		mmlMatrix<2,2> rot = GetTransform().GetRotation(Transform::Global);
+		GUI::Print("x = [ ");
+		GUI::Print(rot[0][0]);
+		GUI::Print(", ");
+		GUI::Print(rot[0][1]);
+		GUI::Print(" ]");
+		GUI::NewLine();
+		GUI::Print("y = [ ");
+		GUI::Print(rot[1][0]);
+		GUI::Print(", ");
+		GUI::Print(rot[1][1]);
+		GUI::Print(" ]");
+		GUI::NewLine();
+
+		mmlVector<2> pos = GetTransform().GetPosition(Transform::Global);
+		GUI::Print("p = [ ");
+		GUI::Print(pos[0]);
+		GUI::Print(", ");
+		GUI::Print(pos[1]);
+		GUI::Print(" ]");
+		GUI::NewLine();
+	}
+
+public:
+	PhysicsObject( void ) : ConstructObject(PhysicsObject)
+	{
+		SetName("PhysicsObject");
+		EnableDebugGraphics();
+	}
+};
+
+ObjectDeclaration(PhysicsTest)
+{
+protected:
+	void OnInit( void )
+	{
+		GetEngine()->AddObject<PhysicsObject>();
+	}
+
+	void OnUpdate( void )
+	{
+		GUI::SetColor(0.0f, 0.0f, 1.0f);
+		Rect r;
+		r.x = GetEngine()->GetMousePosition().x - 5;
+		r.y = GetEngine()->GetMousePosition().y - 5;
+		r.w = 10;
+		r.h = 10;
+		GUI::Box(r);
+	}
+
+public:
+	PhysicsTest( void ) : ConstructObject(PhysicsTest)
+	{
+		SetName("PhysicsTest");
+	}
+};
+
 RegisterObject(Controllable);
 RegisterObject(Anchor);
 RegisterObject(FollowCamera);
@@ -171,6 +261,8 @@ RegisterObject(FontRenderer);
 RegisterObject(Quitter);
 RegisterObject(GridRender);
 RegisterObject(TimerObject);
+RegisterObject(PhysicsObject);
+RegisterObject(PhysicsTest);
 
 void PrintString(const mtlChars &ch);
 
@@ -183,29 +275,29 @@ void Unit_ArrayResize( void );
 void Unit_GUI(Engine &engine);
 void Unit_RandomFloat(Engine &engine);
 void Unit_Font(Engine &engine);
-void Unit_Schedule( void );
+void Unit_Collisions(Engine &engine);
 
 int main(int argc, char **argv)
 {
 	Engine engine;
 	engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
-	engine.AddObject<SpriteEditor>();
-	engine.RunGame();
-	//RunUnitTests(engine);
+	//engine.AddObject<SpriteEditor>();
+	//engine.RunGame();
+	RunUnitTests(engine);
 	return 0;
 }
 
 void RunUnitTests(Engine &engine)
 {
-	Unit_OpenGLTest();
-	Unit_RegisteredObjects();
-	Unit_Controllable(engine);
-	Unit_StringMap();
-	Unit_ArrayResize();
-	Unit_GUI(engine);
-	Unit_RandomFloat(engine);
-	Unit_Font(engine);
-	Unit_Schedule();
+//	Unit_OpenGLTest();
+//	Unit_RegisteredObjects();
+//	Unit_Controllable(engine);
+//	Unit_StringMap();
+//	Unit_ArrayResize();
+//	Unit_GUI(engine);
+//	Unit_RandomFloat(engine);
+//	Unit_Font(engine);
+	Unit_Collisions(engine);
 }
 
 void Controllable::OnUpdate( void )
@@ -528,41 +620,12 @@ public:
 	}
 };
 
-void Unit_Schedule( void )
+void Unit_Collisions(Engine &engine)
 {
-	std::cout << "Unit_Schedule: " << std::endl;
-
-	std::cout << "serial: ";
-	SerialSchedule schedule;
-	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task1>(), 0.5f, 3);
-	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task2>(), 1.0f, 1);
-	schedule.AddTask(mtlShared<ScheduleTask>::Create<Task3>(), 2.0f, 2);
-
-	SDL_Event event;
-
-	schedule.StartTimer();
-	while (!schedule.IsFinished()) {
-		if (SDL_PollEvent(&event) && event.key.keysym.sym == SDLK_ESCAPE) {
-			break;
-		}
-		schedule.Execute(NULL);
-		SDL_Delay(25);
-	}
-
-	std::cout << "parallel: ";
-	ParallelSchedule schedule2;
-	schedule2.AddTask(mtlShared<ScheduleTask>::Create<Task1>(), 0.5f, 4);
-	schedule2.AddTask(mtlShared<ScheduleTask>::Create<Task2>(), 0.1f, 5);
-	schedule2.AddTask(mtlShared<ScheduleTask>::Create<Task3>(), 2.0f, 2);
-
-	schedule2.StartTimer();
-	while (!schedule2.IsFinished()) {
-		if (SDL_PollEvent(&event) && event.key.keysym.sym == SDLK_ESCAPE) {
-			break;
-		}
-		schedule2.Execute(NULL);
-		SDL_Delay(25);
-	}
-
+	std::cout << "Unit_Collisions: " << std::endl;
+	engine.AddObject<PhysicsTest>();
+	engine.AddObject<Quitter>();
+	engine.SetCamera(engine.AddObject<DebugCamera>());
+	engine.RunGame();
 	std::cout << "[done]" << std::endl;
 }

@@ -40,12 +40,16 @@ void Engine::UpdateObjects( void )
 
 void Engine::CollideObjects( void )
 {
+	// IMPORTANT TODO:
+	// Speed this up by generating this list once only when needed, not every frame
+
 	// construct a list of possible collisions and reset the colliders' state
 	mtlItem<ObjectRef> *object = m_objects.GetFirst();
 	mtlList<ObjectRef> colliders;
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
-			node_ref(object)->GetCollider()->ResetState();
+//			node_ref(object)->GetCollider()->ResetState();
+			node_ref(object)->GetCollider()->UpdateWorldState();
 			colliders.AddLast(object->GetItem());
 		}
 		object = object->GetNext();
@@ -59,6 +63,10 @@ void Engine::CollideObjects( void )
 			flags_t abCollision = node_ref(collider)->GetCollisionMasks() & node_ref(nextCollider)->GetObjectFlags();
 			flags_t baCollision = node_ref(nextCollider)->GetObjectFlags() & node_ref(collider)->GetCollisionMasks();
 			if (abCollision > 0 || baCollision > 0) {
+
+				// IMPORTANT TODO:
+				// Speed up this by doing a quick AABB overlap check
+
 				CollisionInfo info = node_ref(collider)->m_collider->Collides(*node_ref(nextCollider)->m_collider.GetShared());
 				if (info.collision) {
 
@@ -71,12 +79,26 @@ void Engine::CollideObjects( void )
 					if (abCollision > 0) {
 						node_ref(collider)->OnCollision(nextCollider->GetItem(), info);
 					}
+
+					Physics::ResolveCollision(node_ref(collider)->GetPhysics(), node_ref(nextCollider)->GetPhysics(), info);
 				}
 			}
 			nextCollider = nextCollider->GetNext();
 		}
-		collider->GetItem()->GetCollider()->TrackPreviousTransform();
+//		collider->GetItem()->GetCollider()->TrackPreviousTransform();
 		collider = collider->GetNext();
+	}
+}
+
+void Engine::UpdatePhysics( void )
+{
+	float time_scale = GetElapsedTime();
+	mtlItem<ObjectRef> *object = m_objects.GetFirst();
+	while (object != NULL) {
+		if (node_ref(object)->HasPhysics()) {
+			node_ref(object)->GetPhysics().UpdatePhysics(time_scale);
+		}
+		object = object->GetNext();
 	}
 }
 
@@ -124,6 +146,7 @@ void Engine::DrawObjects( void )
 				sortedGraphics[i].object->GetGraphics().GetAlpha()
 			);
 			sortedGraphics[i].object->OnDraw();
+			sortedGraphics[i].object->DrawDebugInfo();
 		}
 
 	} else {
@@ -141,6 +164,7 @@ void Engine::DrawObjects( void )
 					node_ref(object)->GetGraphics().GetAlpha()
 				);
 				node_ref(object)->OnDraw();
+				node_ref(object)->DrawDebugInfo();
 			}
 			object = object->GetNext();
 		}
@@ -542,14 +566,14 @@ void Engine::FilterByCollisionMasksInclusive(const mtlList<ObjectRef> &in, mtlLi
 	}
 }
 
-void Engine::FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t objectMask)
+void Engine::FilterByRange(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Cone &range, flags_t objectMask)
 {
 	out.RemoveAll();
 	const mtlItem<ObjectRef> *object = in.GetFirst();
 	while (object != NULL) {
 		// we do not check if object can collide since this is not technically collisions
 		if ((node_ref(object)->m_objectFlags & objectMask) > 0) {
-			UnaryCollisionInfo info = RangeCollide(range, node_ref(object)->GetTransform().GetPosition(Transform::Global));
+			UnaryCollisionInfo info = ConeCollide(range, node_ref(object)->GetTransform().GetPosition(Transform::Global));
 			if (info.collision) {
 				out.AddLast(object->GetItem());
 			}
@@ -590,7 +614,7 @@ void Engine::FilterByRayCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRe
 	}
 }
 
-void Engine::FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Range &range, flags_t collisionMask)
+void Engine::FilterByRangeCollision(const mtlList<ObjectRef> &in, mtlList<ObjectRef> &out, const Cone &range, flags_t collisionMask)
 {
 	out.RemoveAll();
 	const mtlItem<ObjectRef> *object = in.GetFirst();
@@ -831,6 +855,7 @@ int Engine::RunGame( void )
 		UpdateInputBuffers();
 		UpdateObjects();
 		CollideObjects();
+		UpdatePhysics();
 		DrawObjects();
 		DrawGUI();
 		UpdateVideo();

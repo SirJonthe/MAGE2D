@@ -53,10 +53,11 @@ Physics?
 --DEBUG--
 ---------
 Engine filtering methods
-Check memory errors when using GUI::Print(mmlVector<n>, int)
+Check memory errors when using GUI::Print(mmlVector<n>, int) -> maybe full rebuild is necessary for proper function (seems to be the case for other templates)
 Check tranform system, behaving strangely?
 Check RTTI system, IsClassType not returning correct value?
 Is collision system correctly filtering collisions based on object vs. collision flags?
+mtlShared< ColliderGraphics<PolygonCollider> >::SetHaflExtents(float, float) not defined -> this SHOULD be virtual, and is defined in the base class
 
 -------------
 --WHEN DONE--

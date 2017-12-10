@@ -20,7 +20,8 @@ SOURCES += main.cpp \
 	MiniLib/MTL/mtlRandom.cpp \
     Schedule.cpp \
     MiniLib/MTL/mtlMathParser.cpp \
-    Thread.cpp
+    Thread.cpp \
+    Physics.cpp
 
 HEADERS += \
 	Timer.h \
@@ -57,7 +58,9 @@ HEADERS += \
     Schedule.h \
     MiniLib/MTL/mtlMathParser.h \
     Thread.h \
-    Physics.h
+    Physics.h \
+    physics.h \
+    DebugRender.h
 
 OTHER_FILES += \
 	TODO.txt \
