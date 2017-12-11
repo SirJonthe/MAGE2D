@@ -567,6 +567,24 @@ void PolygonCollider::SetHalfExtents(const mmlVector<2> &half)
 	}
 }
 
+BoundRect PolygonCollider::GetBoundRect( void ) const
+{
+	BoundRect r;
+	if (m_globalVert.GetSize() < 1) {
+		r.a[0] = 0.0f;
+		r.a[1] = 0.0f;
+		r.b[0] = 0.0f;
+		r.b[1] = 0.0f;
+	} else {
+		r.a = r.b = m_globalVert[0];
+	}
+	for (int i = 0; i < m_globalVert.GetSize(); ++i) {
+		r.a = mmlMin(r.a, m_globalVert[i]);
+		r.b = mmlMax(r.b, m_globalVert[i]);
+	}
+	return r;
+}
+
 //void PolygonCollider::ResetState( void )
 void PolygonCollider::UpdateWorldState( void )
 {

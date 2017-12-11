@@ -186,10 +186,12 @@ protected:
 			m_establishing_force = true;
 		} else if (GetEngine()->IsReleased(MouseButton::Middle)) {
 			m_establishing_force = false;
+			mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 			Ray r;
 			r.origin = m_vector;
-			r.direction = mmlNormalize(GetEngine()->GetWorldMousePosition() - m_vector);
-
+			r.direction = mmlNormalize(world_mouse - m_vector);
+			float force_pps = (world_mouse - m_vector).Len();
+			GetPhysics().ApplyForce(r, force_pps);
 		}
 	}
 	void OnGUI( void )
@@ -217,6 +219,39 @@ protected:
 		GUI::Print(pos[1]);
 		GUI::Print(" ]");
 		GUI::NewLine();
+
+		GUI::SetColor(0.0f, 1.0f, 1.0f);
+
+		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
+
+		if (m_establishing_force) {
+			GUI::Print("o = [ ");
+			GUI::Print(m_vector[0]);
+			GUI::Print(", ");
+			GUI::Print(m_vector[1]);
+			GUI::Print(" ]");
+			GUI::NewLine();
+
+			mmlVector<2> dir = mmlNormalize(world_mouse - m_vector);
+			GUI::Print("d = [ ");
+			GUI::Print(dir[0]);
+			GUI::Print(", ");
+			GUI::Print(dir[1]);
+			GUI::Print(" ]");
+			GUI::NewLine();
+
+			float force_pps = (world_mouse - m_vector).Len();
+			GUI::Print("f = ");
+			GUI::Print(force_pps);
+			GUI::NewLine();
+		} else {
+			GUI::Print("o = [ ");
+			GUI::Print(world_mouse[0]);
+			GUI::Print(", ");
+			GUI::Print(world_mouse[1]);
+			GUI::Print(" ]");
+			GUI::NewLine();
+		}
 	}
 
 public:
@@ -224,6 +259,7 @@ public:
 	{
 		SetName("PhysicsObject");
 		EnableDebugGraphics();
+		m_establishing_force = false;
 	}
 };
 

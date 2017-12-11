@@ -94,6 +94,27 @@ struct CollisionInfo
 bool LineIntersection(mmlVector<2> a1, mmlVector<2> a2, mmlVector<2> b1, mmlVector<2> b2, mmlVector<2> &out);
 bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly);
 
+struct BoundRect
+{
+	mmlVector<2> a, b;
+
+	float GetArea(const BoundRect &r) const
+	{
+		return mmlMax(b[0] - a[0], 0.0f) * mmlMax(b[1] - a[1], 0.0f);
+	}
+	static BoundRect GetOverlap(const BoundRect &r1, const BoundRect &r2)
+	{
+		BoundRect r;
+		r.a[0] = mmlMax(r1.a[0], r2.a[0]);
+		r.a[1] = mmlMax(r1.a[1], r2.a[1]);
+		r.b[0] = mmlMin(r1.b[0], r2.b[0]);
+		r.b[1] = mmlMin(r1.b[1], r2.b[1]);
+		return r;
+	}
+};
+
+
+
 class Collider : public mtlBase
 {
 	friend class PolygonCollider;
@@ -121,6 +142,7 @@ public:
 	virtual void                SetHalfExtents(float w, float h)        { SetHalfExtents(mmlVector<2>(w, h)); }
 	virtual void                SetHalfExtents(const mmlVector<2>&)     {} // exactly what this does is left undefined, hopefully something reasonable
 	virtual mmlVector<2>        GetHalfExtents( void ) const            { return mmlVector<2>(0.0f, 0.0f); }
+	virtual BoundRect           GetBoundRect( void ) const              { BoundRect r; r.a = mmlVector<2>(0.0f, 0.0f); r.b = mmlVector<2>(0.0f, 0.0f); return r; }
 	//virtual void                ResetState( void )                      {}
 	virtual void                UpdateWorldState( void )                {}
 	//void                        TrackPreviousTransform( void );
@@ -178,6 +200,7 @@ public:
 
 	mmlVector<2>                    GetHalfExtents( void ) const;
 	void                            SetHalfExtents(const mmlVector<2> &half);
+	BoundRect                       GetBoundRect( void ) const;
 	//void                            ResetState( void );
 	void                            UpdateWorldState( void );
 

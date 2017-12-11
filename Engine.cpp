@@ -38,6 +38,12 @@ void Engine::UpdateObjects( void )
 	}
 }
 
+struct ColliderObject
+{
+	ObjectRef collider;
+	BoundRect aabb;
+};
+
 void Engine::CollideObjects( void )
 {
 	// IMPORTANT TODO:
@@ -50,6 +56,7 @@ void Engine::CollideObjects( void )
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
 //			node_ref(object)->GetCollider()->ResetState();
 			node_ref(object)->GetCollider()->UpdateWorldState();
+			//BoundRect aabb = node_ref(object)->GetCollider()->GetBoundRect();
 			colliders.AddLast(object->GetItem());
 		}
 		object = object->GetNext();
