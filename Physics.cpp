@@ -44,7 +44,14 @@ void Physics::SetTransform(mtlShared<Transform> &transform)
 	m_transform = transform;
 }
 
-void Physics::ApplyForce(const Ray &ray, float force)
+void Physics::ResetTransform( void )
+{
+	m_velocity_pps[0] = 0.0f;
+	m_velocity_pps[1] = 0.0f;
+	m_torque_rps = 0.0f;
+}
+
+void Physics::ApplyForce(const Ray &ray)
 {
 	// a force is distributed between a rotation and a translation
 	// the distribution model should be the following
@@ -58,10 +65,10 @@ void Physics::ApplyForce(const Ray &ray, float force)
 	mmlVector<2> refl_normal = mmlReflect(ray.direction, com_col_normal);
 
 	float translation_factor = mmlDot(com_col_normal, refl_normal);
-	m_velocity_pps += ray.direction * force * translation_factor * m_inv_mass;
+	m_velocity_pps += ray.direction * ray.length * translation_factor * m_inv_mass;
 
 	float rotation_factor = 1.0f - translation_factor;
-	m_torque_rps += PixelsToRadians(center_of_mass, ray.origin, force) * rotation_factor * m_inv_mass;
+	m_torque_rps += PixelsToRadians(center_of_mass, ray.origin, ray.length) * rotation_factor * m_inv_mass;
 }
 
 void Physics::UpdatePhysics(float time_scale)

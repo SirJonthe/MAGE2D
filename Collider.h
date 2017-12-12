@@ -42,6 +42,9 @@ struct UnaryCollisionInfo
 	bool                        collision;
 };
 
+mmlVector<2>       LineIntersectionProjection(const mmlVector<2> &a1, const mmlVector<2> &a2, const mmlVector<2> &b1, const mmlVector<2> &b2);
+bool               LineIntersection(const mmlVector<2> &a1, const mmlVector<2> &a2, const mmlVector<2> &b1, const mmlVector<2> &b2, mmlVector<2> &out);
+bool               PointInPolygon(const mmlVector<2> &a, const mtlArray< mmlVector<2> > &poly);
 UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b);
 UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a);
 UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a, mmlVector<2> b);
@@ -90,9 +93,6 @@ struct CollisionInfo
 	mmlVector<2>                c2_avg_collision;
 	bool                        collision;
 };
-
-bool LineIntersection(mmlVector<2> a1, mmlVector<2> a2, mmlVector<2> b1, mmlVector<2> b2, mmlVector<2> &out);
-bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly);
 
 struct BoundRect
 {

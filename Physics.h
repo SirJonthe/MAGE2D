@@ -28,8 +28,9 @@ public:
 	Physics( void );
 
 	void SetTransform(mtlShared<Transform> &transform);
+	void ResetTransform( void );
 
-	void ApplyForce(const Ray &ray, float force_pps);
+	void ApplyForce(const Ray &ray);
 	void UpdatePhysics(float time_scale);
 
 	void  SetMass(float mass);

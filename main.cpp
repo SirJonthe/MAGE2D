@@ -169,8 +169,10 @@ public:
 ObjectDeclaration(PhysicsObject)
 {
 private:
-	mmlVector<2> m_vector;
-	bool         m_establishing_force;
+	Ray                m_ray;
+	Ray                m_col_ray;
+	UnaryCollisionInfo m_collision;
+	bool               m_establishing_force;
 protected:
 	void OnInit( void )
 	{
@@ -181,17 +183,54 @@ protected:
 	}
 	void OnUpdate( void )
 	{
+		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
+
 		if (GetEngine()->IsPressed(MouseButton::Middle)) {
-			m_vector = GetEngine()->GetWorldMousePosition();
+			m_ray.origin = world_mouse;
 			m_establishing_force = true;
-		} else if (GetEngine()->IsReleased(MouseButton::Middle)) {
+		}
+
+		m_ray.length = (world_mouse - m_ray.origin).Len();
+		m_ray.direction = (world_mouse - m_ray.origin) / m_ray.length;
+		if (GetCollider() != NULL) {
+			if (GetEngine()->IsReleased(MouseButton::Middle)) {
+				// Debug
+				std::cout << "debug here" << std::endl;
+			}
+			m_collision = GetCollider()->Collides(m_ray);
+			if (m_collision.collision) {
+				m_col_ray.direction = m_ray.direction;
+				m_col_ray.length = m_ray.length;
+				m_col_ray.origin = (*m_collision.points.GetShared())[0];
+				for (int i = 1; i < m_collision.points->GetSize(); ++i) {
+					if (((*m_collision.points.GetShared())[i] - m_ray.origin).Len() < (m_col_ray.origin - m_ray.origin).Len()) {
+						m_col_ray.origin = (*m_collision.points.GetShared())[i];
+					}
+				}
+			}
+		}
+
+		if (GetEngine()->IsReleased(MouseButton::Middle)) {
 			m_establishing_force = false;
-			mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
-			Ray r;
-			r.origin = m_vector;
-			r.direction = mmlNormalize(world_mouse - m_vector);
-			float force_pps = (world_mouse - m_vector).Len();
-			GetPhysics().ApplyForce(r, force_pps);
+			if (m_collision.collision) {
+				GetPhysics().ApplyForce(m_col_ray);
+			}
+		}
+
+		if (GetEngine()->IsPressed(SDLK_r)) {
+			GetPhysics().ResetTransform();
+			GetTransform().SetRotation(Transform::Global, 0.0f);
+			GetTransform().SetPosition(Transform::Global, 0.0f, 0.0f);
+		}
+		if (GetEngine()->IsPressed(SDLK_SPACE)) {
+			GetPhysics().ResetTransform();
+		}
+
+	}
+	void OnDraw( void )
+	{
+		if (m_collision.collision) {
+
 		}
 	}
 	void OnGUI( void )
@@ -220,40 +259,38 @@ protected:
 		GUI::Print(" ]");
 		GUI::NewLine();
 
-		if (HasPhysics()) {
-			GUI::SetColor(0.0f, 1.0f, 0.0f);
-			GUI::Print("Physics enabled");
-		} else {
-			GUI::SetColor(1.0f, 0.0f, 0.0f);
-			GUI::Print("Physics disabled");
-		}
-		GUI::NewLine();
-
 		GUI::SetColor(0.0f, 1.0f, 1.0f);
-
-		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 
 		if (m_establishing_force) {
 			GUI::Print("o = [ ");
-			GUI::Print(m_vector[0]);
+			GUI::Print(m_ray.origin[0]);
 			GUI::Print(", ");
-			GUI::Print(m_vector[1]);
+			GUI::Print(m_ray.origin[1]);
 			GUI::Print(" ]");
 			GUI::NewLine();
 
-			mmlVector<2> dir = mmlNormalize(world_mouse - m_vector);
 			GUI::Print("d = [ ");
-			GUI::Print(dir[0]);
+			GUI::Print(m_ray.direction[0]);
 			GUI::Print(", ");
-			GUI::Print(dir[1]);
+			GUI::Print(m_ray.direction[1]);
 			GUI::Print(" ]");
 			GUI::NewLine();
 
-			float force_pps = (world_mouse - m_vector).Len();
 			GUI::Print("f = ");
-			GUI::Print(force_pps);
+			GUI::Print(m_ray.length);
 			GUI::NewLine();
+
+			if (m_collision.collision) {
+				GUI::SetColor(0.0, 1.0f, 0.0f);
+				GUI::Print("In range");
+			} else {
+				GUI::SetColor(1.0f, 0.0f, 0.0f);
+				GUI::Print("No target");
+			}
+			GUI::NewLine();
+
 		} else {
+			mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 			GUI::Print("o = [ ");
 			GUI::Print(world_mouse[0]);
 			GUI::Print(", ");

@@ -4,50 +4,118 @@
 
 #define RoundErr 0.001f
 
+mmlVector<2> LineIntersectionProjection(const mmlVector<2> &a1, const mmlVector<2> &a2, const mmlVector<2> &b1, const mmlVector<2> &b2)
+{
+	mmlVector<2> sa = a2 - a1;
+	mmlVector<2> sb = b2 - b1;
+	mmlVector<2> proj;
+	proj[0] = ( sb[0] * (a1[1] - b1[1]) - sb[1] * (a1[0] - b1[0])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
+	proj[1] = (-sa[1] * (a1[0] - b1[0]) + sa[0] * (a1[1] - b1[1])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
+	return proj;
+}
+
+//bool LineIntersection(const mmlVector<2> &a1, const mmlVector<2> &a2, const mmlVector<2> &b1, const mmlVector<2> &b2, mmlVector<2> &out)
+//{
+//	mmlVector<2> sa = a2 - a1;
+//	mmlVector<2> sb = b2 - b1;
+//
+//	float s = (-sa[1] * (a1[0] - b1[0]) + sa[0] * (a1[1] - b1[1])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
+//	float t = ( sb[0] * (a1[1] - b1[1]) - sb[1] * (a1[0] - b1[0])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
+//
+//	if ((s >= 0.0f && s <= 1.0f) && (t >= 0.0f && t <= 1.0f)) {
+//		out = a1 + (t * sa);
+//		return true;
+//	}
+//	return false;
+//}
+
+bool LineIntersection(const mmlVector<2> &a1, const mmlVector<2> &a2, const mmlVector<2> &b1, const mmlVector<2> &b2, mmlVector<2> &out)
+{
+	mmlVector<2> p = LineIntersectionProjection(a1, a2, b1, b2);
+	if ((p[0] >= 0.0f && p[0] <= 1.0f) && (p[1] >= 0.0f && p[1] <= 1.0f)) {
+		out = mmlLerp(a1, a2, p[0]);
+		return true;
+	}
+	return false;
+}
+
+bool PointInPolygon(const mmlVector<2> &a, const mtlArray< mmlVector<2> > &poly)
+{
+	bool c = false;
+	for (int i = 0, j = poly.GetSize() - 1; i < poly.GetSize(); j = i++) {
+		if ( ((poly[i][1] > a[1]) != (poly[j][1] > a[1])) && (a[0] < (poly[j][0] - poly[i][0]) * (a[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0]) ) {
+			c = !c;
+		}
+	}
+	return c;
+}
+
+//UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
+//{
+//	if (!r.direction.IsNormalized()) { r.direction.Normalize(); }
+
+//	UnaryCollisionInfo info;
+//	info.collider = NULL;
+//	info.collision = false;
+
+//	mmlVector<2> r1 = r.origin;
+//	mmlVector<2> r2 = (r.length >= 0.0f) ? r.origin + r.direction * r.length : r.origin + r.direction;
+
+//	float rCross = Cross2D(r1, r2);
+//	float lCross = Cross2D(a, b);
+//	float div = 1.0f / Cross2D(r1 - r2, a - b);
+
+//	mmlVector<2> point = ((a - b) * rCross - (r1 - r2) * lCross) * div;
+
+//	mmlVector<2> ln1 = mmlNormalize(b - a);
+//	mmlVector<2> ln2 = -ln1;
+//	mmlVector<2> pn1 = mmlNormalize(a - point);
+//	mmlVector<2> pn2 = mmlNormalize(b - point);
+
+//	float dl1 = mmlDot(ln1, pn1);
+//	float dl2 = mmlDot(ln2, pn2);
+
+//	if (dl1 >= 1.0f - RoundErr && dl1 <= 1.0f + RoundErr && dl2 >= 1.0f - RoundErr && dl2 <= 1.0f + RoundErr) {
+//		if (r.length >= 0.0f) {
+//			mmlVector<2> rn1 = mmlNormalize(r2 - r1);
+//			mmlVector<2> rn2 = -rn2;
+//			mmlVector<2> prn1 = mmlNormalize(r1 - point);
+//			mmlVector<2> prn2 = mmlNormalize(r2 - point);
+
+//			float dr1 = mmlDot(rn1, prn1);
+//			float dr2 = mmlDot(rn2, prn2);
+
+//			info.collision = (dr1 >= 1.0f - RoundErr && dr1 <= 1.0f + RoundErr && dr2 >= 1.0f - RoundErr && dr2 <= 1.0f - RoundErr);
+//		} else {
+//			info.collision = true;
+//		}
+//	}
+
+//	if (info.collision) {
+//		info.points->Create(1);
+//		(*info.points.GetShared())[0] = point;
+//		//info.reflection.Create(1);
+//		//info.reflection[0] = mmlReflect(r.direction, LineNormal(a, b));
+//	}
+
+//	return info;
+//}
+
 UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
 {
-	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
+	if (!r.direction.IsNormalized()) { r.direction.Normalize(); }
 
 	UnaryCollisionInfo info;
 	info.collider = NULL;
-	info.collision = false;
+	info.points.New();
 
 	mmlVector<2> r1 = r.origin;
 	mmlVector<2> r2 = (r.length >= 0.0f) ? r.origin + r.direction * r.length : r.origin + r.direction;
-
-	float rCross = Cross2D(r1, r2);
-	float lCross = Cross2D(a, b);
-	float div = 1.0f / Cross2D(r1 - r2, a - b);
-
-	mmlVector<2> point = ((a - b) * rCross - (r1 - r2) * lCross) * div;
-
-	mmlVector<2> ln1 = mmlNormalizeFast(b - a);
-	mmlVector<2> ln2 = -ln1;
-	mmlVector<2> pn1 = mmlNormalizeFast(a - point);
-	mmlVector<2> pn2 = mmlNormalizeFast(b - point);
-
-	float dl1 = mmlDot(ln1, pn1);
-	float dl2 = mmlDot(ln2, pn2);
-
-	if (dl1 >= 1.0f - RoundErr && dl1 <= 1.0f + RoundErr && dl2 >= 1.0f - RoundErr && dl2 <= 1.0f + RoundErr) {
-		if (r.length >= 0.0f) {
-			mmlVector<2> rn1 = mmlNormalizeFast(r2 - r1);
-			mmlVector<2> rn2 = -rn2;
-			mmlVector<2> prn1 = mmlNormalizeFast(r1 - point);
-			mmlVector<2> prn2 = mmlNormalizeFast(r2 - point);
-
-			float dr1 = mmlDot(rn1, prn1);
-			float dr2 = mmlDot(rn2, prn2);
-
-			info.collision = (dr1 >= 1.0f - RoundErr && dr1 <= 1.0f + RoundErr && dr2 >= 1.0f - RoundErr && dr2 <= 1.0f - RoundErr);
-		} else {
-			info.collision = true;
-		}
-	}
-
+	mmlVector<2> p = LineIntersectionProjection(r1, r2, a, b);
+	info.collision = (p[0] >= 0.0f && p[0] <= 1.0f) && (p[1] >= 0.0f && p[1] <= 1.0f);
 	if (info.collision) {
 		info.points->Create(1);
-		(*info.points.GetShared())[0] = point;
+		(*info.points.GetShared())[0] = mmlLerp(r1, r2, p[0]);
 		//info.reflection.Create(1);
 		//info.reflection[0] = mmlReflect(r.direction, LineNormal(a, b));
 	}
@@ -57,12 +125,13 @@ UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
 
 UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a)
 {
-	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
+	if (!r.direction.IsNormalized()) { r.direction.Normalize(); }
 	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
 
 	UnaryCollisionInfo info;
 	info.collider = NULL;
 	info.collision = false;
+	info.points.New();
 
 	if (r.length > 0.0f && mmlDist(r.origin, a) > r.length) {
 		return info;
@@ -82,12 +151,13 @@ UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a)
 
 UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a, mmlVector<2> b)
 {
-	if (!r.direction.IsNormalized()) { r.direction.NormalizeFast(); }
+	if (!r.direction.IsNormalized()) { r.direction.Normalize(); }
 	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
 
 	UnaryCollisionInfo info;
 	info.collider = NULL;
 	info.collision = false;
+	info.points.New();
 
 	mtlArray< mmlVector<2> > points;
 	points.SetCapacity(2);
@@ -166,11 +236,12 @@ UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a, mmlVector<2> b)
 
 UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a)
 {
-	if (!p.normal.IsNormalized()) { p.normal.NormalizeFast(); }
+	if (!p.normal.IsNormalized()) { p.normal.Normalize(); }
 
 	UnaryCollisionInfo info;
 	info.collision = false;
 	info.collider = NULL;
+	info.points.New();
 
 	if (mmlDot(p.normal, p.point - a) <= 0.0f) {
 		info.collision = true;
@@ -183,11 +254,12 @@ UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a)
 
 UnaryCollisionInfo PlaneCollide(Plane p, mmlVector<2> a, mmlVector<2> b)
 {
-	if (!p.normal.IsNormalized()) { p.normal.NormalizeFast(); }
+	if (!p.normal.IsNormalized()) { p.normal.Normalize(); }
 
 	UnaryCollisionInfo info;
 	info.collision = false;
 	info.collider = NULL;
+	info.points.New();
 	info.points->SetCapacity(2);
 
 	float a_dist = mmlDot(p.normal, p.point - a);
@@ -249,32 +321,6 @@ mmlVector<2> GridWalker::GetImpactUV( void ) const
 	float u = impact[(m_side + 1) % 2];
 	float v = impact[(m_side + 2) % 2];
 	return mmlVector<2>(u - floor(u), v - floor(v));
-}
-
-bool LineIntersection(mmlVector<2> a1, mmlVector<2> a2, mmlVector<2> b1, mmlVector<2> b2, mmlVector<2> &out)
-{
-	mmlVector<2> sa = a2 - a1;
-	mmlVector<2> sb = b2 - b1;
-
-	float s = (-sa[1] * (a1[0] - b1[0]) + sa[0] * (a1[1] - b1[1])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
-	float t = ( sb[0] * (a1[1] - b1[1]) - sb[1] * (a1[0] - b1[0])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
-
-	if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
-		out = a1 + (t * sa);
-		return true;
-	}
-	return false;
-}
-
-bool PointInPolygon(mmlVector<2> a, const mtlArray< mmlVector<2> > &poly)
-{
-	bool c = false;
-	for (int i = 0, j = poly.GetSize() - 1; i < poly.GetSize(); j = i++) {
-		if ( ((poly[i][1] > a[1]) != (poly[j][1] > a[1])) && (a[0] < (poly[j][0] - poly[i][0]) * (a[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0]) ) {
-			c = !c;
-		}
-	}
-	return c;
 }
 
 Collider::Collider( void ) : mtlBase(this), m_transform(/*NULL*/)
@@ -625,10 +671,10 @@ UnaryCollisionInfo PolygonCollider::Collides(Ray ray) const
 	info.collision = false;
 	info.collider = NULL;
 	info.points.New();
-	info.points->SetCapacity(m_vert.GetSize());
+	info.points->SetCapacity(m_globalVert.GetSize());
 
-	for (int i = 0, j = m_vert.GetSize() - 1; i < m_vert.GetSize(); j = i++) {
-		UnaryCollisionInfo temp = RayCollide(ray, m_vert[j], m_vert[i]);
+	for (int i = 0, j = m_globalVert.GetSize() - 1; i < m_globalVert.GetSize(); j = i++) {
+		UnaryCollisionInfo temp = RayCollide(ray, m_globalVert[j], m_globalVert[i]);
 		if (temp.collision) {
 			info.collision = true;
 			for (int n = 0; n < temp.points->GetSize(); ++n) { // there should only be 1 (otherwise I've done something wrong)
@@ -649,10 +695,10 @@ UnaryCollisionInfo PolygonCollider::Collides(Cone cone) const
 	info.collision = false;
 	info.collider = this;
 	info.points.New();
-	info.points->SetCapacity(m_vert.GetSize());
+	info.points->SetCapacity(m_globalVert.GetSize());
 
-	for (int i = 0, j = m_vert.GetSize() - 1; i < m_vert.GetSize(); j = i++) {
-		UnaryCollisionInfo temp = ConeCollide(cone, m_vert[j], m_vert[i]);
+	for (int i = 0, j = m_globalVert.GetSize() - 1; i < m_globalVert.GetSize(); j = i++) {
+		UnaryCollisionInfo temp = ConeCollide(cone, m_globalVert[j], m_globalVert[i]);
 		if (temp.collision) {
 			info.collision = true;
 			for (int n = 0; n < temp.points->GetSize(); ++n) {
@@ -673,10 +719,10 @@ UnaryCollisionInfo PolygonCollider::Collides(Plane plane) const
 	info.collision = false;
 	info.collider = this;
 	info.points.New();
-	info.points->SetCapacity(m_vert.GetSize());
+	info.points->SetCapacity(m_globalVert.GetSize());
 
-	for (int i = 0, j = m_vert.GetSize() - 1; i < m_vert.GetSize(); j = i++) {
-		UnaryCollisionInfo temp = PlaneCollide(plane, m_vert[j], m_vert[i]);
+	for (int i = 0, j = m_vert.GetSize() - 1; i < m_globalVert.GetSize(); j = i++) {
+		UnaryCollisionInfo temp = PlaneCollide(plane, m_globalVert[j], m_globalVert[i]);
 		if (temp.collision) {
 			info.collision = true;
 			for (int n = 0; n < temp.points->GetSize(); ++n) {
