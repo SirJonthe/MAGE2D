@@ -172,7 +172,9 @@ private:
 	Ray                m_ray;
 	Ray                m_col_ray;
 	UnaryCollisionInfo m_collision;
+	Point              m_mouse_pt;
 	bool               m_establishing_force;
+
 protected:
 	void OnInit( void )
 	{
@@ -183,24 +185,40 @@ protected:
 	}
 	void OnUpdate( void )
 	{
+		GUI::SetColor(0.0f, 0.0f, 1.0f);
+		Rect r;
+		r.x = GetEngine()->GetMousePosition().x - 5;
+		r.y = GetEngine()->GetMousePosition().y - 5;
+		r.w = 10;
+		r.h = 10;
+		GUI::Box(r);
+
 		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 
 		if (GetEngine()->IsPressed(MouseButton::Middle)) {
 			m_ray.origin = world_mouse;
+			m_mouse_pt.x = r.x;
+			m_mouse_pt.y = r.y;
 			m_establishing_force = true;
+		}
+
+		if (m_establishing_force) {
+			GUI::SetColor(1.0f, 0.0f, 0.0f);
+			Rect r;
+			r.x = m_mouse_pt.x;
+			r.y = m_mouse_pt.y;
+			r.w = 10;
+			r.h = 10;
+			GUI::Box(r);
 		}
 
 		m_ray.length = (world_mouse - m_ray.origin).Len();
 		m_ray.direction = (world_mouse - m_ray.origin) / m_ray.length;
 		if (GetCollider() != NULL) {
-			if (GetEngine()->IsReleased(MouseButton::Middle)) {
-				// Debug
-				std::cout << "debug here" << std::endl;
-			}
 			m_collision = GetCollider()->Collides(m_ray);
 			if (m_collision.collision) {
 				m_col_ray.direction = m_ray.direction;
-				m_col_ray.length = m_ray.length;
+				m_col_ray.length = 1.0f;
 				m_col_ray.origin = (*m_collision.points.GetShared())[0];
 				for (int i = 1; i < m_collision.points->GetSize(); ++i) {
 					if (((*m_collision.points.GetShared())[i] - m_ray.origin).Len() < (m_col_ray.origin - m_ray.origin).Len()) {
@@ -219,20 +237,15 @@ protected:
 
 		if (GetEngine()->IsPressed(SDLK_r)) {
 			GetPhysics().ResetTransform();
-			GetTransform().SetRotation(Transform::Global, 0.0f);
-			GetTransform().SetPosition(Transform::Global, 0.0f, 0.0f);
+			GetTransform().SetRotation(Transform::Local, 0.0f);
+			GetTransform().SetPosition(Transform::Local, 0.0f, 0.0f);
 		}
 		if (GetEngine()->IsPressed(SDLK_SPACE)) {
 			GetPhysics().ResetTransform();
 		}
 
 	}
-	void OnDraw( void )
-	{
-		if (m_collision.collision) {
 
-		}
-	}
 	void OnGUI( void )
 	{
 		GUI::Print(GetName());
@@ -305,33 +318,8 @@ public:
 	{
 		SetName("PhysicsObject");
 		EnableDebugGraphics();
+		m_collision.collision = false;
 		m_establishing_force = false;
-	}
-};
-
-ObjectDeclaration(PhysicsTest)
-{
-protected:
-	void OnInit( void )
-	{
-		GetEngine()->AddObject<PhysicsObject>();
-	}
-
-	void OnUpdate( void )
-	{
-		GUI::SetColor(0.0f, 0.0f, 1.0f);
-		Rect r;
-		r.x = GetEngine()->GetMousePosition().x - 5;
-		r.y = GetEngine()->GetMousePosition().y - 5;
-		r.w = 10;
-		r.h = 10;
-		GUI::Box(r);
-	}
-
-public:
-	PhysicsTest( void ) : ConstructObject(PhysicsTest)
-	{
-		SetName("PhysicsTest");
 	}
 };
 
@@ -344,7 +332,6 @@ RegisterObject(Quitter);
 RegisterObject(GridRender);
 RegisterObject(TimerObject);
 RegisterObject(PhysicsObject);
-RegisterObject(PhysicsTest);
 
 void PrintString(const mtlChars &ch);
 
@@ -705,7 +692,7 @@ public:
 void Unit_Collisions(Engine &engine)
 {
 	std::cout << "Unit_Collisions: " << std::endl;
-	engine.AddObject<PhysicsTest>();
+	engine.AddObject<PhysicsObject>();
 	engine.AddObject<Quitter>();
 	engine.SetCamera(engine.AddObject<DebugCamera>());
 	engine.RunGame();
