@@ -220,6 +220,15 @@ protected:
 		GUI::Print(" ]");
 		GUI::NewLine();
 
+		if (HasPhysics()) {
+			GUI::SetColor(0.0f, 1.0f, 0.0f);
+			GUI::Print("Physics enabled");
+		} else {
+			GUI::SetColor(1.0f, 0.0f, 0.0f);
+			GUI::Print("Physics disabled");
+		}
+		GUI::NewLine();
+
 		GUI::SetColor(0.0f, 1.0f, 1.0f);
 
 		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();

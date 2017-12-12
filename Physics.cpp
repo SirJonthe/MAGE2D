@@ -4,12 +4,17 @@ float Physics::PixelsToRadians(const mmlVector<2> &center_pt, const mmlVector<2>
 {
 	// the distance in pixels is the partial circumference of the circle portion
 	// find the radian that corresponds to that circumference given
-	return px;
+	// https://math.stackexchange.com/questions/185829/how-do-you-find-an-angle-between-two-points-on-the-edge-of-a-circle
+
+	float radius = (outer_pt - center_pt).Len();
+	float ang = acos((2.0f*radius*radius - px*px) / (2.0f*radius*radius));
+	return px > 0.0f ? ang : -ang;
 }
 
 void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 {
 	// early exit if the two have velcity directions moving away from each other
+	// NOTE: this is not the full truth, objects that move away from each other can still collide if protruding geometry collides via spinning
 	if (mmlDot(p1.m_velocity_pps, p2.m_velocity_pps) < 0.0f) { return; }
 
 	// the total force is the length of the contributed by an object is

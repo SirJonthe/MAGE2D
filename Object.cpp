@@ -307,5 +307,5 @@ void Object::TogglePhysics( void )
 
 bool Object::HasPhysics( void ) const
 {
-	return !m_physics;
+	return m_physics;
 }
