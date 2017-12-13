@@ -741,3 +741,16 @@ CollisionInfo PolygonCollider::Collides(const Collider &c) const
 {
 	return c.CollidesWith(*this);
 }
+
+bool PolygonCollider::IsConvex( void ) const
+{
+	int num_vert = m_vert.Size();
+	if (num_vert > 2) {
+		for (int i = 0; i < num_vert; ++i) {
+			Vec2 a = m_vert[(i + 1) % num_vert] - m_vert[i];
+			Vec2 b = m_vert[(i + 2) % num_vert] - m_vert[i];
+			if (mmlCross2(a, b) < 0.0f) { return false; }
+		}
+	}
+	return true;
+}

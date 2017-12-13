@@ -211,6 +211,8 @@ public:
 	UnaryCollisionInfo              Collides(Cone cone) const;
 	UnaryCollisionInfo              Collides(Plane plane) const;
 	CollisionInfo                   Collides(const Collider &c) const;
+
+	bool                            IsConvex( void ) const;
 };
 
 #endif // COLLIDER_H
