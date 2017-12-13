@@ -53,6 +53,9 @@ void Physics::ResetTransform( void )
 
 void Physics::ApplyForce(const Ray &ray)
 {
+	// This function applies a translational force and a rotational force to a physics object
+	// Note: It takes no account of the geometry of the physics object. However for best effect, it should. Do this by intersecting the ray with the collider, and then using the resulting intersection as the ray for this function.
+
 	// a force is distributed between a rotation and a translation
 	// the distribution model should be the following
 		// translation = force_direction * force * dot(force_direction, reflection(force_direction, normal(collision_point - object_center_of_mass)))
@@ -60,14 +63,13 @@ void Physics::ApplyForce(const Ray &ray)
 
 	if (m_transform.GetShared() == NULL) { return; }
 
-	mmlVector<2> center_of_mass = m_transform->GetPosition(Transform::Global);
-	mmlVector<2> com_col_normal = mmlNormalize(ray.origin - center_of_mass); // the normal between the center of mass and the collision point
-	mmlVector<2> refl_normal = mmlReflect(ray.direction, com_col_normal);
+	mmlVector<2> center_of_mass = m_transform->GetPosition(Transform::Global); // just assume that center of mass = object position
+	mmlVector<2> com_col_normal = mmlNormalize(center_of_mass - ray.origin); // the normal between the center of mass and the collision point
 
-	float translation_factor = mmlDot(com_col_normal, refl_normal);
-	m_velocity_pps += ray.direction * ray.length * translation_factor * m_inv_mass;
+	float translation_factor = mmlDot(com_col_normal, ray.direction);
+	m_velocity_pps += com_col_normal * ray.length * translation_factor * m_inv_mass;
 
-	float rotation_factor = 1.0f - translation_factor;
+	float rotation_factor = mmlCross2(com_col_normal, ray.direction);
 	m_torque_rps += PixelsToRadians(center_of_mass, ray.origin, ray.length) * rotation_factor * m_inv_mass;
 }
 
