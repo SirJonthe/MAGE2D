@@ -7,6 +7,12 @@
 
 class Physics
 {
+public:
+	struct Force : public Ray
+	{
+		float force;
+	};
+
 private:
 	mtlShared<Transform> m_transform;
 	mmlVector<2>         m_velocity_pps; // pps = pixels per second
@@ -30,8 +36,11 @@ public:
 	void SetTransform(mtlShared<Transform> &transform);
 	void ResetTransform( void );
 
-	void ApplyForce(const Ray &ray);
+	void ApplyForce(const Force &force);
 	void UpdatePhysics(float time_scale);
+
+	void ScaleTorque(float factor);
+	void ScaleVelocity(float factor);
 
 	void  SetMass(float mass);
 	float GetMass( void ) const;

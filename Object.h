@@ -60,6 +60,7 @@ private:
 	Object &operator=(const Object&) { return *this; }
 
 	void DrawDebugInfo( void );
+	bool ApplyForce(const Physics::Force &force, bool falloff, float length);
 
 public:
 	explicit                Object( void );
@@ -140,6 +141,8 @@ public:
 	void                    DisablePhysics( void );
 	void                    TogglePhysics( void );
 	bool                    HasPhysics( void ) const;
+	bool                    ApplyForce(const Physics::Force &force);
+	bool                    ApplyForce(const Physics::Force &force, float length);
 };
 
 #include "Engine.h"

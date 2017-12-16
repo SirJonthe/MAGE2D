@@ -169,8 +169,8 @@ public:
 ObjectDeclaration(PhysicsObject)
 {
 private:
-	Ray                m_ray;
-	Ray                m_col_ray;
+	Physics::Force     m_ray;
+//	Physics::Force     m_col_ray;
 	UnaryCollisionInfo m_collision;
 	Point              m_mouse_pt;
 	bool               m_establishing_force;
@@ -212,27 +212,27 @@ protected:
 			GUI::Box(r);
 		}
 
-		m_ray.length = (world_mouse - m_ray.origin).Len();
-		m_ray.direction = (world_mouse - m_ray.origin) / m_ray.length;
+		m_ray.force = (world_mouse - m_ray.origin).Len();
+		m_ray.direction = (world_mouse - m_ray.origin) / m_ray.force;
+		m_ray.force = 1.0f;
 		if (GetCollider() != NULL) {
 			m_collision = GetCollider()->Collides(m_ray);
-			if (m_collision.collision) {
-				m_col_ray.direction = m_ray.direction;
-				m_col_ray.length = 1.0f;
-				m_col_ray.origin = (*m_collision.points.GetShared())[0];
-				for (int i = 1; i < m_collision.points->GetSize(); ++i) {
-					if (((*m_collision.points.GetShared())[i] - m_ray.origin).Len() < (m_col_ray.origin - m_ray.origin).Len()) {
-						m_col_ray.origin = (*m_collision.points.GetShared())[i];
-					}
-				}
-			}
+//			if (m_collision.collision) {
+//				m_col_ray.direction = m_ray.direction;
+//				m_col_ray.force = 1.0f;
+//				m_col_ray.origin = (*m_collision.points.GetShared())[0];
+//				for (int i = 1; i < m_collision.points->GetSize(); ++i) {
+//					if (((*m_collision.points.GetShared())[i] - m_ray.origin).Len() < (m_col_ray.origin - m_ray.origin).Len()) {
+//						m_col_ray.origin = (*m_collision.points.GetShared())[i];
+//					}
+//				}
+//			}
 		}
 
 		if (GetEngine()->IsReleased(MouseButton::Middle)) {
 			m_establishing_force = false;
-			if (m_collision.collision) {
-				GetPhysics().ApplyForce(m_col_ray);
-			}
+//			GetPhysics().ApplyForce(m_col_ray);
+			ApplyForce(m_ray);
 		}
 
 		if (GetEngine()->IsPressed(SDLK_r)) {
@@ -290,7 +290,7 @@ protected:
 			GUI::NewLine();
 
 			GUI::Print("f = ");
-			GUI::Print(m_ray.length);
+			GUI::Print(m_ray.force);
 			GUI::NewLine();
 
 			if (m_collision.collision) {

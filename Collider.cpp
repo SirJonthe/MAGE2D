@@ -110,9 +110,9 @@ UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
 	info.points.New();
 
 	mmlVector<2> r1 = r.origin;
-	mmlVector<2> r2 = (r.length >= 0.0f) ? r.origin + r.direction * r.length : r.origin + r.direction;
+	mmlVector<2> r2 = r.origin + r.direction;
 	mmlVector<2> p = LineIntersectionProjection(r1, r2, a, b);
-	info.collision = (p[0] >= 0.0f && p[0] <= 1.0f) && (p[1] >= 0.0f && p[1] <= 1.0f);
+	info.collision = p[0] >= 0.0f && (p[1] >= 0.0f && p[1] <= 1.0f);
 	if (info.collision) {
 		info.points->Create(1);
 		(*info.points.GetShared())[0] = mmlLerp(r1, r2, p[0]);
@@ -133,10 +133,6 @@ UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a)
 	info.collision = false;
 	info.points.New();
 
-	if (r.length > 0.0f && mmlDist(r.origin, a) > r.length) {
-		return info;
-	}
-
 	mmlVector<2> normal = mmlNormalize(r.origin - a);
 	float range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
 	float halfApex = r.apexRadians / 2.0f;
@@ -154,83 +150,18 @@ UnaryCollisionInfo ConeCollide(Cone r, mmlVector<2> a, mmlVector<2> b)
 	if (!r.direction.IsNormalized()) { r.direction.Normalize(); }
 	if (r.apexRadians < 0.0f) { r.apexRadians = 0.0f; }
 
-	UnaryCollisionInfo info;
-	info.collider = NULL;
-	info.collision = false;
-	info.points.New();
-
-	mtlArray< mmlVector<2> > points;
-	points.SetCapacity(2);
-
 	float halfApex = r.apexRadians / 2.0f;
-	mmlVector<2> normal;
-	float range;
-
-	if (r.length <= 0.0f || mmlDist(r.origin, a) <= r.length) {
-		normal = mmlNormalize(r.origin - a);
-		range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
-		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
-			info.collision = true;
-			points.Add(a);
-		}
-	}
-
-	if (r.length <= 0.0f || mmlDist(r.origin, b) <= r.length) {
-		normal = mmlNormalize(r.origin - b);
-		range = (mmlDot(normal, r.direction) + 1.0f) * mmlPI; // in relative radians (in full view = 1 => 2*pi)
-		if (range >= mmlRAD_MAX - halfApex && range <= mmlRAD_MAX + halfApex) {
-			info.collision = true;
-			points.Add(b);
-		}
-	}
-
 	mmlVector<2> dir1 = r.direction * mml2DRotationMatrix(halfApex);
 	mmlVector<2> dir2 = r.direction - (dir1 - r.direction);
-	Ray ray1 = { r.origin, dir1, r.length };
-	Ray ray2 = { r.origin, dir2, r.length };
+	Ray ray1 = { r.origin, dir1 };
+	Ray ray2 = { r.origin, dir2 };
 
-	UnaryCollisionInfo rayInfo = RayCollide(ray1, a, b);
-	if (rayInfo.collision) {
-		info.collision = true;
-		points.Add((*info.points.GetShared())[0]);
+	Plane plane1 = { ray1.origin,  mmlTangent(ray1.direction) };
+	Plane plane2 = { ray1.origin, -mmlTangent(ray2.direction) }; // if this does not work, flip signs between the planes
+	UnaryCollisionInfo info = PlaneCollide(plane1, a, b);
+	if (info.collision && info.points.GetShared() != NULL && info.points->GetSize() == 2) {
+		info = PlaneCollide(plane2, (*info.points.GetShared())[0], (*info.points.GetShared())[1]);
 	}
-
-	rayInfo = RayCollide(ray2, a, b);
-	if (rayInfo.collision) {
-		info.collision = true;
-		points.Add((*info.points.GetShared())[0]);
-	}
-
-	if (r.length >= 0.0f) {
-		info.points->SetCapacity(points.GetSize() * 2);
-		if (points.GetSize() > 1) {
-			float j_dist = mmlDist(points[points.GetSize() - 1], r.origin);
-			bool j_inside = j_dist <= r.length;
-			for (int i = 0, j = points.GetSize() - 1; i < points.GetSize(); j=i, ++i) {
-				float i_dist = mmlDist(points[i], r.origin);
-				bool i_inside = i_dist <= r.length;
-
-				if (j_inside != i_inside) {
-					if (!i_inside) {
-						info.points->Add((points[i] - r.origin) * (r.length / i_dist));
-					} else {
-						info.points->Add((points[j] - r.origin) * (r.length / j_dist));
-					}
-				}
-				if (i_inside) {
-					info.points->Add(points[i]);
-				}
-
-				j_dist = i_dist;
-				j_inside = i_inside;
-			}
-		} else if (points.GetSize() == 1 && mmlDist(points[0], r.origin) <= r.length) {
-			info.points->Add(points[0]);
-		}
-	} else {
-		info.points->Copy(points);
-	}
-
 	return info;
 }
 
@@ -701,9 +632,7 @@ UnaryCollisionInfo PolygonCollider::Collides(Cone cone) const
 		UnaryCollisionInfo temp = ConeCollide(cone, m_globalVert[j], m_globalVert[i]);
 		if (temp.collision) {
 			info.collision = true;
-			for (int n = 0; n < temp.points->GetSize(); ++n) {
-				info.points->Add((*temp.points.GetShared())[n]);
-			}
+			info.points->Add((*temp.points.GetShared())[0]); // cone collide can only generate 2 or 0 points, only add index 0 as index 1 will be added on the next pass
 		}
 	}
 

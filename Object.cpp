@@ -12,6 +12,31 @@ void Object::DrawDebugInfo( void )
 	}
 }
 
+bool Object::ApplyForce(const Physics::Force &force, bool falloff, float length)
+{
+	if (HasPhysics() && IsCollidable()) {
+		UnaryCollisionInfo col_info = m_collider->Collides(force);
+		if (col_info.collision && col_info.points.GetShared() != NULL && col_info.points->GetSize() > 0) {
+			Physics::Force col_ray;
+			col_ray.direction = force.direction;
+			col_ray.origin = (*col_info.points.GetShared())[0];
+			float cur_dist = mmlDist(col_ray.origin, force.origin);
+			for (int i = 1; i < col_info.points->GetSize(); ++i) {
+				mmlVector<2> col_pt = (*col_info.points.GetShared())[i];
+				float col_dist = mmlDist(col_pt, force.origin);
+				if (col_dist < cur_dist) {
+					col_ray.origin = col_pt;
+					cur_dist = col_dist;
+				}
+			}
+			col_ray.force = falloff ? mmlMax(0.0f, mmlLerp(force.force, 0.0f, cur_dist / length)) : force.force;
+			m_physics_object->ApplyForce(col_ray);
+			return true;
+		}
+	}
+	return false;
+}
+
 unsigned long long int GetObjectNumber( void )
 {
 	static unsigned long long int objectCounter = 0;
@@ -308,4 +333,14 @@ void Object::TogglePhysics( void )
 bool Object::HasPhysics( void ) const
 {
 	return m_physics;
+}
+
+bool Object::ApplyForce(const Physics::Force &force)
+{
+	return ApplyForce(force, false, 0.0f);
+}
+
+bool Object::ApplyForce(const Physics::Force &force, float length)
+{
+	return ApplyForce(force, true, length);
 }

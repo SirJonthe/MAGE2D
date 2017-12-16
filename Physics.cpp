@@ -8,7 +8,8 @@ float Physics::PixelsToRadians(const mmlVector<2> &center_pt, const mmlVector<2>
 
 	float radius = (outer_pt - center_pt).Len();
 	float ang = acos((2.0f*radius*radius - px*px) / (2.0f*radius*radius));
-	return px > 0.0f ? ang : -ang;
+	//return px > 0.0f ? ang : -ang;
+	return ang;
 }
 
 void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
@@ -51,26 +52,25 @@ void Physics::ResetTransform( void )
 	m_torque_rps = 0.0f;
 }
 
-void Physics::ApplyForce(const Ray &ray)
+void Physics::ApplyForce(const Physics::Force &force)
 {
 	// This function applies a translational force and a rotational force to a physics object
 	// Note: It takes no account of the geometry of the physics object. However for best effect, it should. Do this by intersecting the ray with the collider, and then using the resulting intersection as the ray for this function.
 
-	// a force is distributed between a rotation and a translation
-	// the distribution model should be the following
-		// translation = force_direction * force * dot(force_direction, reflection(force_direction, normal(collision_point - object_center_of_mass)))
-		// rotation = force_direction * force * (1.0 - dot(force_direction, reflection(force_direction, normal(collision_point - object_center_of_mass))))
-
 	if (m_transform.GetShared() == NULL) { return; }
 
 	mmlVector<2> center_of_mass = m_transform->GetPosition(Transform::Global); // just assume that center of mass = object position
-	mmlVector<2> com_col_normal = mmlNormalize(center_of_mass - ray.origin); // the normal between the center of mass and the collision point
+	mmlVector<2> com_col_normal = mmlNormalize(center_of_mass - force.origin); // the normal between the center of mass and the collision point
 
-	float translation_factor = mmlDot(com_col_normal, ray.direction);
-	m_velocity_pps += com_col_normal * ray.length * translation_factor * m_inv_mass;
+	float translation_factor = mmlDot(com_col_normal, force.direction);
+	if (!IsLockedPosition()) {
+		m_velocity_pps += com_col_normal * force.force * translation_factor * m_inv_mass;
+	}
 
-	float rotation_factor = mmlCross2(com_col_normal, ray.direction);
-	m_torque_rps += PixelsToRadians(center_of_mass, ray.origin, ray.length) * rotation_factor * m_inv_mass;
+	float rotation_factor = mmlCross2(com_col_normal, force.direction);
+	if (!IsLockedRotation()) {
+		m_torque_rps += PixelsToRadians(center_of_mass, force.origin, force.force) * rotation_factor * m_inv_mass;
+	}
 }
 
 void Physics::UpdatePhysics(float time_scale)
@@ -79,15 +79,20 @@ void Physics::UpdatePhysics(float time_scale)
 
 	if (!IsLockedPosition()) {
 		m_transform->Translate(Transform::Global, m_velocity_pps * time_scale);
-	} else {
-		m_velocity_pps[0] = 0.0f;
-		m_velocity_pps[1] = 0.0f;
 	}
 	if (!IsLockedRotation()) {
 		m_transform->Rotate(m_torque_rps * time_scale);
-	} else {
-		m_torque_rps = 0.0f;
 	}
+}
+
+void Physics::ScaleTorque(float factor)
+{
+	m_torque_rps *= factor;
+}
+
+void Physics::ScaleVelocity(float factor)
+{
+	m_velocity_pps *= factor;
 }
 
 void Physics::SetMass(float mass)

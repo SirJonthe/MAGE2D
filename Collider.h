@@ -17,14 +17,14 @@ struct Ray
 {
 	mmlVector<2> origin;
 	mmlVector<2> direction;
-	float        length;
+//	float        length;
 };
 
 struct Cone
 {
 	mmlVector<2> origin;
 	mmlVector<2> direction;
-	float        length;
+//	float        length;
 	float        apexRadians;
 };
 
