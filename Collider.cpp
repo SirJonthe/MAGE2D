@@ -296,10 +296,10 @@ void Collider::SetTransform(mtlShared<Transform> &transform)
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 {
 	CollisionInfo info;
-	info.c1 = NULL;
-	info.c2 = NULL;
-	info.c1_avg_collision = mmlVector<2>(0.0f, 0.0f);
-	info.c2_avg_collision = mmlVector<2>(0.0f, 0.0f);
+	info.c1.collider = NULL;
+	info.c2.collider = NULL;
+	info.c1.avg_collision = mmlVector<2>(0.0f, 0.0f);
+	info.c2.avg_collision = mmlVector<2>(0.0f, 0.0f);
 	info.collision = false;
 
 	if (m_vert.GetSize() == 0 || c.m_vert.GetSize() == 0) { return info; }
@@ -330,21 +330,21 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 				points1.AddLast(intersection);
 				points2.AddLast(intersection);
 
-				info.c1_avg_collision += intersection;
-				info.c2_avg_collision += intersection;
+				info.c1.avg_collision += intersection;
+				info.c2.avg_collision += intersection;
 
 			} else {
 				if (PointInPolygon(a2, c.m_globalVert) && PointInPolygon(a1, c.m_globalVert)) {
 					points1.AddLast(a2);
 					points1.AddLast(a1);
 
-					info.c1_avg_collision += (a2 + a1);
+					info.c1.avg_collision += (a2 + a1);
 				}
 				if (PointInPolygon(b2, m_globalVert) && PointInPolygon(b1, m_globalVert)) {
 					points2.AddLast(b2);
 					points2.AddLast(b1);
 
-					info.c2_avg_collision += (b2 + b1);
+					info.c2.avg_collision += (b2 + b1);
 				}
 			}
 
@@ -357,30 +357,32 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 
 	if (points1.GetSize() > 0 || points2.GetSize() > 0) {
 
-		info.c1 = this;
-		info.c2 = &c;
+		info.c1.collider = this;
+		info.c1.collision = true;
+		info.c2.collider = &c;
+		info.c2.collision = true;
 		info.collision = true;
 
-		info.c1_points.New();
-		info.c1_points.GetShared()->Create(points1.GetSize());
+		info.c1.points.New();
+		info.c1.points.GetShared()->Create(points1.GetSize());
 
-		info.c2_points.New();
-		info.c2_points.GetShared()->Create(points2.GetSize());
+		info.c2.points.New();
+		info.c2.points.GetShared()->Create(points2.GetSize());
 
 		mtlItem< mmlVector<2> > *node = points1.GetFirst();
-		for (int i = 0; i < info.c1_points.GetShared()->GetSize(); ++i) {
-			(*info.c1_points.GetShared())[i] = node->GetItem();
+		for (int i = 0; i < info.c1.points.GetShared()->GetSize(); ++i) {
+			(*info.c1.points.GetShared())[i] = node->GetItem();
 			node = node->GetNext();
 		}
 
 		node = points2.GetFirst();
-		for (int i = 0; i < info.c2_points.GetShared()->GetSize(); ++i) {
-			(*info.c2_points.GetShared())[i] = node->GetItem();
+		for (int i = 0; i < info.c2.points.GetShared()->GetSize(); ++i) {
+			(*info.c2.points.GetShared())[i] = node->GetItem();
 			node = node->GetNext();
 		}
 
-		info.c1_avg_collision /= points1.GetSize();
-		info.c2_avg_collision /= points2.GetSize();
+		info.c1.avg_collision /= points1.GetSize();
+		info.c2.avg_collision /= points2.GetSize();
 	}
 
 	return info;

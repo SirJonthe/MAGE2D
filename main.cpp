@@ -12,7 +12,8 @@
 // Investigate if the font rendering is fixed by using unsigned ints as UVs rather than floats
 
 // BIG BUGS
-	// mtlShared< ColliderGraphics<PolygonCollider> >::SetHaflExtents(float, float) not defined -> this SHOULD be virtual, and is defined in the base class
+	// mtlShared< ColliderGraphics<PolygonCollider> > -> SetHaflExtents(float, float) not defined -> this SHOULD be virtual, and is defined in the base class
+	// Polygon collisions are OFF, try disabling collision response/resolution and move the boxes around in PhysicsTest
 
 ObjectDeclaration(Controllable)
 {
@@ -169,11 +170,7 @@ public:
 ObjectDeclaration(PhysicsObject)
 {
 private:
-	Physics::Force     m_ray;
-//	Physics::Force     m_col_ray;
-	UnaryCollisionInfo m_collision;
-	Point              m_mouse_pt;
-	bool               m_establishing_force;
+	bool m_colliding;
 
 protected:
 	void OnInit( void )
@@ -182,7 +179,77 @@ protected:
 		GetCollider()->SetHalfExtents(50.0f, 30.0f);
 		EnablePhysics();
 		EnableCollisions();
+		m_colliding = false;
 	}
+
+	void OnUpdate( void )
+	{
+		m_colliding = false;
+	}
+
+	void OnGUI( void )
+	{
+		GUI::Print(GetName());
+		GUI::NewLine();
+		mmlMatrix<2,2> rot = GetTransform().GetRotation(Transform::Global);
+		GUI::Print("x = [ ");
+		GUI::Print(rot[0][0]);
+		GUI::Print(", ");
+		GUI::Print(rot[0][1]);
+		GUI::Print(" ]");
+		GUI::NewLine();
+		GUI::Print("y = [ ");
+		GUI::Print(rot[1][0]);
+		GUI::Print(", ");
+		GUI::Print(rot[1][1]);
+		GUI::Print(" ]");
+		GUI::NewLine();
+
+		mmlVector<2> pos = GetTransform().GetPosition(Transform::Global);
+		GUI::Print("p = [ ");
+		GUI::Print(pos[0]);
+		GUI::Print(", ");
+		GUI::Print(pos[1]);
+		GUI::Print(" ]");
+		GUI::NewLine();
+
+		if (m_colliding) {
+			GUI::SetColor(0.0f, 1.0f, 0.0f);
+			GUI::Print("Colliding");
+			GUI::NewLine();
+		}
+	}
+
+public:
+	PhysicsObject( void ) : ConstructObject(PhysicsObject)
+	{
+		SetName("PhysicsObject");
+		EnableDebugGraphics();
+	}
+};
+
+ObjectDeclaration(PhysicsTest)
+{
+private:
+	static const int NUM_BOX = 2;
+	ObjectRef      m_box[NUM_BOX];
+	Physics::Force m_ray;
+	Point          m_mouse_pt;
+	bool           m_establishing_force;
+
+protected:
+	void OnInit( void )
+	{
+		for (int i = 0; i < NUM_BOX; ++i) {
+			m_box[i] = GetEngine()->AddObject<PhysicsObject>();
+			m_box[i]->GetTransform().SetPosition(Transform::Local, 150.0f * i, 0.0f);
+			mtlString name;
+			name.Append("BOX").AppendInt(i+1);
+			m_box[i]->SetName(name);
+		}
+		m_establishing_force = false;
+	}
+
 	void OnUpdate( void )
 	{
 		GUI::SetColor(0.0f, 0.0f, 1.0f);
@@ -214,66 +281,33 @@ protected:
 
 		m_ray.force = (world_mouse - m_ray.origin).Len();
 		m_ray.direction = (world_mouse - m_ray.origin) / m_ray.force;
-		m_ray.force = 1.0f;
-		if (GetCollider() != NULL) {
-			m_collision = GetCollider()->Collides(m_ray);
-//			if (m_collision.collision) {
-//				m_col_ray.direction = m_ray.direction;
-//				m_col_ray.force = 1.0f;
-//				m_col_ray.origin = (*m_collision.points.GetShared())[0];
-//				for (int i = 1; i < m_collision.points->GetSize(); ++i) {
-//					if (((*m_collision.points.GetShared())[i] - m_ray.origin).Len() < (m_col_ray.origin - m_ray.origin).Len()) {
-//						m_col_ray.origin = (*m_collision.points.GetShared())[i];
-//					}
-//				}
-//			}
-		}
+		m_ray.force *= 0.2f;
 
 		if (GetEngine()->IsReleased(MouseButton::Middle)) {
 			m_establishing_force = false;
-//			GetPhysics().ApplyForce(m_col_ray);
-			ApplyForce(m_ray);
+			for (int i = 0; i < NUM_BOX; ++i) {
+				m_box[i]->ApplyForce(m_ray, 100.0f);
+			}
 		}
 
 		if (GetEngine()->IsPressed(SDLK_r)) {
-			GetPhysics().ResetTransform();
-			GetTransform().SetRotation(Transform::Local, 0.0f);
-			GetTransform().SetPosition(Transform::Local, 0.0f, 0.0f);
+			std::cout << "---" << std::endl;
+			for (int i = 0; i < NUM_BOX; ++i) {
+				m_box[i]->GetPhysics().ResetForce();
+				m_box[i]->GetTransform().SetRotation(Transform::Local, 0.0f);
+				m_box[i]->GetTransform().SetPosition(Transform::Local, 150.0f * i, 0.0f);
+			}
 		}
 		if (GetEngine()->IsPressed(SDLK_SPACE)) {
-			GetPhysics().ResetTransform();
+			for (int i = 0; i < NUM_BOX; ++i) {
+				m_box[i]->GetPhysics().ResetForce();
+			}
 		}
-
 	}
 
 	void OnGUI( void )
 	{
-		GUI::Print(GetName());
-		GUI::NewLine();
-		mmlMatrix<2,2> rot = GetTransform().GetRotation(Transform::Global);
-		GUI::Print("x = [ ");
-		GUI::Print(rot[0][0]);
-		GUI::Print(", ");
-		GUI::Print(rot[0][1]);
-		GUI::Print(" ]");
-		GUI::NewLine();
-		GUI::Print("y = [ ");
-		GUI::Print(rot[1][0]);
-		GUI::Print(", ");
-		GUI::Print(rot[1][1]);
-		GUI::Print(" ]");
-		GUI::NewLine();
-
-		mmlVector<2> pos = GetTransform().GetPosition(Transform::Global);
-		GUI::Print("p = [ ");
-		GUI::Print(pos[0]);
-		GUI::Print(", ");
-		GUI::Print(pos[1]);
-		GUI::Print(" ]");
-		GUI::NewLine();
-
 		GUI::SetColor(0.0f, 1.0f, 1.0f);
-
 		if (m_establishing_force) {
 			GUI::Print("o = [ ");
 			GUI::Print(m_ray.origin[0]);
@@ -291,17 +325,6 @@ protected:
 
 			GUI::Print("f = ");
 			GUI::Print(m_ray.force);
-			GUI::NewLine();
-
-			if (m_collision.collision) {
-				GUI::SetColor(0.0, 1.0f, 0.0f);
-				GUI::Print("In range");
-			} else {
-				GUI::SetColor(1.0f, 0.0f, 0.0f);
-				GUI::Print("No target");
-			}
-			GUI::NewLine();
-
 		} else {
 			mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 			GUI::Print("o = [ ");
@@ -309,17 +332,16 @@ protected:
 			GUI::Print(", ");
 			GUI::Print(world_mouse[1]);
 			GUI::Print(" ]");
-			GUI::NewLine();
 		}
+		GUI::NewLine();
 	}
 
 public:
-	PhysicsObject( void ) : ConstructObject(PhysicsObject)
+	PhysicsTest( void ) : ConstructObject(PhysicsTest)
 	{
-		SetName("PhysicsObject");
-		EnableDebugGraphics();
-		m_collision.collision = false;
+		SetName("PhysicsTest");
 		m_establishing_force = false;
+		MakeRulesetObject();
 	}
 };
 
@@ -332,6 +354,7 @@ RegisterObject(Quitter);
 RegisterObject(GridRender);
 RegisterObject(TimerObject);
 RegisterObject(PhysicsObject);
+RegisterObject(PhysicsTest);
 
 void PrintString(const mtlChars &ch);
 
@@ -692,7 +715,7 @@ public:
 void Unit_Collisions(Engine &engine)
 {
 	std::cout << "Unit_Collisions: " << std::endl;
-	engine.AddObject<PhysicsObject>();
+	engine.AddObject<PhysicsTest>();
 	engine.AddObject<Quitter>();
 	engine.SetCamera(engine.AddObject<DebugCamera>());
 	engine.RunGame();

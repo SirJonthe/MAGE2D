@@ -51,48 +51,43 @@ void Engine::CollideObjects( void )
 
 	// construct a list of possible collisions and reset the colliders' state
 	mtlItem<ObjectRef> *object = m_objects.GetFirst();
-	mtlList<ObjectRef> colliders;
+	mtlList<ColliderObject> colliders;
 	while (object != NULL) {
 		if (node_ref(object)->IsTicking() && node_ref(object)->IsCollidable()) {
-//			node_ref(object)->GetCollider()->ResetState();
 			node_ref(object)->GetCollider()->UpdateWorldState();
-			//BoundRect aabb = node_ref(object)->GetCollider()->GetBoundRect();
-			colliders.AddLast(object->GetItem());
+			colliders.AddLast();
+			colliders.GetLast()->GetItem().collider = object->GetItem();
+			colliders.GetLast()->GetItem().aabb = node_ref(object)->GetCollider()->GetBoundRect();
 		}
 		object = object->GetNext();
 	}
 
 	// test for collisions (O(n^2))
-	mtlItem<ObjectRef> *collider = colliders.GetFirst();
+	mtlItem<ColliderObject> *collider = colliders.GetFirst();
 	while (collider != NULL) {
-		mtlItem<ObjectRef> *nextCollider = collider->GetNext();
+		mtlItem<ColliderObject> *nextCollider = collider->GetNext();
 		while (nextCollider != NULL) {
-			flags_t abCollision = node_ref(collider)->GetCollisionMasks() & node_ref(nextCollider)->GetObjectFlags();
-			flags_t baCollision = node_ref(nextCollider)->GetObjectFlags() & node_ref(collider)->GetCollisionMasks();
-			if (abCollision > 0 || baCollision > 0) {
+			flags_t abCollision = ptr_ref(collider->GetItem().collider)->GetCollisionMasks() & ptr_ref(nextCollider->GetItem().collider)->GetObjectFlags();
+			flags_t baCollision = ptr_ref(nextCollider->GetItem().collider)->GetObjectFlags() & ptr_ref(collider->GetItem().collider)->GetCollisionMasks();
+			if ((abCollision > 0 || baCollision > 0) && BoundRect::GetOverlap(collider->GetItem().aabb, nextCollider->GetItem().aabb).GetArea() > 0.0f) {
 
-				// IMPORTANT TODO:
-				// Speed up this by doing a quick AABB overlap check
-
-				CollisionInfo info = node_ref(collider)->m_collider->Collides(*node_ref(nextCollider)->m_collider.GetShared());
+				CollisionInfo info = ptr_ref(collider->GetItem().collider)->m_collider->Collides(*ptr_ref(nextCollider->GetItem().collider)->m_collider.GetShared());
 				if (info.collision) {
 
+					Physics::ResolveCollision(ptr_ref(nextCollider->GetItem().collider)->GetPhysics(), ptr_ref(collider->GetItem().collider)->GetPhysics(), info);
+
 					if (baCollision > 0) {
-						node_ref(nextCollider)->OnCollision(collider->GetItem(), info);
+						ptr_ref(nextCollider->GetItem().collider)->OnCollision(collider->GetItem().collider, info);
 					}
 
 					mmlSwap(info.c1, info.c2);
-					mmlSwap(info.c1_points, info.c2_points);
 					if (abCollision > 0) {
-						node_ref(collider)->OnCollision(nextCollider->GetItem(), info);
+						ptr_ref(collider->GetItem().collider)->OnCollision(nextCollider->GetItem().collider, info);
 					}
-
-					Physics::ResolveCollision(node_ref(collider)->GetPhysics(), node_ref(nextCollider)->GetPhysics(), info);
 				}
 			}
 			nextCollider = nextCollider->GetNext();
 		}
-//		collider->GetItem()->GetCollider()->TrackPreviousTransform();
 		collider = collider->GetNext();
 	}
 }
