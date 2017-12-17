@@ -291,7 +291,6 @@ protected:
 		}
 
 		if (GetEngine()->IsPressed(SDLK_r)) {
-			std::cout << "---" << std::endl;
 			for (int i = 0; i < NUM_BOX; ++i) {
 				m_box[i]->GetPhysics().ResetForce();
 				m_box[i]->GetTransform().SetRotation(Transform::Local, 0.0f);
