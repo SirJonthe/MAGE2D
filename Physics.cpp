@@ -13,8 +13,8 @@ void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 {
 //	std::cout << "Resolving" << std::endl;
 
-	mmlVector<2> c1_vel = p1.GetVelocityAtPoint(c.c1.avg_collision);
-	mmlVector<2> c2_vel = p2.GetVelocityAtPoint(c.c2.avg_collision);
+	mmlVector<2> c1_vel = p1.GetVelocityAtPoint(c.avg_collision);
+	mmlVector<2> c2_vel = p2.GetVelocityAtPoint(c.avg_collision);
 	if (mmlDot(c1_vel, c2_vel) < 0.0f) { return; } // forces already resolved, early exit to avoid componding separating forces
 
 	float c1_force = c1_vel.Len() * p1.GetMass();
@@ -25,11 +25,11 @@ void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 	// Not sure if this is realistic enough:
 
 	Force f1;
-	f1.origin = c.c2.avg_collision;
+	f1.origin = c.avg_collision;
 	f1.direction = mmlNormalize(c1_vel - c2_vel);
 	f1.force = c1_force;
 	Force f2;
-	f2.origin = c.c1.avg_collision;
+	f2.origin = c.avg_collision;
 	f2.direction = -f1.direction;
 	f2.force = c2_force;
 
@@ -73,7 +73,7 @@ void Physics::ApplyForce(const Physics::Force &force)
 
 	if (!IsLockedRotation()) {
 		float rotation_factor = mmlCross2(com_col_normal, force.direction);
-		m_torque_rps += PixelsToRadians(center_of_mass, force.origin, force.force) * rotation_factor * m_inv_mass;
+		m_torque_rps -= PixelsToRadians(center_of_mass, force.origin, force.force) * rotation_factor * m_inv_mass;
 	}
 }
 

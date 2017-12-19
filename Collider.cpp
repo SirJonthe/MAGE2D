@@ -116,8 +116,6 @@ UnaryCollisionInfo RayCollide(Ray r, mmlVector<2> a, mmlVector<2> b)
 	if (info.collision) {
 		info.points->Create(1);
 		(*info.points.GetShared())[0] = mmlLerp(r1, r2, p[0]);
-		//info.reflection.Create(1);
-		//info.reflection[0] = mmlReflect(r.direction, LineNormal(a, b));
 	}
 
 	return info;
@@ -293,96 +291,154 @@ void Collider::SetTransform(mtlShared<Transform> &transform)
 //	}
 //}
 
+//CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
+//{
+//	CollisionInfo info;
+//	info.A.collider = NULL;
+//	info.B.collider = NULL;
+//	info.A.avg_collision = mmlVector<2>(0.0f, 0.0f);
+//	info.B.avg_collision = mmlVector<2>(0.0f, 0.0f);
+//	info.collision = false;
+
+//	if (m_vert.GetSize() == 0 || c.m_vert.GetSize() == 0) { return info; }
+
+//	mtlList< mmlVector<2> > points1;
+//	mtlList< mmlVector<2> > points2;
+
+//	mmlVector<2> a1 = m_globalVert[m_globalVert.GetSize() - 1];
+
+//	for (int i = 0/*, k = m_globalVert.GetSize() - 1*/; i < m_globalVert.GetSize(); /*k=i,*/ ++i) {
+
+//		mmlVector<2> a2 = m_globalVert[i];
+//		mmlVector<2> sa = a2 - a1;
+
+//		mmlVector<2> b1 = c.m_globalVert[c.m_globalVert.GetSize() - 1];
+
+//		for (int j = 0/*, l = c.m_globalVert.GetSize() - 1*/; j < c.m_globalVert.GetSize(); /*l=j,*/ ++j) {
+
+//			mmlVector<2> b2 = c.m_globalVert[j];
+//			mmlVector<2> sb = b2 - b1;
+
+//			float s = (-sa[1] * (a1[0] - b1[0]) + sa[0] * (a1[1] - b1[1])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
+//			float t = ( sb[0] * (a1[1] - b1[1]) - sb[1] * (a1[0] - b1[0])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
+
+//			if (s >= 0.0f && s <= 1.0f && t >= 0.0f && t <= 1.0f) {
+
+//				mmlVector<2> intersection = a1 + (t * sa);
+//				points1.AddLast(intersection);
+//				points2.AddLast(intersection);
+
+//				info.A.avg_collision += intersection;
+//				info.B.avg_collision += intersection;
+
+//			} else {
+//				if (PointInPolygon(a2, c.m_globalVert) && PointInPolygon(a1, c.m_globalVert)) {
+//					points1.AddLast(a2);
+//					points1.AddLast(a1);
+
+//					info.A.avg_collision += (a2 + a1);
+//				}
+//				if (PointInPolygon(b2, m_globalVert) && PointInPolygon(b1, m_globalVert)) {
+//					points2.AddLast(b2);
+//					points2.AddLast(b1);
+
+//					info.B.avg_collision += (b2 + b1);
+//				}
+//			}
+
+//			b1 = b2;
+
+//		}
+
+//		a1 = a2;
+//	}
+
+//	if (points1.GetSize() > 0 || points2.GetSize() > 0) {
+
+//		info.A.collider = this;
+//		info.A.collision = true;
+//		info.B.collider = &c;
+//		info.B.collision = true;
+//		info.collision = true;
+
+//		info.A.points.New();
+//		info.A.points.GetShared()->Create(points1.GetSize());
+
+//		info.B.points.New();
+//		info.B.points.GetShared()->Create(points2.GetSize());
+
+//		mtlItem< mmlVector<2> > *node = points1.GetFirst();
+//		for (int i = 0; i < info.A.points.GetShared()->GetSize(); ++i) {
+//			(*info.A.points.GetShared())[i] = node->GetItem();
+//			node = node->GetNext();
+//		}
+
+//		node = points2.GetFirst();
+//		for (int i = 0; i < info.B.points.GetShared()->GetSize(); ++i) {
+//			(*info.B.points.GetShared())[i] = node->GetItem();
+//			node = node->GetNext();
+//		}
+
+//		info.A.avg_collision /= points1.GetSize();
+//		info.B.avg_collision /= points2.GetSize();
+//	}
+
+//	return info;
+//}
+
 CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 {
 	CollisionInfo info;
-	info.c1.collider = NULL;
-	info.c2.collider = NULL;
-	info.c1.avg_collision = mmlVector<2>(0.0f, 0.0f);
-	info.c2.avg_collision = mmlVector<2>(0.0f, 0.0f);
+	info.A = info.B = NULL;
+	info.avg_collision = mmlVector<2>(0.0f, 0.0f);
+	info.points.New();
 	info.collision = false;
 
-	if (m_vert.GetSize() == 0 || c.m_vert.GetSize() == 0) { return info; }
+	if (m_globalVert.GetSize() == 0 || c.m_globalVert.GetSize() == 0) { return info; }
 
 	mtlList< mmlVector<2> > points1;
-	mtlList< mmlVector<2> > points2;
 
-	mmlVector<2> a1 = m_globalVert[m_globalVert.GetSize() - 1];
+	int a_intersections       = PointInPolygon(m_globalVert[m_globalVert.GetSize() - 1],     c.m_globalVert) ? 1 : 0;
+	int b_intersections_start = PointInPolygon(c.m_globalVert[c.m_globalVert.GetSize() - 1], m_globalVert)   ? 1 : 0;
 
-	for (int i = 0/*, k = m_globalVert.GetSize() - 1*/; i < m_globalVert.GetSize(); /*k=i,*/ ++i) {
-
+	for (int i = 0, j = m_globalVert.GetSize() - 1; i < m_globalVert.GetSize(); j = i++) {
+		mmlVector<2> a1 = m_globalVert[j];
 		mmlVector<2> a2 = m_globalVert[i];
-		mmlVector<2> sa = a2 - a1;
 
-		mmlVector<2> b1 = c.m_globalVert[c.m_globalVert.GetSize() - 1];
+		int b_intersections = b_intersections_start;
+		for (int k = 0, l = c.m_globalVert.GetSize() - 1; k < c.m_globalVert.GetSize(); l = k++) {
+			mmlVector<2> b1 = c.m_globalVert[l];
+			mmlVector<2> b2 = c.m_globalVert[k];
 
-		for (int j = 0/*, l = c.m_globalVert.GetSize() - 1*/; j < c.m_globalVert.GetSize(); /*l=j,*/ ++j) {
-
-			mmlVector<2> b2 = c.m_globalVert[j];
-			mmlVector<2> sb = b2 - b1;
-
-			float s = (-sa[1] * (a1[0] - b1[0]) + sa[0] * (a1[1] - b1[1])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
-			float t = ( sb[0] * (a1[1] - b1[1]) - sb[1] * (a1[0] - b1[0])) / (-sb[0] * sa[1] + sa[0] * sb[1]);
-
-			if (s >= 0.0f && s <= 1.0f && t >= 0.0f && t <= 1.0f) {
-
-				mmlVector<2> intersection = a1 + (t * sa);
-				points1.AddLast(intersection);
-				points2.AddLast(intersection);
-
-				info.c1.avg_collision += intersection;
-				info.c2.avg_collision += intersection;
-
-			} else {
-				if (PointInPolygon(a2, c.m_globalVert) && PointInPolygon(a1, c.m_globalVert)) {
-					points1.AddLast(a2);
-					points1.AddLast(a1);
-
-					info.c1.avg_collision += (a2 + a1);
-				}
-				if (PointInPolygon(b2, m_globalVert) && PointInPolygon(b1, m_globalVert)) {
-					points2.AddLast(b2);
-					points2.AddLast(b1);
-
-					info.c2.avg_collision += (b2 + b1);
-				}
+			if ((a_intersections & 1) == 1) {
+				points1.AddLast(a1);
+				info.avg_collision += a1;
 			}
-
-			b1 = b2;
-
+			if ((b_intersections & 1) == 1) {
+				points1.AddLast(b1);
+				info.avg_collision += b1;
+			}
+			mmlVector<2> out;
+			if (LineIntersection(a1, a2, b1, b2, out)) {
+				points1.AddLast(out);
+				info.avg_collision += out;
+				++a_intersections;
+				++b_intersections;
+			}
 		}
-
-		a1 = a2;
 	}
 
-	if (points1.GetSize() > 0 || points2.GetSize() > 0) {
-
-		info.c1.collider = this;
-		info.c1.collision = true;
-		info.c2.collider = &c;
-		info.c2.collision = true;
+	if (points1.GetSize() > 0) {
+		info.A = this;
+		info.B = &c;
 		info.collision = true;
-
-		info.c1.points.New();
-		info.c1.points.GetShared()->Create(points1.GetSize());
-
-		info.c2.points.New();
-		info.c2.points.GetShared()->Create(points2.GetSize());
-
-		mtlItem< mmlVector<2> > *node = points1.GetFirst();
-		for (int i = 0; i < info.c1.points.GetShared()->GetSize(); ++i) {
-			(*info.c1.points.GetShared())[i] = node->GetItem();
-			node = node->GetNext();
+		info.avg_collision /= (float)points1.GetSize();
+		info.points->SetCapacity(points1.GetSize());
+		mtlItem< mmlVector<2> > *i = points1.GetFirst();
+		while (i != NULL) {
+			info.points->Add(i->GetItem());
+			i = i->GetNext();
 		}
-
-		node = points2.GetFirst();
-		for (int i = 0; i < info.c2.points.GetShared()->GetSize(); ++i) {
-			(*info.c2.points.GetShared())[i] = node->GetItem();
-			node = node->GetNext();
-		}
-
-		info.c1.avg_collision /= points1.GetSize();
-		info.c2.avg_collision /= points2.GetSize();
 	}
 
 	return info;
@@ -519,6 +575,26 @@ const mtlArray< mmlVector<2> > &PolygonCollider::GetVertexArray( void ) const
 mtlArray< mmlVector<2> > &PolygonCollider::GetVertexArray( void )
 {
 	return m_vert;
+}
+
+const mmlVector<2> &PolygonCollider::GetWorldVertex(int i) const
+{
+	return m_globalVert[i];
+}
+
+mmlVector<2> &PolygonCollider::GetWorldVertex(int i)
+{
+	return m_globalVert[i];
+}
+
+const mtlArray< mmlVector<2> > &PolygonCollider::GetWorldVertexArray( void ) const
+{
+	return m_globalVert;
+}
+
+mtlArray< mmlVector<2> > &PolygonCollider::GetWorldVertexArray( void )
+{
+	return m_globalVert;
 }
 
 void PolygonCollider::CopyVertexArray(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center)

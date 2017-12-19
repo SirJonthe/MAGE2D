@@ -80,7 +80,7 @@ void Engine::CollideObjects( void )
 						ptr_ref(nextCollider->GetItem().collider)->OnCollision(collider->GetItem().collider, info);
 					}
 
-					mmlSwap(info.c1, info.c2);
+					mmlSwap(info.A, info.B);
 					if (abCollision > 0) {
 						ptr_ref(collider->GetItem().collider)->OnCollision(nextCollider->GetItem().collider, info);
 					}
@@ -780,15 +780,20 @@ void Engine::SetGameProjection( void )
 
 void Engine::SetGameView(const Transform &transform)
 {
+	// NOTE: I flipped the sign of the diagonal vector in the projection matrix
+		// Normally, there was a disconnect between the mathematical rotation of an object and the visual rotation of an object
+		// This made some collisions behave strangely (false positives and negatives)
+		// Flippiing the signs seems to have resolved the issue, although I don't know for sure
+
 	Object *camera = m_camera.GetShared();
 	mmlMatrix<3,3> cameraView = camera != NULL ? mmlInv(camera->GetTransform().GetTransformMatrix(Transform::Global)) : mmlMatrix<3,3>::IdentityMatrix();
 	const mmlMatrix<3,3> objectTransform = transform.GetTransformMatrix(Transform::Global);
 	const mmlMatrix<3,3> f = cameraView * objectTransform;
 	GLfloat m[16] = {
-		f[0][0], f[0][1], 0.0f, 0.0f,
-		f[1][0], f[1][1], 0.0f, 0.0f,
-		0.0f,    0.0f,    1.0f, 0.0f,
-		f[0][2], f[1][2], 0.0f, 1.0f
+		-f[0][0],  f[0][1], 0.0f, 0.0f,
+		 f[1][0], -f[1][1], 0.0f, 0.0f,
+		 0.0f,     0.0f,    1.0f, 0.0f,
+		 f[0][2],  f[1][2], 0.0f, 1.0f
 	};
 
 	glMatrixMode(GL_MODELVIEW);

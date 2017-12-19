@@ -94,9 +94,11 @@ struct CollisionInfo
 //	mmlVector<2>                c2_avg_collision;
 //	bool                        collision;
 
-	UnaryCollisionInfo c1;
-	UnaryCollisionInfo c2;
-	bool               collision;
+	const Collider             *A;
+	const Collider             *B;
+	ShallowArray(mmlVector<2>)  points;
+	mmlVector<2>                avg_collision;
+	bool                        collision;
 };
 
 struct BoundRect
@@ -128,8 +130,8 @@ protected:
 	//Transform     m_prevTransform;
 
 protected:
-	virtual CollisionInfo CollidesWith(const Collider&) const        { CollisionInfo c; c.c1.collider = c.c2.collider = NULL; c.collision = c.c1.collision = c.c2.collision = false; return c; }
-	virtual CollisionInfo CollidesWith(const PolygonCollider&) const { CollisionInfo c; c.c1.collider = c.c2.collider = NULL; c.collision = c.c1.collision = c.c2.collision = false; return c; }
+	virtual CollisionInfo CollidesWith(const Collider&) const        { CollisionInfo c; c.A = c.B = NULL; c.collision = false; return c; }
+	virtual CollisionInfo CollidesWith(const PolygonCollider&) const { CollisionInfo c; c.A = c.B = NULL; c.collision = false; return c; }
 
 public:
 			 Collider( void );
@@ -153,7 +155,7 @@ public:
 	virtual UnaryCollisionInfo  Collides(Ray) const                     { UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
 	virtual UnaryCollisionInfo  Collides(Cone) const                    { UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
 	virtual UnaryCollisionInfo  Collides(Plane)	const                   { UnaryCollisionInfo c; c.collider = NULL; c.collision = false; return c; }
-	virtual CollisionInfo       Collides(const Collider&) const         { CollisionInfo c; c.c1.collider = c.c2.collider = NULL; c.collision = c.c1.collision = c.c2.collision = false; return c; }
+	virtual CollisionInfo       Collides(const Collider&) const         { CollisionInfo c; c.A = c.B = NULL; c.collision = false; return c; }
 
 	virtual float               GetCircumference( void ) const          { return 0.0f; }
 	virtual float               GetArea( void ) const                   { return 0.0f; }
@@ -181,7 +183,7 @@ public:
 	};
 
 protected:
-	CollisionInfo CollidesWith(const Collider&) const { CollisionInfo c; c.c1.collider = c.c2.collider = NULL; c.collision = c.c1.collision = c.c2.collision = false; return c; }
+	CollisionInfo CollidesWith(const Collider&) const { CollisionInfo c; c.A = c.B = NULL; c.collision = false; return c; }
 	CollisionInfo CollidesWith(const PolygonCollider &c) const;
 
 public:
@@ -198,6 +200,11 @@ public:
 	mmlVector<2>                   &GetVertex(int i);
 	const mtlArray< mmlVector<2> > &GetVertexArray( void ) const;
 	mtlArray< mmlVector<2> >       &GetVertexArray( void );
+
+	const mmlVector<2>             &GetWorldVertex(int i) const;
+	mmlVector<2>                   &GetWorldVertex(int i);
+	const mtlArray< mmlVector<2> > &GetWorldVertexArray( void ) const;
+	mtlArray< mmlVector<2> >       &GetWorldVertexArray( void );
 
 	void                            CopyVertexArray(const mtlArray< mmlVector<2> > &vert, const mmlVector<2> &center);
 

@@ -87,7 +87,6 @@ private:
 	float               m_deltaSeconds;
 	float               m_timeScale;
 	mtlRandom           m_rand;
-	//CollisionSolver     m_collisionSolver;
 	GUI::Manager        m_guiManager;
 	bool                m_quit;
 	bool                m_inLoop;

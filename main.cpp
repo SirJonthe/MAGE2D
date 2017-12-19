@@ -90,7 +90,7 @@ public:
 		r.origin[1] = GetEngine()->GetVideoHeight() / 2.0f;
 		GUI::SetCaretXY(0, 0);
 		GUI::SetColor(1.0f, 0.0f, 0.0f);
-		GUI::Print(GetEngine()->GetMousePosition());
+		GUI::Print(GetEngine()->GetMousePosition(), 2);
 		GUI::NewLine();
 		Point mouse = GetEngine()->GetMousePosition();
 		mmlVector<2> vMouse = mmlVector<2>(float(mouse.x), float(mouse.y)) - r.origin;
@@ -106,13 +106,13 @@ public:
 			GUI::Box(rect);
 
 			GUI::SetColor(0.0f, 1.0f, 0.0f);
-			GUI::Print(walker.GetX());
-			GUI::Print(", ");
-			GUI::Print(walker.GetY());
-			GUI::Print(" - ");
-			GUI::Print(rect.x);
-			GUI::Print(", ");
-			GUI::Print(rect.y);
+			GUI::Print(walker.GetX(), 2);
+			GUI::Print(", ", 2);
+			GUI::Print(walker.GetY(), 2);
+			GUI::Print(" - ", 2);
+			GUI::Print(rect.x, 2);
+			GUI::Print(", ", 2);
+			GUI::Print(rect.y, 2);
 			GUI::NewLine();
 
 			walker.Step();
@@ -155,7 +155,7 @@ protected:
 	}
 	void OnGUI( void )
 	{
-		GUI::Print(m_timer.GetTime());
+		GUI::Print(m_timer.GetTime(), 2);
 	}
 	void OnInit( void )
 	{
@@ -187,35 +187,46 @@ protected:
 		m_colliding = false;
 	}
 
+	void OnCollision(ObjectRef obj, const CollisionInfo &info)
+	{
+		GUI::SetColor(GetGraphics().GetTint());
+		GUI::Print(GetName(), 2);
+		GUI::SetColor(1.0f, 1.0f, 1.0f);
+		GUI::Print(" collided with ", 2);
+		GUI::SetColor(obj->GetGraphics().GetTint());
+		GUI::Print(obj->GetName(), 2);
+		GUI::NewLine();
+	}
+
 	void OnGUI( void )
 	{
-		GUI::Print(GetName());
+		/*GUI::Print(GetName(), 2);
 		GUI::NewLine();
 		mmlMatrix<2,2> rot = GetTransform().GetRotation(Transform::Global);
-		GUI::Print("x = [ ");
-		GUI::Print(rot[0][0]);
-		GUI::Print(", ");
-		GUI::Print(rot[0][1]);
-		GUI::Print(" ]");
+		GUI::Print("x = [ ", 2);
+		GUI::Print(rot[0][0], 2);
+		GUI::Print(", ", 2);
+		GUI::Print(rot[0][1], 2);
+		GUI::Print(" ]", 2);
 		GUI::NewLine();
-		GUI::Print("y = [ ");
-		GUI::Print(rot[1][0]);
-		GUI::Print(", ");
-		GUI::Print(rot[1][1]);
-		GUI::Print(" ]");
+		GUI::Print("y = [ ", 2);
+		GUI::Print(rot[1][0], 2);
+		GUI::Print(", ", 2);
+		GUI::Print(rot[1][1], 2);
+		GUI::Print(" ]", 2);
 		GUI::NewLine();
 
 		mmlVector<2> pos = GetTransform().GetPosition(Transform::Global);
-		GUI::Print("p = [ ");
-		GUI::Print(pos[0]);
-		GUI::Print(", ");
-		GUI::Print(pos[1]);
-		GUI::Print(" ]");
-		GUI::NewLine();
+		GUI::Print("p = [ ", 2);
+		GUI::Print(pos[0], 2);
+		GUI::Print(", ", 2);
+		GUI::Print(pos[1], 2);
+		GUI::Print(" ]", 2);
+		GUI::NewLine();*/
 
 		if (m_colliding) {
 			GUI::SetColor(0.0f, 1.0f, 0.0f);
-			GUI::Print("Colliding");
+			GUI::Print("Colliding", 2);
 			GUI::NewLine();
 		}
 	}
@@ -246,6 +257,7 @@ protected:
 			mtlString name;
 			name.Append("BOX").AppendInt(i+1);
 			m_box[i]->SetName(name);
+			m_box[i]->GetGraphics().SetTint(1.0f * i, 1.0f, 1.0f * (1 - i));
 		}
 		m_establishing_force = false;
 	}
@@ -302,37 +314,135 @@ protected:
 				m_box[i]->GetPhysics().ResetForce();
 			}
 		}
+
+		if (GetEngine()->IsDown(SDLK_w)) {
+			m_box[0]->GetTransform().Translate(Transform::Local, 0.0f, -5.0f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_a)) {
+			m_box[0]->GetTransform().Translate(Transform::Local, -5.0f * GetEngine()->GetElapsedTime(), 0.0f);
+		}
+		if (GetEngine()->IsDown(SDLK_s)) {
+			m_box[0]->GetTransform().Translate(Transform::Local, 0.0f, 5.0f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_d)) {
+			m_box[0]->GetTransform().Translate(Transform::Local, 5.0f * GetEngine()->GetElapsedTime(), 0.0f);
+		}
+		if (GetEngine()->IsDown(SDLK_q)) {
+			m_box[0]->GetTransform().Rotate(0.01f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_e)) {
+			m_box[0]->GetTransform().Rotate(-0.01f * GetEngine()->GetElapsedTime());
+		}
+
+		if (GetEngine()->IsDown(SDLK_i)) {
+			m_box[1]->GetTransform().Translate(Transform::Local, 0.0f, -5.0f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_j)) {
+			m_box[1]->GetTransform().Translate(Transform::Local, -5.0f * GetEngine()->GetElapsedTime(), 0.0f);
+		}
+		if (GetEngine()->IsDown(SDLK_k)) {
+			m_box[1]->GetTransform().Translate(Transform::Local, 0.0f, 5.0f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_l)) {
+			m_box[1]->GetTransform().Translate(Transform::Local, 5.0f * GetEngine()->GetElapsedTime(), 0.0f);
+		}
+		if (GetEngine()->IsDown(SDLK_u)) {
+			m_box[1]->GetTransform().Rotate(0.01f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_o)) {
+			m_box[1]->GetTransform().Rotate(-0.01f * GetEngine()->GetElapsedTime());
+		}
 	}
 
 	void OnGUI( void )
 	{
 		GUI::SetColor(0.0f, 1.0f, 1.0f);
 		if (m_establishing_force) {
-			GUI::Print("o = [ ");
-			GUI::Print(m_ray.origin[0]);
-			GUI::Print(", ");
-			GUI::Print(m_ray.origin[1]);
-			GUI::Print(" ]");
+			GUI::Print("o = [ ", 2);
+			GUI::Print(m_ray.origin[0], 2);
+			GUI::Print(", ", 2);
+			GUI::Print(m_ray.origin[1], 2);
+			GUI::Print(" ]", 2);
 			GUI::NewLine();
 
-			GUI::Print("d = [ ");
-			GUI::Print(m_ray.direction[0]);
-			GUI::Print(", ");
-			GUI::Print(m_ray.direction[1]);
-			GUI::Print(" ]");
+			GUI::Print("d = [ ", 2);
+			GUI::Print(m_ray.direction[0], 2);
+			GUI::Print(", ", 2);
+			GUI::Print(m_ray.direction[1], 2);
+			GUI::Print(" ]", 2);
 			GUI::NewLine();
 
-			GUI::Print("f = ");
-			GUI::Print(m_ray.force);
+			GUI::Print("f = ", 2);
+			GUI::Print(m_ray.force, 2);
 		} else {
 			mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
-			GUI::Print("o = [ ");
-			GUI::Print(world_mouse[0]);
-			GUI::Print(", ");
-			GUI::Print(world_mouse[1]);
-			GUI::Print(" ]");
+			GUI::Print("o = [ ", 2);
+			GUI::Print(world_mouse[0], 2);
+			GUI::Print(", ", 2);
+			GUI::Print(world_mouse[1], 2);
+			GUI::Print(" ]", 2);
 		}
 		GUI::NewLine();
+
+		PolygonCollider *a = dynamic_cast<PolygonCollider*>(m_box[0]->GetCollider());
+		PolygonCollider *b = dynamic_cast<PolygonCollider*>(m_box[1]->GetCollider());
+
+		if (a != NULL && a->GetVertexCount() > 0 && b != NULL && b->GetVertexCount() > 0) {
+
+			for (int i = 0, j = a->GetVertexCount() - 1; i < a->GetVertexCount(); j = i++) {
+				mmlVector<2> a1 = a->GetWorldVertex(j);
+				mmlVector<2> a2 = a->GetWorldVertex(i);
+
+				GUI::SetColor(0.0f, 1.0f, 1.0f);
+				GUI::Print(a1[0]);
+				GUI::Print(", ");
+				GUI::Print(a1[1]);
+				GUI::Print(" <-> ");
+				GUI::Print(a2[0]);
+				GUI::Print(", ");
+				GUI::Print(a2[1]);
+				GUI::NewLine();
+
+				for (int k = 0, l = b->GetVertexCount() - 1; k < b->GetVertexCount(); l = k++) {
+					mmlVector<2> b1 = b->GetWorldVertex(l);
+					mmlVector<2> b2 = b->GetWorldVertex(k);
+
+					mmlVector<2> out;
+					if (LineIntersection(a1, a2, b1, b2, out)) {
+						GUI::SetColor(1.0f, 1.0f, 0.0f);
+						GUI::Print("  ");
+						GUI::Print(b1[0]);
+						GUI::Print(", ");
+						GUI::Print(b1[1]);
+						GUI::Print(" <-> ");
+						GUI::Print(b2[0]);
+						GUI::Print(", ");
+						GUI::Print(b2[1]);
+
+						GUI::SetColor(0.0f, 1.0f, 0.0f);
+						GUI::Print(" P=(");
+						GUI::Print(out[0]);
+						GUI::Print(", ");
+						GUI::Print(out[1]);
+						GUI::Print(")");
+
+						GUI::NewLine();
+					} else {
+						GUI::SetColor(0.5f, 0.5f, 0.0f);
+						GUI::Print("  ");
+						GUI::Print(b1[0]);
+						GUI::Print(", ");
+						GUI::Print(b1[1]);
+						GUI::Print(" <-> ");
+						GUI::Print(b2[0]);
+						GUI::Print(", ");
+						GUI::Print(b2[1]);
+
+						GUI::NewLine();
+					}
+				}
+			}
+		}
 	}
 
 public:
@@ -421,24 +531,24 @@ void Controllable::OnUpdate( void )
 void Controllable::OnGUI( void )
 {
 	mmlMatrix<2,2> r = GetTransform().GetRotation(Transform::Local);
-	GUI::Print("Object={");
+	GUI::Print("Object={", 2);
 	GUI::NewLine();
 	for (int i = 0; i < 2; ++i) {
-		GUI::Print("\t");
+		GUI::Print("\t", 2);
 		for (int j = 0; j < 2; ++j) {
-			GUI::Print(r[i][j]);
-			GUI::Print(";");
+			GUI::Print(r[i][j], 2);
+			GUI::Print(";", 2);
 		}
 		GUI::NewLine();
 	}
-	GUI::Print("}");
+	GUI::Print("}", 2);
 	GUI::NewLine();
 	if (GetTransform().GetParent() == NULL) {
 		GUI::SetColor(1.0f, 0.0f, 0.0f);
-		GUI::Print("DETACHED");
+		GUI::Print("DETACHED", 2);
 	} else {
 		GUI::SetColor(0.0f, 1.0f, 0.0);
-		GUI::Print("Attached");
+		GUI::Print("Attached", 2);
 	}
 	GUI::NewLine();
 }
@@ -446,7 +556,7 @@ void Controllable::OnGUI( void )
 void Controllable::OnCollision(ObjectRef, const CollisionInfo&)
 {
 	GUI::SetColor(1.0f, 0.0f, 0.0f);
-	GUI::Print("OUCH!");
+	GUI::Print("OUCH!", 2);
 }
 
 void Anchor::OnUpdate( void )
@@ -503,8 +613,8 @@ void FollowCamera::OnGUI( void )
 {
 	GUI::SetColor(1.0f, 1.0f, 0.0f);
 	mmlVector<2> p = GetTransform().GetPosition(Transform::Local);
-	GUI::Print("Camera=");
-	GUI::Print(p[0]); GUI::Print(";"); GUI::Print(p[1]);
+	GUI::Print("Camera=", 2);
+	GUI::Print(p[0]); GUI::Print(";", 2); GUI::Print(p[1], 2);
 	GUI::NewLine();
 }
 
