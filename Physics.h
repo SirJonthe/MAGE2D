@@ -32,7 +32,8 @@ private:
 	bool                 m_lock_rotation;
 
 private:
-	float PixelsToRadians(const mmlVector<2> &center, const mmlVector<2> &outer_pt, float px) const;
+	float PixelsToRadians(float radius, float px) const;
+	float RadiansToPixels(float radius, float rad) const;
 
 public:
 	static void ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c);

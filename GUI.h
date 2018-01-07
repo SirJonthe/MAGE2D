@@ -55,8 +55,10 @@ void Print(const mmlVector<n> &vec, int scale = 1)
 	GUI::Print(vec[n-1], scale);
 }
 
-void Box(Rect rect);
 void Box(mmlVector<2> min, mmlVector<2> max);
+void Box(Rect rect);
+void Line(mmlVector<2> a, mmlVector<2> b);
+void Line(Point a, Point b);
 
 /*void DrawLineXY(int x1, int y1, int x2, int y2);
 void DrawLineUV(float u1, float v1, float u2, float v2);

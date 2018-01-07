@@ -571,7 +571,7 @@ void GUI::Print(Rect r, int scale)
 	GUI::Print(r.h, scale);
 }
 
-void GUI::Box(Rect rect)
+void GUI::Box(mmlVector<2> min, mmlVector<2> max)
 {
 	// Engine enables texture coord array, but box rendering does not use texture coordinate array.
 	// Disable to avoid crash.
@@ -584,17 +584,17 @@ void GUI::Box(Rect rect)
 	glBindBuffer(GL_ARRAY_BUFFER, vId);
 	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
 
-	vert[0] = rect.x;
-	vert[1] = rect.y;
+	vert[0] = min[0];
+	vert[1] = min[1];
 
-	vert[2] = rect.x + rect.w;
-	vert[3] = rect.y;
+	vert[2] = max[0];
+	vert[3] = min[1];
 
-	vert[4] = rect.x + rect.w;
-	vert[5] = rect.y + rect.h;
+	vert[4] = max[0];
+	vert[5] = max[1];
 
-	vert[6] = rect.x;
-	vert[7] = rect.y + rect.h;
+	vert[6] = min[0];
+	vert[7] = max[1];
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
 
@@ -606,14 +606,53 @@ void GUI::Box(Rect rect)
 	//Newl() = mmlMax(Newl(), rect.h);
 }
 
-void GUI::Box(mmlVector<2> min, mmlVector<2> max)
+void GUI::Box(Rect rect)
 {
-	Rect r;
-	r.x = (int)min[0];
-	r.y = (int)min[1];
-	r.w = (int)(max[0] - min[0]);
-	r.h = (int)(max[1] - min[1]);
-	GUI::Box(r);
+	mmlVector<2> a, b;
+	a[0] = (float)rect.x;
+	a[1] = (float)rect.y;
+	b[0] = (float)(rect.x + rect.w);
+	b[1] = (float)(rect.y + rect.h);
+	GUI::Box(a, b);
+}
+
+void GUI::Line(mmlVector<2> a, mmlVector<2> b)
+{
+	// Engine enables texture coord array, but box rendering does not use texture coordinate array.
+	// Disable to avoid crash.
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	GLfloat vert[4];
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vId);
+	glVertexPointer(2, GL_FLOAT, 0, (GLvoid*)0);
+
+	vert[0] = a[0];
+	vert[1] = a[1];
+
+	vert[2] = b[0];
+	vert[3] = b[1];
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
+
+	glDrawArrays(GL_LINES, 0, 2);
+
+	// Re-enable texture coord array for subsequent rendering.
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	//Newl() = mmlMax(Newl(), rect.h);
+}
+
+void GUI::Line(Point a, Point b)
+{
+	mmlVector<2> fa, fb;
+	fa[0] = (float)a.x;
+	fa[1] = (float)a.y;
+	fb[0] = (float)b.x;
+	fb[1] = (float)b.y;
+	GUI::Line(fa, fb);
 }
 
 Point GUI::GetTextSize(const mtlChars &text, int scale)

@@ -189,6 +189,8 @@ protected:
 
 	void OnCollision(ObjectRef obj, const CollisionInfo &info)
 	{
+		GetEngine()->SetGUIProjection();
+
 		GUI::SetColor(GetGraphics().GetTint());
 		GUI::Print(GetName(), 2);
 		GUI::SetColor(1.0f, 1.0f, 1.0f);
@@ -196,6 +198,26 @@ protected:
 		GUI::SetColor(obj->GetGraphics().GetTint());
 		GUI::Print(obj->GetName(), 2);
 		GUI::NewLine();
+
+		GetEngine()->SetGameProjection();
+
+		for (int i = 0; i < info.points->GetSize(); ++i) {
+			GUI::SetColor(1.0f, 0.0f, 1.0f);
+			Rect r;
+			r.x = int((*info.points.GetShared())[i][0] - 2.0f);
+			r.y = int((*info.points.GetShared())[i][1] - 2.0f);
+			r.w = 4;
+			r.h = 4;
+			GUI::Box(r);
+		}
+
+		GUI::SetColor(1.0f, 0.0f, 0.0f);
+		Rect r;
+		r.x = int(info.avg_collision[0] - 2.0f);
+		r.y = int(info.avg_collision[1] - 2.0f);
+		r.w = 4;
+		r.h = 4;
+		GUI::Box(r);
 	}
 
 	void OnGUI( void )
@@ -274,7 +296,7 @@ protected:
 
 		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 
-		if (GetEngine()->IsPressed(MouseButton::Middle)) {
+		if (GetEngine()->IsPressed(SDLK_LSHIFT)) {
 			m_ray.origin = world_mouse;
 			m_mouse_pt.x = r.x;
 			m_mouse_pt.y = r.y;
@@ -295,9 +317,11 @@ protected:
 		m_ray.direction = (world_mouse - m_ray.origin) / m_ray.force;
 		m_ray.force *= 0.2f;
 
-		if (GetEngine()->IsReleased(MouseButton::Middle)) {
+		if (GetEngine()->IsReleased(SDLK_LSHIFT)) {
 			m_establishing_force = false;
 			for (int i = 0; i < NUM_BOX; ++i) {
+				m_box[i]->GetPhysics().UnlockPosition();
+				m_box[i]->GetPhysics().UnlockRotation();
 				m_box[i]->ApplyForce(m_ray, 100.0f);
 			}
 		}
@@ -312,6 +336,8 @@ protected:
 		if (GetEngine()->IsPressed(SDLK_SPACE)) {
 			for (int i = 0; i < NUM_BOX; ++i) {
 				m_box[i]->GetPhysics().ResetForce();
+				m_box[i]->GetPhysics().LockPosition();
+				m_box[i]->GetPhysics().LockRotation();
 			}
 		}
 
