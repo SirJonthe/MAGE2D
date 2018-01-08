@@ -17,29 +17,36 @@ float Physics::RadiansToPixels(float radius, float rad) const
 
 void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 {
-//	std::cout << "Resolving" << std::endl;
-
 	//mmlVector<2> c1_vel = p1.GetVelocityAtPoint(c.avg_collision);
 	//mmlVector<2> c2_vel = p2.GetVelocityAtPoint(c.avg_collision);
 	mmlVector<2> c1_vel = p1.GetVelocity();
 	mmlVector<2> c2_vel = p2.GetVelocity();
 	if (mmlDot(c1_vel, c2_vel) < 0.0f) { return; } // forces already resolved, early exit to avoid componding separating forces
 
-	// direction of the bounce
-		// the reflecting vector based on both of the velocity vectors and the average surface normal of the intersection collisions per object
-	// Not sure if this is realistic enough:
+	//float restitution = p1.GetRestitution() * p2.GetRestitution();
+	float restitution = 1.0f;
+	float c1_vel1 = c1_vel.Len();
+	float c2_vel1 = c2_vel.Len();
+
 
 	Force f1;
 	f1.origin = c.avg_collision;
-	f1.direction = mmlNormalize(c1_vel - c2_vel);
-	f1.force = c1_vel.Len() * p1.GetMass();
+	f1.force = c1_vel1 * p1.GetMass() * restitution;
+	f1.direction = c1_vel1 > 0.0f ? c1_vel / c1_vel1 : mmlVector<2>(0.0f, 0.0f);
+
 	Force f2;
 	f2.origin = c.avg_collision;
-	f2.direction = -f1.direction;
-	f2.force = c2_vel.Len() * p2.GetMass();
+	f2.force = c2_vel1 * p2.GetMass() * restitution;
+	f2.direction = c2_vel1 > 0.0f ? c2_vel / c2_vel1 : mmlVector<2>(0.0f, 0.0f);
 
 	p1.ApplyForce(f2);
 	p2.ApplyForce(f1);
+
+	// Add 4 forces
+		// the force A inflicts to B
+		// the counter force A inflicts to A (the "inverse" restitution)
+		// the force B inflicts to A
+		// the counter force B inflicts to B (the "inverse" restitution)
 }
 
 Physics::Physics( void ) :
@@ -71,7 +78,7 @@ void Physics::ApplyForce(const Physics::Force &force)
 	mmlVector<2> com_col_normal = mmlNormalize(center_of_mass - force.origin); // the normal between the center of mass and the collision point
 
 	if (!IsLockedPosition()) {
-		float translation_factor = mmlDot(com_col_normal, force.direction);
+		float translation_factor = mmlAbs(mmlDot(com_col_normal, force.direction));
 		m_velocity_pps += com_col_normal * force.force * translation_factor * m_inv_mass;
 	}
 
@@ -110,7 +117,7 @@ mmlVector<2> Physics::GetVelocityAtPoint(const mmlVector<2> &pt) const
 {
 	mmlVector<2> center_of_mass = m_transform->GetPosition(Transform::Global);
 	mmlVector<2> radius_vec = pt - center_of_mass;
-	mmlVector<2> rot_vel = mmlTangent(mmlNormalize(radius_vec)) * RadiansToPixels(radius_vec.Len(), m_torque_rps);
+	mmlVector<2> rot_vel = mmlTangent(mmlNormalize(-radius_vec)) * RadiansToPixels(radius_vec.Len(), m_torque_rps);
 	return GetVelocity() + rot_vel;
 }
 
@@ -149,6 +156,8 @@ float Physics::GetMass( void ) const
 void Physics::LockPosition( void )
 {
 	m_lock_position = true;
+	m_velocity_pps[0] = 0.0f;
+	m_velocity_pps[1] = 0.0f;
 }
 
 void Physics::UnlockPosition( void )
@@ -164,6 +173,7 @@ bool Physics::IsLockedPosition( void ) const
 void Physics::LockRotation( void )
 {
 	m_lock_rotation = true;
+	m_torque_rps = 0.0f;
 }
 
 void Physics::UnlockRotation( void )

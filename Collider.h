@@ -86,18 +86,12 @@ class PolygonCollider;
 
 struct CollisionInfo
 {
-//	const Collider             *c1;
-//	const Collider             *c2;
-//	ShallowArray(mmlVector<2>)  c1_points;
-//	ShallowArray(mmlVector<2>)  c2_points;
-//	mmlVector<2>                c1_avg_collision;
-//	mmlVector<2>                c2_avg_collision;
-//	bool                        collision;
-
 	const Collider             *A;
 	const Collider             *B;
 	ShallowArray(mmlVector<2>)  points;
 	mmlVector<2>                avg_collision;
+	mmlVector<2>                A_normal;
+	mmlVector<2>                B_normal;
 	bool                        collision;
 };
 

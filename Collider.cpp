@@ -391,50 +391,74 @@ CollisionInfo PolygonCollider::CollidesWith(const PolygonCollider &c) const
 	CollisionInfo info;
 	info.A = info.B = NULL;
 	info.avg_collision = mmlVector<2>(0.0f, 0.0f);
+	info.A_normal = mmlVector<2>(0.0f, 0.0f);
+	info.B_normal = mmlVector<2>(0.0f, 0.0f);
 	info.points.New();
 	info.collision = false;
 
 	if (m_globalVert.GetSize() == 0 || c.m_globalVert.GetSize() == 0) { return info; }
 
-	mtlList< mmlVector<2> > points1;
+	mtlList< mmlVector<2> > points;
 
-	int a_intersections       = PointInPolygon(m_globalVert[m_globalVert.GetSize() - 1],     c.m_globalVert) ? 1 : 0;
-	int b_intersections_start = PointInPolygon(c.m_globalVert[c.m_globalVert.GetSize() - 1], m_globalVert)   ? 1 : 0;
+	int a_intersections = PointInPolygon(m_globalVert[m_globalVert.GetSize() - 1],     c.m_globalVert) ? 1 : 0;
+	int b_intersections = PointInPolygon(c.m_globalVert[c.m_globalVert.GetSize() - 1], m_globalVert)   ? 1 : 0;
 
 	for (int i = 0, j = m_globalVert.GetSize() - 1; i < m_globalVert.GetSize(); j = i++) {
 		mmlVector<2> a1 = m_globalVert[j];
 		mmlVector<2> a2 = m_globalVert[i];
+		mmlVector<2> a_normal = mmlLineNormal(a1, a2);
 
-		int b_intersections = b_intersections_start;
+		if ((a_intersections & 1) == 1) {
+			points.AddLast(a1);
+			info.avg_collision += a1;
+		}
+
 		for (int k = 0, l = c.m_globalVert.GetSize() - 1; k < c.m_globalVert.GetSize(); l = k++) {
 			mmlVector<2> b1 = c.m_globalVert[l];
 			mmlVector<2> b2 = c.m_globalVert[k];
 
-			if ((a_intersections & 1) == 1) {
-				points1.AddLast(a1);
-				info.avg_collision += a1;
-			}
-			if ((b_intersections & 1) == 1) {
-				points1.AddLast(b1);
-				info.avg_collision += b1;
-			}
 			mmlVector<2> out;
 			if (LineIntersection(a1, a2, b1, b2, out)) {
-				points1.AddLast(out);
+				points.AddLast(out);
 				info.avg_collision += out;
 				++a_intersections;
-				++b_intersections;
+				info.A_normal += a_normal;
 			}
 		}
 	}
+	info.A_normal = a_intersections > 0 ? info.A_normal / a_intersections : mmlVector<2>(0.0f, 0.0f);
 
-	if (points1.GetSize() > 0) {
+	for (int i = 0, j = c.m_globalVert.GetSize() - 1; i < c.m_globalVert.GetSize(); j = i++) {
+		mmlVector<2> b1 = c.m_globalVert[j];
+		mmlVector<2> b2 = c.m_globalVert[i];
+		mmlVector<2> b_normal = mmlLineNormal(b1, b2);
+
+		if ((b_intersections & 1) == 1) {
+			points.AddLast(b1);
+			info.avg_collision += b1;
+		}
+
+		for (int k = 0, l = m_globalVert.GetSize() - 1; k < m_globalVert.GetSize(); l = k++) {
+			mmlVector<2> a1 = m_globalVert[l];
+			mmlVector<2> a2 = m_globalVert[k];
+
+			mmlVector<2> out;
+			if (LineIntersection(a1, a2, b1, b2, out)) {
+				++b_intersections;
+				info.B_normal += b_normal;
+			}
+		}
+	}
+	info.B_normal = b_intersections > 0 ? info.B_normal / b_intersections : mmlVector<2>(0.0f, 0.0f);
+
+
+	if (points.GetSize() > 0) {
 		info.A = this;
 		info.B = &c;
 		info.collision = true;
-		info.avg_collision /= (float)points1.GetSize();
-		info.points->SetCapacity(points1.GetSize());
-		mtlItem< mmlVector<2> > *i = points1.GetFirst();
+		info.avg_collision /= (float)points.GetSize();
+		info.points->SetCapacity(points.GetSize());
+		mtlItem< mmlVector<2> > *i = points.GetFirst();
 		while (i != NULL) {
 			info.points->Add(i->GetItem());
 			i = i->GetNext();
