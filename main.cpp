@@ -179,12 +179,6 @@ protected:
 		GetCollider()->SetHalfExtents(50.0f, 30.0f);
 		EnablePhysics();
 		EnableCollisions();
-		m_colliding = false;
-	}
-
-	void OnUpdate( void )
-	{
-		m_colliding = false;
 	}
 
 	void OnCollision(ObjectRef obj, const CollisionInfo &info)
@@ -220,39 +214,6 @@ protected:
 		GUI::Box(r);
 	}
 
-	void OnGUI( void )
-	{
-		/*GUI::Print(GetName(), 2);
-		GUI::NewLine();
-		mmlMatrix<2,2> rot = GetTransform().GetRotation(Transform::Global);
-		GUI::Print("x = [ ", 2);
-		GUI::Print(rot[0][0], 2);
-		GUI::Print(", ", 2);
-		GUI::Print(rot[0][1], 2);
-		GUI::Print(" ]", 2);
-		GUI::NewLine();
-		GUI::Print("y = [ ", 2);
-		GUI::Print(rot[1][0], 2);
-		GUI::Print(", ", 2);
-		GUI::Print(rot[1][1], 2);
-		GUI::Print(" ]", 2);
-		GUI::NewLine();
-
-		mmlVector<2> pos = GetTransform().GetPosition(Transform::Global);
-		GUI::Print("p = [ ", 2);
-		GUI::Print(pos[0], 2);
-		GUI::Print(", ", 2);
-		GUI::Print(pos[1], 2);
-		GUI::Print(" ]", 2);
-		GUI::NewLine();*/
-
-		if (m_colliding) {
-			GUI::SetColor(0.0f, 1.0f, 0.0f);
-			GUI::Print("Colliding", 2);
-			GUI::NewLine();
-		}
-	}
-
 public:
 	PhysicsObject( void ) : ConstructObject(PhysicsObject)
 	{
@@ -264,7 +225,7 @@ public:
 ObjectDeclaration(PhysicsTest)
 {
 private:
-	static const int NUM_BOX = 2;
+	static const int NUM_BOX = 15;
 	ObjectRef      m_box[NUM_BOX];
 	Physics::Force m_ray;
 	Point          m_mouse_pt;
@@ -272,45 +233,32 @@ private:
 
 protected:
 	void OnInit( void )
-	{
+	{	
 		for (int i = 0; i < NUM_BOX; ++i) {
 			m_box[i] = GetEngine()->AddObject<PhysicsObject>();
-			m_box[i]->GetTransform().SetPosition(Transform::Local, 150.0f * i, 0.0f);
+			m_box[i]->GetTransform().SetPosition(Transform::Local, -GetEngine()->GetVideoWidth() / 2 + 75 + 150 * (i % 5), -GetEngine()->GetVideoHeight() / 2 + 50 + 100 * (i / 5));
 			mtlString name;
 			name.Append("BOX").AppendInt(i+1);
 			m_box[i]->SetName(name);
-			m_box[i]->GetGraphics().SetTint(1.0f * i, 1.0f, 1.0f * (1 - i));
+			m_box[i]->GetGraphics().SetTint(GetEngine()->GetRandomUniform(), GetEngine()->GetRandomUniform(), GetEngine()->GetRandomUniform());
 		}
 		m_establishing_force = false;
 	}
 
 	void OnUpdate( void )
 	{
-		GUI::SetColor(0.0f, 0.0f, 1.0f);
-		Rect r;
-		r.x = GetEngine()->GetMousePosition().x - 5;
-		r.y = GetEngine()->GetMousePosition().y - 5;
-		r.w = 10;
-		r.h = 10;
-		GUI::Box(r);
-
 		mmlVector<2> world_mouse = GetEngine()->GetWorldMousePosition();
 
 		if (GetEngine()->IsPressed(SDLK_LSHIFT)) {
 			m_ray.origin = world_mouse;
-			m_mouse_pt.x = r.x;
-			m_mouse_pt.y = r.y;
+			m_mouse_pt.x = GetEngine()->GetMousePosition().x;
+			m_mouse_pt.y = GetEngine()->GetMousePosition().y;
 			m_establishing_force = true;
 		}
 
 		if (m_establishing_force) {
 			GUI::SetColor(1.0f, 0.0f, 0.0f);
-			Rect r;
-			r.x = m_mouse_pt.x;
-			r.y = m_mouse_pt.y;
-			r.w = 10;
-			r.h = 10;
-			GUI::Box(r);
+			GUI::Arrow(m_mouse_pt, GetEngine()->GetMousePosition(), 10);
 		}
 
 		m_ray.force = (world_mouse - m_ray.origin).Len();
@@ -330,7 +278,7 @@ protected:
 			for (int i = 0; i < NUM_BOX; ++i) {
 				m_box[i]->GetPhysics().ResetForce();
 				m_box[i]->GetTransform().SetRotation(Transform::Local, 0.0f);
-				m_box[i]->GetTransform().SetPosition(Transform::Local, 150.0f * i, 0.0f);
+				m_box[i]->GetTransform().SetPosition(Transform::Local, -GetEngine()->GetVideoWidth() / 2 + 75 + 150 * (i % 5), -GetEngine()->GetVideoHeight() / 2 + 50 + 100 * (i / 5));
 			}
 		}
 		if (GetEngine()->IsPressed(SDLK_SPACE)) {
@@ -359,6 +307,14 @@ protected:
 		if (GetEngine()->IsDown(SDLK_e)) {
 			m_box[0]->GetTransform().Rotate(-0.01f * GetEngine()->GetElapsedTime());
 		}
+		if (GetEngine()->IsDown(SDLK_z)) {
+			m_box[0]->GetPhysics().UnlockRotation();
+			m_box[0]->GetPhysics().AddTorque(-0.001f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_x)) {
+			m_box[0]->GetPhysics().UnlockRotation();
+			m_box[0]->GetPhysics().AddTorque(0.001f * GetEngine()->GetElapsedTime());
+		}
 
 		if (GetEngine()->IsDown(SDLK_i)) {
 			m_box[1]->GetTransform().Translate(Transform::Local, 0.0f, -5.0f * GetEngine()->GetElapsedTime());
@@ -377,6 +333,14 @@ protected:
 		}
 		if (GetEngine()->IsDown(SDLK_o)) {
 			m_box[1]->GetTransform().Rotate(-0.01f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_m)) {
+			m_box[0]->GetPhysics().UnlockRotation();
+			m_box[1]->GetPhysics().AddTorque(-0.001f * GetEngine()->GetElapsedTime());
+		}
+		if (GetEngine()->IsDown(SDLK_n)) {
+			m_box[0]->GetPhysics().UnlockRotation();
+			m_box[1]->GetPhysics().AddTorque(0.001f * GetEngine()->GetElapsedTime());
 		}
 	}
 
@@ -409,66 +373,6 @@ protected:
 			GUI::Print(" ]", 2);
 		}
 		GUI::NewLine();
-
-		PolygonCollider *a = dynamic_cast<PolygonCollider*>(m_box[0]->GetCollider());
-		PolygonCollider *b = dynamic_cast<PolygonCollider*>(m_box[1]->GetCollider());
-
-		if (a != NULL && a->GetVertexCount() > 0 && b != NULL && b->GetVertexCount() > 0) {
-
-			for (int i = 0, j = a->GetVertexCount() - 1; i < a->GetVertexCount(); j = i++) {
-				mmlVector<2> a1 = a->GetWorldVertex(j);
-				mmlVector<2> a2 = a->GetWorldVertex(i);
-
-				GUI::SetColor(0.0f, 1.0f, 1.0f);
-				GUI::Print(a1[0]);
-				GUI::Print(", ");
-				GUI::Print(a1[1]);
-				GUI::Print(" <-> ");
-				GUI::Print(a2[0]);
-				GUI::Print(", ");
-				GUI::Print(a2[1]);
-				GUI::NewLine();
-
-				for (int k = 0, l = b->GetVertexCount() - 1; k < b->GetVertexCount(); l = k++) {
-					mmlVector<2> b1 = b->GetWorldVertex(l);
-					mmlVector<2> b2 = b->GetWorldVertex(k);
-
-					mmlVector<2> out;
-					if (LineIntersection(a1, a2, b1, b2, out)) {
-						GUI::SetColor(1.0f, 1.0f, 0.0f);
-						GUI::Print("  ");
-						GUI::Print(b1[0]);
-						GUI::Print(", ");
-						GUI::Print(b1[1]);
-						GUI::Print(" <-> ");
-						GUI::Print(b2[0]);
-						GUI::Print(", ");
-						GUI::Print(b2[1]);
-
-						GUI::SetColor(0.0f, 1.0f, 0.0f);
-						GUI::Print(" P=(");
-						GUI::Print(out[0]);
-						GUI::Print(", ");
-						GUI::Print(out[1]);
-						GUI::Print(")");
-
-						GUI::NewLine();
-					} else {
-						GUI::SetColor(0.5f, 0.5f, 0.0f);
-						GUI::Print("  ");
-						GUI::Print(b1[0]);
-						GUI::Print(", ");
-						GUI::Print(b1[1]);
-						GUI::Print(" <-> ");
-						GUI::Print(b2[0]);
-						GUI::Print(", ");
-						GUI::Print(b2[1]);
-
-						GUI::NewLine();
-					}
-				}
-			}
-		}
 	}
 
 public:
@@ -503,9 +407,11 @@ void Unit_GUI(Engine &engine);
 void Unit_RandomFloat(Engine &engine);
 void Unit_Font(Engine &engine);
 void Unit_Collisions(Engine &engine);
+void Unit_Math( void );
 
 int main(int argc, char **argv)
 {
+	Unit_Math();
 	Engine engine;
 	engine.Init(800, 600, false, "Lots-o-tests", argc, argv);
 	//engine.AddObject<SpriteEditor>();
@@ -854,5 +760,13 @@ void Unit_Collisions(Engine &engine)
 	engine.AddObject<Quitter>();
 	engine.SetCamera(engine.AddObject<DebugCamera>());
 	engine.RunGame();
+	std::cout << "[done]" << std::endl;
+}
+
+void Unit_Math( void )
+{
+	std::cout << "Unit_Math: " << std::endl;
+	std::cout << "  pi=" << mmlPi<20,float>() << std::endl;
+	std::cout << "     " << mmlPI << std::endl;
 	std::cout << "[done]" << std::endl;
 }

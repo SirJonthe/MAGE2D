@@ -17,17 +17,28 @@ float Physics::RadiansToPixels(float radius, float rad) const
 
 void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 {
-	//mmlVector<2> c1_vel = p1.GetVelocityAtPoint(c.avg_collision);
-	//mmlVector<2> c2_vel = p2.GetVelocityAtPoint(c.avg_collision);
-	mmlVector<2> c1_vel = p1.GetVelocity();
-	mmlVector<2> c2_vel = p2.GetVelocity();
-	if (mmlDot(c1_vel, c2_vel) < 0.0f) { return; } // forces already resolved, early exit to avoid componding separating forces
+	mmlVector<2> c1_vel = p1.GetVelocityAtPoint(c.avg_collision);
+	mmlVector<2> c2_vel = p2.GetVelocityAtPoint(c.avg_collision);
+	if (mmlDot(mmlNormalize(c1_vel), mmlNormalize(c2_vel)) < 0.0f) { return; } // forces already resolved, early exit to avoid componding separating forces
 
 	//float restitution = p1.GetRestitution() * p2.GetRestitution();
 	float restitution = 1.0f;
 	float c1_vel1 = c1_vel.Len();
 	float c2_vel1 = c2_vel.Len();
 
+	// In the case of moving object A colliding with static object B
+	// The full force of A is not transferred to B
+	// The force transferred to B is limited for B to match the speed of object A
+
+	// In the case of object A colliding with object B
+	// The normal of the contact surface of B impacts how A counter-responds to the collision to the degree B is NOT set into spin from the collision
+
+	// In the case of object A colliding with object B
+		// For A there are 3 forces
+			// The force A transfers to B, limited to transferring a maximum force correspondring to A.speed = B.speed
+			// The force A transfers to A
+			// A fraction of force that is lost (in physics transformed to something else like sound, heat etc.)
+		// B inflicts 3 corresponding forces to A on impact
 
 	Force f1;
 	f1.origin = c.avg_collision;
@@ -41,12 +52,6 @@ void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 
 	p1.ApplyForce(f2);
 	p2.ApplyForce(f1);
-
-	// Add 4 forces
-		// the force A inflicts to B
-		// the counter force A inflicts to A (the "inverse" restitution)
-		// the force B inflicts to A
-		// the counter force B inflicts to B (the "inverse" restitution)
 }
 
 Physics::Physics( void ) :
@@ -117,8 +122,21 @@ mmlVector<2> Physics::GetVelocityAtPoint(const mmlVector<2> &pt) const
 {
 	mmlVector<2> center_of_mass = m_transform->GetPosition(Transform::Global);
 	mmlVector<2> radius_vec = pt - center_of_mass;
-	mmlVector<2> rot_vel = mmlTangent(mmlNormalize(-radius_vec)) * RadiansToPixels(radius_vec.Len(), m_torque_rps);
+	float radius = radius_vec.Len();
+	mmlVector<2> rot_vel = radius > 0.0f ? mmlTangent(radius_vec / radius) * RadiansToPixels(radius, m_torque_rps) : mmlVector<2>(0.0f, 0.0f);
 	return GetVelocity() + rot_vel;
+}
+
+void Physics::SetVelocity(const mmlVector<2> &velocity_pps)
+{
+	if (!IsLockedPosition()) {
+		m_velocity_pps = velocity_pps;
+	}
+}
+
+void Physics::AddVelocity(const mmlVector<2> &velocity_pps)
+{
+	SetVelocity(m_velocity_pps + velocity_pps);
 }
 
 void Physics::ScaleVelocity(float factor)
@@ -129,6 +147,18 @@ void Physics::ScaleVelocity(float factor)
 float Physics::GetTorque( void ) const
 {
 	return !IsLockedRotation() ? m_torque_rps : 0.0f;
+}
+
+void Physics::SetTorque(float torque_rps)
+{
+	if (!IsLockedRotation()) {
+		m_torque_rps = torque_rps;
+	}
+}
+
+void Physics::AddTorque(float torque_rps)
+{
+	SetTorque(m_torque_rps + torque_rps);
 }
 
 void Physics::ScaleTorque(float factor)

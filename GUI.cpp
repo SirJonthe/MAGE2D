@@ -655,6 +655,28 @@ void GUI::Line(Point a, Point b)
 	GUI::Line(fa, fb);
 }
 
+void GUI::Arrow(mmlVector<2> origin, mmlVector<2> to, float size)
+{
+	GUI::Line(origin, to);
+	float line_len = (origin - to).Len();
+	mmlVector<2> line_tangent = line_len > 0.0f ? (to - origin) / line_len : mmlVector<2>(-1.0f, 0.0f);
+	mmlVector<2> line_normal = mmlTangent(line_len > 0.0f ? line_tangent : mmlVector<2>(0.0f, 1.0f));
+	mmlVector<2> a = mmlNormalize(mmlLerp(line_normal, mmlTangent(line_normal), 0.5f)) * size;
+	GUI::Line(to, to + a);
+	mmlVector<2> b = mmlNormalize(mmlLerp(line_normal, -mmlTangent(line_normal), 0.5f)) * size;
+	GUI::Line(to, to - b);
+}
+
+void GUI::Arrow(Point origin, Point to, int size)
+{
+	mmlVector<2> fo, ft;
+	fo[0] = (float)origin.x;
+	fo[1] = (float)origin.y;
+	ft[0] = (float)to.x;
+	ft[1] = (float)to.y;
+	GUI::Arrow(fo, ft, (float)size);
+}
+
 Point GUI::GetTextSize(const mtlChars &text, int scale)
 {
 	Point p = { 0, 0 };

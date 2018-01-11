@@ -59,6 +59,8 @@ void Box(mmlVector<2> min, mmlVector<2> max);
 void Box(Rect rect);
 void Line(mmlVector<2> a, mmlVector<2> b);
 void Line(Point a, Point b);
+void Arrow(mmlVector<2> origin, mmlVector<2> to, float size = 5.0f);
+void Arrow(Point origin, Point to, int size = 5);
 
 /*void DrawLineXY(int x1, int y1, int x2, int y2);
 void DrawLineUV(float u1, float v1, float u2, float v2);

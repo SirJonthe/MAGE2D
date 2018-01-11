@@ -50,8 +50,12 @@ public:
 
 	mmlVector<2> GetVelocity( void ) const;
 	mmlVector<2> GetVelocityAtPoint(const mmlVector<2> &pt) const;
+	void         SetVelocity(const mmlVector<2> &velocity_pps);
+	void         AddVelocity(const mmlVector<2> &velocity_pps);
 	void         ScaleVelocity(float factor);
 	float        GetTorque( void ) const;
+	void         SetTorque(float torque_rps);
+	void         AddTorque(float torque_rps);
 	void         ScaleTorque(float factor);
 	float        GetForceAtPoint(const mmlVector<2> &pt) const;
 
