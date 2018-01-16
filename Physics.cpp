@@ -17,41 +17,26 @@ float Physics::RadiansToPixels(float radius, float rad) const
 
 void Physics::ResolveCollision(Physics &p1, Physics &p2, const CollisionInfo &c)
 {
+	// CollisionInfo needs to generate more useful data. Averages only seem to produce a spherical repulsion effect...
+	// check this out: http://www.dyn4j.org/2011/11/contact-points-using-clipping/
+
 	mmlVector<2> c1_vel = p1.GetVelocityAtPoint(c.avg_collision);
 	mmlVector<2> c2_vel = p2.GetVelocityAtPoint(c.avg_collision);
-	if (mmlDot(mmlNormalize(c1_vel), mmlNormalize(c2_vel)) < 0.0f) { return; } // forces already resolved, early exit to avoid componding separating forces
 
-	//float restitution = p1.GetRestitution() * p2.GetRestitution();
-	float restitution = 1.0f;
-	float c1_vel1 = c1_vel.Len();
-	float c2_vel1 = c2_vel.Len();
+	float        restitution = p1.GetRestitution() * p2.GetRestitution();
+	mmlVector<2> sum_vec = (c1_vel * p1.GetMass() - c2_vel * p2.GetMass()) * restitution;
+	float        sum_vec_len = sum_vec.Len();
+	float        inv_tot_mass = 1.0f / (p1.GetMass() + p2.GetMass());
 
-	// In the case of moving object A colliding with static object B
-	// The full force of A is not transferred to B
-	// The force transferred to B is limited for B to match the speed of object A
+	Force force;
+	force.origin    = c.avg_collision;
+	force.force     = sum_vec_len * p1.GetMass() * inv_tot_mass;
+	force.direction = sum_vec_len > 0.0f ? sum_vec / sum_vec_len : mmlVector<2>(0.0f, 0.0f);
+	p2.ApplyForce(force);
 
-	// In the case of object A colliding with object B
-	// The normal of the contact surface of B impacts how A counter-responds to the collision to the degree B is NOT set into spin from the collision
-
-	// In the case of object A colliding with object B
-		// For A there are 3 forces
-			// The force A transfers to B, limited to transferring a maximum force correspondring to A.speed = B.speed
-			// The force A transfers to A
-			// A fraction of force that is lost (in physics transformed to something else like sound, heat etc.)
-		// B inflicts 3 corresponding forces to A on impact
-
-	Force f1;
-	f1.origin = c.avg_collision;
-	f1.force = c1_vel1 * p1.GetMass() * restitution;
-	f1.direction = c1_vel1 > 0.0f ? c1_vel / c1_vel1 : mmlVector<2>(0.0f, 0.0f);
-
-	Force f2;
-	f2.origin = c.avg_collision;
-	f2.force = c2_vel1 * p2.GetMass() * restitution;
-	f2.direction = c2_vel1 > 0.0f ? c2_vel / c2_vel1 : mmlVector<2>(0.0f, 0.0f);
-
-	p1.ApplyForce(f2);
-	p2.ApplyForce(f1);
+	force.force     = sum_vec_len * p2.GetMass() * inv_tot_mass;
+	force.direction = -force.direction;
+	p1.ApplyForce(force);
 }
 
 Physics::Physics( void ) :
@@ -82,16 +67,22 @@ void Physics::ApplyForce(const Physics::Force &force)
 	mmlVector<2> center_of_mass = m_transform->GetPosition(Transform::Global); // just assume that center of mass = object position
 	mmlVector<2> com_col_normal = mmlNormalize(center_of_mass - force.origin); // the normal between the center of mass and the collision point
 
+	//mmlVector<2> start_force = GetVelocityAtPoint(force.origin);
+
 	if (!IsLockedPosition()) {
 		float translation_factor = mmlAbs(mmlDot(com_col_normal, force.direction));
-		m_velocity_pps += com_col_normal * force.force * translation_factor * m_inv_mass;
+		m_velocity_pps += com_col_normal * force.force * m_inv_mass * translation_factor;
 	}
 
 
 	if (!IsLockedRotation()) {
 		float rotation_factor = mmlCross2(com_col_normal, force.direction);
-		m_torque_rps -= PixelsToRadians((center_of_mass - force.origin).Len(), force.force) * rotation_factor * m_inv_mass;
+		m_torque_rps -= PixelsToRadians((center_of_mass - force.origin).Len(), force.force * m_inv_mass) * rotation_factor;
 	}
+
+	//mmlVector<2> end_force = GetVelocityAtPoint(force.origin);
+	//float force_tot = (end_force - start_force).Len();
+	//std::cout << "force ratio=" << force_tot << "/" << force.force << "=" << force_tot / force.force << " (should at max be 1)" << std::endl;
 }
 
 void Physics::ResetForce( void )
@@ -181,6 +172,16 @@ void Physics::SetMass(float mass)
 float Physics::GetMass( void ) const
 {
 	return m_mass;
+}
+
+void Physics::SetRestitution(float restitution)
+{
+	m_restitution = mmlClamp(0.0f, restitution, 1.0f);
+}
+
+float Physics::GetRestitution( void ) const
+{
+	return m_restitution;
 }
 
 void Physics::LockPosition( void )

@@ -192,26 +192,6 @@ protected:
 		GUI::SetColor(obj->GetGraphics().GetTint());
 		GUI::Print(obj->GetName(), 2);
 		GUI::NewLine();
-
-		GetEngine()->SetGameProjection();
-
-		for (int i = 0; i < info.points->GetSize(); ++i) {
-			GUI::SetColor(1.0f, 0.0f, 1.0f);
-			Rect r;
-			r.x = int((*info.points.GetShared())[i][0] - 2.0f);
-			r.y = int((*info.points.GetShared())[i][1] - 2.0f);
-			r.w = 4;
-			r.h = 4;
-			GUI::Box(r);
-		}
-
-		GUI::SetColor(1.0f, 0.0f, 0.0f);
-		Rect r;
-		r.x = int(info.avg_collision[0] - 2.0f);
-		r.y = int(info.avg_collision[1] - 2.0f);
-		r.w = 4;
-		r.h = 4;
-		GUI::Box(r);
 	}
 
 public:
@@ -242,6 +222,10 @@ protected:
 			m_box[i]->SetName(name);
 			m_box[i]->GetGraphics().SetTint(GetEngine()->GetRandomUniform(), GetEngine()->GetRandomUniform(), GetEngine()->GetRandomUniform());
 		}
+		for (int i = 9; i < NUM_BOX; ++i) {
+			m_box[i]->GetPhysics().LockPosition();
+			m_box[i]->GetPhysics().LockRotation();
+		}
 		m_establishing_force = false;
 	}
 
@@ -267,7 +251,7 @@ protected:
 
 		if (GetEngine()->IsReleased(SDLK_LSHIFT)) {
 			m_establishing_force = false;
-			for (int i = 0; i < NUM_BOX; ++i) {
+			for (int i = 0; i < NUM_BOX - 5; ++i) {
 				m_box[i]->GetPhysics().UnlockPosition();
 				m_box[i]->GetPhysics().UnlockRotation();
 				m_box[i]->ApplyForce(m_ray, 100.0f);

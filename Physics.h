@@ -62,6 +62,9 @@ public:
 	void  SetMass(float mass);
 	float GetMass( void ) const;
 
+	void  SetRestitution(float restitution);
+	float GetRestitution( void ) const;
+
 	void LockPosition( void );
 	void UnlockPosition( void );
 	bool IsLockedPosition( void ) const;
