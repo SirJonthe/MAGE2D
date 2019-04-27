@@ -59,7 +59,6 @@ HEADERS += \
     MiniLib/MTL/mtlMathParser.h \
     Thread.h \
     Physics.h \
-    physics.h \
     DebugRender.h
 
 OTHER_FILES += \
