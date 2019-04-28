@@ -83,7 +83,8 @@ private:
 	mtlList<ObjectRef>  m_objects;
 	mtlList<ObjectRef>  m_pending;
 	ObjectRef           m_camera;
-	Timer               m_timer;
+	Timer               m_frame_timer;
+	Timer               m_delta_timer;
 	float               m_deltaSeconds;
 	float               m_timeScale;
 	mtlRandom           m_rand;

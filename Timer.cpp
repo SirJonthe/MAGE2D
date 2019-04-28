@@ -16,7 +16,7 @@ void Timer::UpdateTimer( void ) const
 
 Timer::Time Timer::GetProgramTimeMS( void )
 {
-	return (Time)SDL_GetTicks();
+	return Time(SDL_GetTicks());
 }
 
 Timer::Timer( void ) : m_bps(0.0f), m_beat_interval(0), m_acc_time(0), m_time_last(0), m_ticking(false)
@@ -39,7 +39,7 @@ void Timer::SetTempo(float tempo, Timer::Units units)
 	} else {
 		m_bps = 0.0f;
 	}
-	m_beat_interval = (Time)(TICKS_PER_SEC_F / m_bps);
+	m_beat_interval = Time(TICKS_PER_SEC_F / m_bps);
 }
 
 float Timer::GetTempo(Timer::Units units) const
@@ -124,17 +124,17 @@ Timer::Time Timer::GetFixedTime( void ) const
 float Timer::GetTime( void ) const
 {
 	UpdateTimer();
-	return (float)m_acc_time / (float)m_beat_interval;
+	return float(m_acc_time) / float(m_beat_interval);
 }
 
 int Timer::GetBeats( void ) const
 {
 	UpdateTimer();
-	return (int)(m_acc_time / m_beat_interval);
+	return int(m_acc_time / m_beat_interval);
 }
 
 float Timer::GetPartBeat( void ) const
 {
 	UpdateTimer();
-	return (float)(m_acc_time % m_beat_interval) / (float)m_beat_interval;
+	return float(m_acc_time % m_beat_interval) / float(m_beat_interval);
 }

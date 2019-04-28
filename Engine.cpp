@@ -271,12 +271,14 @@ void Engine::InitPendingObjects( void )
 
 void Engine::UpdateTimer( void )
 {
-	float time_frame = m_timer.GetTime();
+	float time_frame = m_frame_timer.GetTime();
 	if (time_frame < 1.0f) {
 		SDL_Delay(Uint32((1000.0f / 60.0f) * (1.0f - time_frame)));
 	}
-	m_deltaSeconds = m_timer.GetTime();
-	m_timer.Reset();
+	m_deltaSeconds = m_delta_timer.GetTime();
+
+	m_frame_timer.Reset();
+	m_delta_timer.Reset();
 }
 
 void Engine::AddObject(ObjectRef object)
@@ -328,7 +330,7 @@ void Engine::GetRegisteredTypes(const mtlNode<TypeNode> *branch, mtlList< mtlSha
 
 Engine::Engine( void ) :
 	m_objects(), m_camera(),
-	m_timer(60.0f, Timer::BeatsPerSecond), m_deltaSeconds(0.0f), m_timeScale(1.0f),
+	m_frame_timer(60.0f, Timer::BeatsPerSecond), m_delta_timer(1.0f, Timer::BeatsPerSecond), m_deltaSeconds(0.0f),
 	m_rand(),
 	m_quit(false), m_inLoop(false),
 	m_destroyingAll(false),
@@ -855,8 +857,10 @@ int Engine::RunGame( void )
 	m_inLoop = true;
 	m_loop_counter = 0;
 
-	m_timer.Reset();
-	m_timer.Start();
+	m_frame_timer.Reset();
+	m_frame_timer.Start();
+	m_delta_timer.Reset();
+	m_delta_timer.Start();
 
 	while (!m_quit) {
 		UpdateInputBuffers();
@@ -875,8 +879,10 @@ int Engine::RunGame( void )
 
 	m_inLoop = false;
 
-	m_timer.Stop();
-	m_timer.Reset();
+	m_frame_timer.Stop();
+	m_frame_timer.Reset();
+	m_delta_timer.Stop();
+	m_delta_timer.Reset();
 
 	std::cout << "[END main loop]" << std::endl;
 
@@ -907,22 +913,22 @@ void Engine::KillProgram( void )
 
 void Engine::SetUpdateFrequency(float updatesPerSecond)
 {
-	m_timer.SetTempo(updatesPerSecond, Timer::BeatsPerSecond);
+	m_frame_timer.SetTempo(updatesPerSecond, Timer::BeatsPerSecond);
 }
 
 float Engine::GetElapsedTime( void ) const
 {
-	return m_deltaSeconds * m_timeScale;
+	return m_deltaSeconds;
 }
 
 float Engine::GetTimeScale( void ) const
 {
-	return m_timeScale;
+	return m_delta_timer.GetTempo(Timer::BeatsPerSecond);
 }
 
 void Engine::SetTimeScale(float timeScale)
 {
-	m_timeScale = timeScale;
+	m_delta_timer.SetTempo(timeScale, Timer::BeatsPerSecond);
 }
 
 void Engine::SetRandomizerState(unsigned long long state, unsigned long long inc)
