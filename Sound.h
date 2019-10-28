@@ -5,6 +5,8 @@
 #include "MiniLib/MTL/mtlAsset.h"
 #include "MiniLib/MTL/mtlString.h"
 
+// @data Sound
+// @info Container for sound data.
 class Sound : public mtlAssetInterface
 {
 private:
@@ -14,10 +16,28 @@ public:
 	Sound( void );
 	Sound(const mtlChars &file);
 	~Sound( void );
+	
+	// @algo Load
+	// @info Loads a sound file.
+	// @in file -> The path to the sound file.
+	// @out The result of the file operation (TRUE on success).
 	bool Load(const mtlPath &file);
+	
+	// @algo Play
+	// @info Plays the sound.
+	// @out The channel of output (-1 on fail).
 	int Play( void ) const;
+	
+	// @algo Free
+	// @info Frees the sound data resources.
 	void Free( void );
+	
+	// @algo IsGood
+	// @out TRUE if everything is OK.
 	bool IsGood( void ) const;
+	
+	// @algo StopAll
+	// @info Stops playing all sounds in SDL_mixer sub system.
 	static void StopAll( void );
 };
 

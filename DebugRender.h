@@ -4,6 +4,8 @@
 #include "Graphics.h"
 #include "Collider.h"
 
+// @data ColliderGraohics
+// @info Used by the engine to render the outline of a collider shape (generic).
 template < typename collider_t >
 class ColliderGraphics : public mtlInherit< Graphics, ColliderGraphics<collider_t> >
 {
@@ -25,6 +27,8 @@ public:
 
 };
 
+// @data ColliderGraohics<PolygonCollider>
+// @info Used by the engine to render the outline of a polygonal collider shape.
 template <>
 class ColliderGraphics<PolygonCollider> : public mtlInherit< Graphics, ColliderGraphics<PolygonCollider> >
 {

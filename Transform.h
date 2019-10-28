@@ -15,6 +15,8 @@
 // Might be able to make this more efficient by combining position and rotation,
 // but I'd rather not break anything right now...
 
+// @data Transform
+// @info Stores position, rotation, and scale.
 class Transform
 {
 private:
@@ -30,6 +32,8 @@ private:
 	float GetParentScaleY( void ) const;
 	
 public:
+	// @data Space
+	// @info 
 	enum Space
 	{
 		Local, // Translate(x, y, Local) = m_pos += xy
