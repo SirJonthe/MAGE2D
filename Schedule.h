@@ -6,6 +6,8 @@
 
 #include "Object.h"
 
+// @data ScheduleTask
+// @info A task to be repeated in accordance with a given schedule.
 class ScheduleTask
 {
 	friend class Schedule;
@@ -18,18 +20,35 @@ private:
 	Timer m_timer;
 
 public:
+	// @algo GetDelay
+	// @out The delay in seconds between executions.
 	float        GetDelay( void ) const { return m_delay_sec; }
+	
+	// @algo GetIterationsLeft
+	// @out The number of times left to execute task before removing it.
 	int          GetIterationsLeft( void ) const { return m_num_iter; }
+	
+	// @algo IsDue
+	// @info Determines if the task is ready to be executed (virtual).
+	// @out TRUE if task is ready to be executed.
 	virtual bool IsDue( void ) const; // overload this to have an arbitrary condition for execution
+	
+	// @algo operator()
+	// @info The main function to call when it is time (virtual).
+	// @in The game object to operate on.
 	virtual void operator()(Object *object) = 0;
 };
 
+// @algo CreateTask
+// @info Creates a new task.
 template < typename task_t >
 inline mtlShared<ScheduleTask> CreateTask( void )
 {
 	return mtlShared<ScheduleTask>::Create<task_t>();
 }
 
+// @data Schedule
+// @info A collection of tasks that are executed in accordance with their respective timers (abstract).
 class Schedule
 {
 public:
@@ -62,6 +81,8 @@ public:
 	virtual void ClearSchedule( void ) = 0;
 };
 
+// @data SerialSchedule
+// @info A collection of tasks that execute in accordance with their internal timers. One one task can be executed at a time.
 class SerialSchedule : public Schedule
 {
 private:
@@ -75,21 +96,46 @@ private:
 public:
 	SerialSchedule( void );
 
+	// @algo AddTask
+	// @info Adds a new task to the schedule.
+	// @in
+	//   task -> The task.
+	//   wait_seconds -> The time between executions.
+	//   iterations -> The number of times the task is executed before being removed from schedule.
 	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
 	//void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds);
 
+	// @algo Execute
+	// @info Executes the schedule on the object. Only one task is performed per iteration.
 	void Execute(Object *object);
 
+	// @algo StartTimer
+	// @info Starts task timer.
 	void StartTimer( void );
+	
+	// @algo StopTimer
+	// @info Stops task timer.
 	void StopTimer( void );
+	
+	// @algo RestartTimer
+	// @info Restarts task timer.
 	void RestartTimer( void );
 
+	// @algo IsTicking
+	// @out TRUE if task timer is running.
 	bool IsTicking( void ) const;
+	
+	// @algo IsStopped
+	// @out TRUE if task timer is not running.
 	bool IsStopped( void ) const;
 
+	// @algo ClearSchedule
+	// @info Removes all tasks from the schedule.
 	void ClearSchedule( void );
 };
 
+// @data ParallelSchedule
+// @info A collection of tasks that execute in accordance with their internal timers. Several tasks can be executed in sequence.
 class ParallelSchedule : public Schedule
 {
 private:
@@ -99,18 +145,41 @@ private:
 public:
 	ParallelSchedule( void );
 
+	// @algo AddTask
+	// @info Adds a new task to the schedule.
+	// @in
+	//   task -> The task.
+	//   wait_seconds -> The time between executions.
+	//   iterations -> The number of times the task is executed before being removed from schedule.
 	void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, int iterations);
 	//void AddTask(mtlShared<ScheduleTask> task, float wait_seconds, float exist_seconds);
 
+	// @algo Execute
+	// @info Executes the schedule on the object. Several tasks may be executed at every call to this function.
 	void Execute(Object *object);
 
+	// @algo StartTimer
+	// @info Starts task timer.
 	void StartTimer( void );
+	
+	// @algo StopTimer
+	// @info Stops task timer.
 	void StopTimer( void );
+	
+	// @algo RestartTimer
+	// @info Restarts task timer.
 	void RestartTimer( void );
 
+	// @algo IsTicking
+	// @out TRUE if task timer is running.
 	bool IsTicking( void ) const;
+	
+	// @algo IsStopped
+	// @out TRUE if task timer is not running.
 	bool IsStopped( void ) const;
 
+	// @algo ClearSchedule
+	// @info Removes all tasks from the schedule.
 	void ClearSchedule( void );
 };
 

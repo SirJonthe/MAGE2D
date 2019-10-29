@@ -12,38 +12,166 @@
 namespace GUI
 {
 
+// @algo Init
+// @info Initializes GUI.
 void Init( void );
+	
+// @algo Destroy
+// @info Destroys GUI subsystem.
 void Destroy( void );
 
+// @algo SetColor
+// @info Alters the color state of GUI rendering.
+// @in r, g, b, a -> Color values in normalized range (0-1)
 void SetColor(float r, float g, float b, float a = 1.0f);
+	
+// @algo SetColor
+// @info Alters the color state of GUI rendering.
+// @in color -> RGB color values in normalized range (0-1). Alpha set to 1.
 void SetColor(mmlVector<3> color);
+	
+// @algo SetColor
+// @info Alters the color state of GUI rendering.
+// @in color -> RGBA color values in normalized range (0-1).
 void SetColor(mmlVector<4> color);
 
+// @algo U_To_X
+// @info Converts normalized screen coordinate (0-1) to absolute screen coordinate (0-width).
+// @in u -> Normalized screen coordinate (0-1).
+// @out Absolute screen coordinate (0-width).
 int U_To_X(float u);
+	
+// @algo V_To_Y
+// @info Converts normalized screen coordinate (0-1) to absolute screen coordinate (0-height).
+// @in v -> Normalized screen coordinate (0-1).
+// @out Absolute screen coordinate (0-height).
 int V_To_Y(float v);
+	
+// @algo X_To_U
+// @info Converts absolute screen coordinate (0-width) to normalized screen coordinate (0-1).
+// @in x -> Absolute screen coordinate (0-height).
+// @out Normalized screen coordinate (0-1).
 float X_To_U(int x);
+	
+// @algo Y_To_V
+// @info Converts absolute screen coordinate (0-height) to normalized screen coordinate (0-1).
+// @in y -> Absolute screen coordinate (0-height).
+// @out Normalized screen coordinate (0-1).
 float Y_To_V(int y);
 
+// @algo SetCaretXY
+// @info Sets the rendering caret at the absolute XY coordinate.
+// @in x, y -> Absolute screen coordinates.
 void SetCaretXY(int x, int y);
+	
+// @algo SetCaretX
+// @info Sets the rendering caret at the absolute X coordinate.
+// @in x -> Absolute screen coordinate.
 void SetCaretX(int x);
+	
+// @algo SetCaretY
+// @info Sets the rendering caret at the absolute Y coordinate.
+// @in y -> Absolute screen coordinate.
 void SetCaretY(int y);
+	
+// @algo SetCaretUV
+// @info Sets the rendering caret at the normalized UV coordinate.
+// @in u, v -> Normalized screen coordinate.
 void SetCaretUV(float u, float v);
+
+// @algo SetCaretU
+// @info Sets the rendering caret at the normalized U coordinate.
+// @in u -> Normalized screen coordinate.
 void SetCaretU(float u);
+	
+// @algo SetCaretV
+// @info Sets the rendering caret at the normalized V coordinate.
+// @in v -> Normalized screen coordinate.
 void SetCaretV(float v);
+	
+// @algo GetCaretXY
+// @out The absolute caret coordinate.
 Point GetCaretXY( void );
+	
+// @algo GetCaretX
+// @out The absolute caret X coordinate.
 int GetCaretX( void );
+	
+// @algo GetCaretY
+// @out The absolute caret Y coordinate.
 int GetCaretY( void );
+	
+// @algo GetCaretUV
+// @out The normalized caret coordinate.
 mmlVector<2> GetCaretUV( void );
+	
+// @algo GetCaretU
+// @out The normalized caret U coordinate.
 float GetCaretU( void );
+	
+// @algo GetCaretV
+// @out The normalized caret V coordinate.
 float GetCaretV( void );
+	
+// @algo NewLine
+// @info Moves the caret down and resets X to its X origin.
+// @in scale -> The text scaling factor
 void NewLine(int scale = 1);
 
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   text -> The message.
+//   scale -> The desired text scaling.
 void Print(const mtlChars &text, int scale = 1);
+	
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   ch -> The message.
+//   scale -> The desired text scaling.
 void Print(char ch, int scale = 1);
+	
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   number -> The message.
+//   scale -> The desired text scaling.
 void Print(int number, int scale = 1);
+	
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   number -> The message.
+//   scale -> The desired text scaling.
 void Print(float number, int scale = 1);
+	
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   p -> The message.
+//   scale -> The desired text scaling.
 void Print(Point p, int scale = 1);
+	
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   r -> The message.
+//   scale -> The desired text scaling.
 void Print(Rect r, int scale = 1);
+	
+// @algo Print
+// @info Prints text using the color set with SetColor at the last position set by the caret.
+// @note The caret position moves to the end of the printed message.
+// @in
+//   vec -> The message.
+//   scale -> The desired text scaling.
 template < int n >
 void Print(const mmlVector<n> &vec, int scale = 1)
 {
@@ -55,11 +183,38 @@ void Print(const mmlVector<n> &vec, int scale = 1)
 	GUI::Print(vec[n-1], scale);
 }
 
+// @algo Box
+// @info Renders a box.
+// @in min, max -> The box min/max bounds in normalized screen coordinates.
 void Box(mmlVector<2> min, mmlVector<2> max);
+	
+// @algo Box
+// @info Renders a box.
+// @in rect -> The box in absolute screen coordinates.
 void Box(Rect rect);
+	
+// @algo Line
+// @info Renders a line.
+// @in a, b -> The line segment in normalized screen coordinates.
 void Line(mmlVector<2> a, mmlVector<2> b);
+	
+// @algo Line
+// @info Renders a line.
+// @info a, b -> The line segment in absolute screen coordinates.
 void Line(Point a, Point b);
+	
+// @algo Arrow
+// @info Renders an arrow.
+// @in
+//   origin, to -> The line segment in normalized screen coordinates.
+//   size -> The radius of the arrowhead edges.
 void Arrow(mmlVector<2> origin, mmlVector<2> to, float size = 5.0f);
+	
+// @algo Arrow
+// @info Renders an arrow.
+// @in
+//   origin, to -> The line segment in absolute screen coordinates.
+//   size -> The radius of the arrowhead edges.
 void Arrow(Point origin, Point to, int size = 5);
 
 /*void DrawLineXY(int x1, int y1, int x2, int y2);
@@ -70,11 +225,35 @@ void DrawBoxFilledXY(int x1, int y1, int x2, int y2);
 void DrawBoxFilledUV(float u1, float v1, float u2, float v2);
 void DrawImage(); // image*/
 
+// @algo GetTextSize
+// @in
+//   text -> The message.
+//   scale -> The text scaling.
+// @out The width and height of the text in absolute screen space.
 Point GetTextSize(const mtlChars &text, int scale = 1);
+	
+// @algo GetTextSize
+// @in
+//   number -> The message.
+//   scale -> The text scaling.
+// @out The width and height of the text in absolute screen space.
 Point GetTextSize(int number, int scale = 1);
+	
+// @algo GetTextSize
+// @in
+//   number -> The message.
+//   scale -> The text scaling.
+// @out The width and height of the text in absolute screen space.
 Point GetTextSize(float number, int scale = 1);
 
+// @algo GetCharPixelWidth
+// @in scale -> The text scale.
+// @out The width (in pixels) of a single character.
 int GetCharPixelWidth(int scale = 1);
+	
+// @algo GetCharPixelHeight
+// @in scale -> The text scale.
+// @out The height (in pixels) of a single character.
 int GetCharPixelHeight(int scale = 1);
 
 class GraphicsRect
